@@ -109,26 +109,15 @@ export default function HomePage() {
               <h2 className="font-display text-xs font-semibold text-text-primary">Razonamiento</h2>
               <p className="text-[11px] text-text-secondary">Pasos en vivo</p>
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                disabled={!lastQuery || streaming}
-                onClick={() => rerun()}
-                className="rounded-md border border-bg-elevated px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-40"
-                title="Volver a ejecutar la última pregunta con los toggles actuales"
-              >
-                ↻
-              </button>
-              <button
-                type="button"
-                disabled={!canExport}
-                onClick={() => exportPdf()}
-                className="rounded-md border border-bg-elevated px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-40"
-                title="Exportar última respuesta a PDF"
-              >
-                PDF
-              </button>
-            </div>
+            <button
+              type="button"
+              disabled={!lastQuery || streaming}
+              onClick={() => rerun()}
+              className="rounded-md border border-bg-elevated px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-40"
+              title="Volver a ejecutar la última pregunta con los toggles actuales"
+            >
+              ↻
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto px-5 py-4">
             <AgentTrace

@@ -115,26 +115,15 @@ watch(
             <h2 class="font-display text-xs font-semibold text-text-primary">Razonamiento</h2>
             <p class="text-[11px] text-text-secondary">Pasos en vivo</p>
           </div>
-          <div class="flex items-center gap-1">
-            <button
-              type="button"
-              :disabled="!chat.lastQuery || chat.streaming"
-              class="rounded-md border border-bg-elevated px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-40"
-              title="Volver a ejecutar la última pregunta con los toggles actuales"
-              @click="chat.rerun()"
-            >
-              ↻
-            </button>
-            <button
-              type="button"
-              :disabled="!canExport"
-              class="rounded-md border border-bg-elevated px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-40"
-              title="Exportar última respuesta a PDF"
-              @click="chat.exportLastResponseAsPdf()"
-            >
-              PDF
-            </button>
-          </div>
+          <button
+            type="button"
+            :disabled="!chat.lastQuery || chat.streaming"
+            class="rounded-md border border-bg-elevated px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-40"
+            title="Volver a ejecutar la última pregunta con los toggles actuales"
+            @click="chat.rerun()"
+          >
+            ↻
+          </button>
         </div>
         <div class="flex-1 overflow-y-auto px-5 py-4">
           <AgentTrace
