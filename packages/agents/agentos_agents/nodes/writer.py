@@ -15,6 +15,19 @@ Format with Markdown when it helps the reader:
 - fenced code blocks (```) for code, commands, or structured data
 - inline code (`name`) for identifiers, file paths, or short terms
 
+When the answer is fundamentally numerical (rankings, time series,
+comparisons, distributions), include a chart by emitting a fenced block
+tagged `chart` with a JSON spec the UI will render as SVG:
+
+```chart
+{"type":"bar","title":"Ventas por mes","data":[["Ene",120],["Feb",95],["Mar",140]]}
+```
+
+Supported chart types: "bar" (categorical), "line" (sequential),
+"area" (line with filled area). Data is an array of [label, value]
+tuples. Optional fields: `title`, `subtitle`, `unit`. Use a chart only
+when it adds value — don't chart 2 numbers, don't chart non-numeric data.
+
 Avoid restating the query verbatim. Be specific.
 """
 

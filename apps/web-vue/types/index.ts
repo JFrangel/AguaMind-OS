@@ -11,6 +11,7 @@ export interface WebSourceItem {
   title?: string;
   url?: string;
   snippet?: string;
+  image?: string | null;
 }
 
 export interface RagSourceItem {

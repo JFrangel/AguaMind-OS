@@ -88,6 +88,7 @@ async def run_research_stream(
                         "title": r.get("title"),
                         "url": r.get("url"),
                         "snippet": (r.get("snippet") or "")[:200],
+                        "image": r.get("image"),
                     }
                     for r in web_results
                 ],

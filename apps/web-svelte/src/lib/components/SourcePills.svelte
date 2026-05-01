@@ -17,10 +17,39 @@
       return url;
     }
   }
+
+  const webWithImage = $derived((web ?? []).filter((s) => s.image));
 </script>
 
 {#if web?.length || rag?.length}
-  <div class="mt-3 flex flex-col gap-2 border-t border-bg-elevated pt-3">
+  <div class="mt-3 flex flex-col gap-3 border-t border-bg-elevated pt-3">
+    {#if webWithImage.length > 0}
+      <div class="flex flex-wrap gap-2">
+        {#each webWithImage as src, i (src.url ?? i)}
+          <a
+            href={src.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group block w-32 overflow-hidden rounded-md border border-bg-elevated bg-bg-card transition-colors hover:border-accent-blue"
+            title={src.title || src.url}
+          >
+            <img
+              src={src.image ?? ""}
+              alt={src.title || ""}
+              loading="lazy"
+              decoding="async"
+              referrerpolicy="no-referrer"
+              class="h-20 w-full object-cover"
+              onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+            />
+            <div class="px-1.5 py-1 text-[10px] leading-tight text-text-secondary truncate">
+              {host(src.url)}
+            </div>
+          </a>
+        {/each}
+      </div>
+    {/if}
+
     {#if web?.length}
       <div>
         <div class="mb-1 font-mono text-[10px] uppercase tracking-wider text-text-muted">

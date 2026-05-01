@@ -8,6 +8,7 @@
   font-size: 0.9rem;
   line-height: 1.6;
   word-break: break-word;
+  font-variant-numeric: tabular-nums;
 }
 
 .agentos-md > *:first-child { margin-top: 0; }
@@ -90,29 +91,154 @@
   font-size: inherit;
 }
 
-.agentos-md table {
-  border-collapse: collapse;
-  margin: 0.7em 0;
-  display: block;
-  overflow-x: auto;
-  max-width: 100%;
+/* === Tables: serious data-display, not just markdown defaults === */
+.agentos-md .table-wrap {
+  position: relative;
+  margin: 0.8em 0;
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: 10px;
+  background: var(--color-bg-card);
+  max-height: 420px;
+  overflow: auto;
+}
+.agentos-md .table-wrap table,
+.agentos-md > table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85em;
+  margin: 0;
+}
+.agentos-md > table {
+  margin: 0.8em 0;
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: 10px;
+  overflow: hidden;
 }
 .agentos-md table thead {
+  position: sticky;
+  top: 0;
   background: var(--color-bg-elevated);
+  z-index: 1;
 }
-.agentos-md table th,
-.agentos-md table td {
-  padding: 0.45em 0.7em;
-  border-bottom: 1px solid var(--color-bg-elevated);
-  text-align: left;
-  vertical-align: top;
-}
-.agentos-md table th {
+.agentos-md table thead th {
+  font-family: var(--font-display);
   font-weight: 600;
   color: var(--color-text-primary);
+  text-align: left;
+  padding: 0.5em 0.8em;
+  border-bottom: 1px solid var(--color-bg-elevated);
+  white-space: nowrap;
 }
-.agentos-md table tr:last-child td {
+.agentos-md table tbody td {
+  padding: 0.45em 0.8em;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-bg-elevated) 50%, transparent);
+  vertical-align: top;
+}
+.agentos-md table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--color-bg-elevated) 25%, transparent);
+}
+.agentos-md table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-accent-blue) 8%, transparent);
+}
+.agentos-md table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* Right-align numeric cells (toggled by data-num attr from the renderer) */
+.agentos-md table td[data-num="1"],
+.agentos-md table th[data-num="1"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Toolbar above large tables: copy CSV / download CSV */
+.agentos-md .table-toolbar {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  padding: 4px;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-bg-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.agentos-md .table-toolbar button {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--color-bg-elevated);
+  background: var(--color-bg-card);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 120ms;
+}
+.agentos-md .table-toolbar button:hover {
+  border-color: var(--color-accent-blue);
+  color: var(--color-accent-blue);
+}
+
+/* === Charts (SVG-rendered from ```chart fences) === */
+.agentos-md .chart-block {
+  margin: 0.9em 0;
+  padding: 12px;
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: 10px;
+  background: var(--color-bg-card);
+}
+.agentos-md .chart-block .chart-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+.agentos-md .chart-block .chart-sub {
+  font-size: 0.75em;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.agentos-md .chart-block svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font-sans);
+}
+.agentos-md .chart-block svg .axis text {
+  fill: var(--color-text-muted);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+.agentos-md .chart-block svg .axis line,
+.agentos-md .chart-block svg .axis path {
+  stroke: var(--color-bg-elevated);
+}
+.agentos-md .chart-block svg .grid line {
+  stroke: color-mix(in srgb, var(--color-bg-elevated) 60%, transparent);
+  stroke-dasharray: 2 3;
+}
+.agentos-md .chart-block svg .bar { fill: var(--color-accent-blue); }
+.agentos-md .chart-block svg .bar-label {
+  fill: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-anchor: middle;
+}
+.agentos-md .chart-block svg .line { stroke: var(--color-accent-blue); fill: none; stroke-width: 2; }
+.agentos-md .chart-block svg .area { fill: color-mix(in srgb, var(--color-accent-blue) 18%, transparent); }
+.agentos-md .chart-block svg .dot { fill: var(--color-accent-blue); }
+.agentos-md .chart-block svg .legend text {
+  fill: var(--color-text-secondary);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+.agentos-md .chart-block .chart-error {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-status-red);
 }
 
 .agentos-md hr {

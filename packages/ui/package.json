@@ -8,9 +8,16 @@
     "./tailwind-preset": "./tailwind-preset.ts",
     "./tokens.css": "./tokens.css",
     "./markdown.css": "./markdown.css",
-    "./markdown": "./markdown.ts"
+    "./markdown": "./markdown.ts",
+    "./charts": "./charts.ts"
   },
-  "files": ["tailwind-preset.ts", "tokens.css", "markdown.css", "markdown.ts"],
+  "files": [
+    "tailwind-preset.ts",
+    "tokens.css",
+    "markdown.css",
+    "markdown.ts",
+    "charts.ts"
+  ],
   "dependencies": {
     "marked": "^14.1.0",
     "dompurify": "^3.2.0"

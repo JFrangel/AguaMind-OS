@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { renderMarkdown } from "@agentos/ui/markdown";
+  import { bindTableToolbars, renderMarkdown } from "@agentos/ui/markdown";
   import type { ChatMessage } from "$lib/types";
   import SourcePills from "./SourcePills.svelte";
 
@@ -7,6 +7,8 @@
   const isUser = $derived(message.role === "user");
 
   let html = $state("");
+  let mdRoot: HTMLDivElement | undefined = $state();
+
   $effect(() => {
     const text = message.content;
     if (!text || isUser) {
@@ -16,6 +18,13 @@
     renderMarkdown(text).then((rendered) => {
       html = rendered;
     });
+  });
+
+  // After every re-render, wire the copy/download CSV buttons that the
+  // markdown renderer drops into long tables.
+  $effect(() => {
+    html;
+    queueMicrotask(() => bindTableToolbars(mdRoot ?? null));
   });
 </script>
 
@@ -41,8 +50,10 @@
         <p class="whitespace-pre-wrap">{message.content}</p>
       {/if}
     {:else if message.content}
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html html || `<p>${message.content.replace(/</g, "&lt;")}</p>`}
+      <div bind:this={mdRoot}>
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+        {@html html || `<p>${message.content.replace(/</g, "&lt;")}</p>`}
+      </div>
       <SourcePills web={message.webSources} rag={message.ragSources} />
     {:else}
       <span class="inline-flex items-center gap-1 text-text-muted">

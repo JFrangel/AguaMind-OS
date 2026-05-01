@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { renderMarkdown } from "@agentos/ui/markdown";
+import { bindTableToolbars, renderMarkdown } from "@agentos/ui/markdown";
 
 import type { ChatMessage } from "~/types";
 
 const props = defineProps<{ message: ChatMessage }>();
 const isUser = computed(() => props.message.role === "user");
 const html = ref("");
+const mdRoot = ref<HTMLElement | null>(null);
 
 watch(
   [() => props.message.content, isUser],
@@ -18,6 +19,11 @@ watch(
   },
   { immediate: true },
 );
+
+// Wire CSV toolbar buttons after each re-render.
+watch(html, () => {
+  nextTick(() => bindTableToolbars(mdRoot.value));
+});
 </script>
 
 <template>
@@ -44,7 +50,7 @@ watch(
         <p v-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
       </template>
       <template v-else-if="message.content">
-        <div v-if="html" v-html="html" />
+        <div v-if="html" ref="mdRoot" v-html="html" />
         <p v-else class="whitespace-pre-wrap">{{ message.content }}</p>
         <SourcePills :web="message.webSources" :rag="message.ragSources" />
       </template>

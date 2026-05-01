@@ -159,7 +159,8 @@ async def run_graph_stream(
                             {
                                 "title": r.get("title"),
                                 "url": r.get("url"),
-                                "snippet": r.get("snippet", "")[:200],
+                                "snippet": (r.get("snippet") or "")[:200],
+                                "image": r.get("image"),
                             }
                             for r in web_results
                         ],

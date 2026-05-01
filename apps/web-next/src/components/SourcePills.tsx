@@ -18,9 +18,39 @@ interface Props {
 
 export function SourcePills({ web, rag }: Props) {
   if (!web?.length && !rag?.length) return null;
+  const webWithImage = (web ?? []).filter((s) => s.image);
 
   return (
-    <div className="mt-3 flex flex-col gap-2 border-t border-bg-elevated pt-3">
+    <div className="mt-3 flex flex-col gap-3 border-t border-bg-elevated pt-3">
+      {webWithImage.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {webWithImage.map((src, i) => (
+            <a
+              key={(src.url ?? "") + i}
+              href={src.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={src.title || src.url}
+              className="group block w-32 overflow-hidden rounded-md border border-bg-elevated bg-bg-card transition-colors hover:border-accent-blue"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src.image ?? ""}
+                alt={src.title || ""}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                className="h-20 w-full object-cover"
+                onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+              />
+              <div className="truncate px-1.5 py-1 text-[10px] leading-tight text-text-secondary">
+                {host(src.url)}
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : null}
+
       {web?.length ? (
         <div>
           <div className="mb-1 font-mono text-[10px] uppercase tracking-wider text-text-muted">

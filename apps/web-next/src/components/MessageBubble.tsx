@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ChatMessage } from "@/lib/types";
 
@@ -9,6 +9,7 @@ import { SourcePills } from "./SourcePills";
 export function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const [html, setHtml] = useState("");
+  const mdRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isUser || !message.content) {
@@ -25,6 +26,18 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
       cancelled = true;
     };
   }, [isUser, message.content]);
+
+  // Wire copy/download CSV buttons after the rendered HTML lands.
+  useEffect(() => {
+    if (!html || !mdRef.current) return;
+    let cancelled = false;
+    import("@agentos/ui/markdown").then(({ bindTableToolbars }) => {
+      if (!cancelled) bindTableToolbars(mdRef.current);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [html]);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -55,7 +68,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         ) : message.content ? (
           <>
             {html ? (
-              <div dangerouslySetInnerHTML={{ __html: html }} />
+              <div ref={mdRef} dangerouslySetInnerHTML={{ __html: html }} />
             ) : (
               <p className="whitespace-pre-wrap">{message.content}</p>
             )}
