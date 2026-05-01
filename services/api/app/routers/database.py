@@ -46,6 +46,8 @@ class NLQueryRequest(BaseModel):
     question: str
     cascade: str = "reasoning"
     max_tables_in_context: int = 30
+    use_rag: bool = True
+    rag_top_k: int = 4
 
 
 @router.get("/schema")
@@ -116,6 +118,34 @@ async def nl_query(body: NLQueryRequest, request: Request):
     _, introspector, executor = _get_components()
     schema_text = await introspector.schema_text(max_tables=body.max_tables_in_context)
 
+    # Pull schema-related docs from the RAG store, when enabled. The user can
+    # `POST /rag/ingest` files like "table-naming-conventions.md" or
+    # "common-joins.md" and they'll be injected into the SQL-generation prompt
+    # alongside the introspected schema. This is what bridges "the LLM sees
+    # the columns" → "the LLM also sees the tribal knowledge about what those
+    # columns *mean* in this org".
+    rag_block = ""
+    rag_hits: list[dict] = []
+    if body.use_rag:
+        pipeline = getattr(request.app.state, "rag_pipeline", None)
+        if pipeline is not None:
+            try:
+                rag_hits = await pipeline.query(body.question, top_k=body.rag_top_k)
+            except Exception:
+                rag_hits = []
+            if rag_hits:
+                lines = [
+                    "Internal documentation (use these to disambiguate ambiguous columns,",
+                    "respect naming conventions, and apply business rules):",
+                ]
+                for i, hit in enumerate(rag_hits, 1):
+                    src = (hit.get("metadata") or {}).get("filename") or hit.get("id") or f"doc-{i}"
+                    snippet = (hit.get("content") or "").strip().replace("\n", " ")
+                    if len(snippet) > 400:
+                        snippet = snippet[:397] + "…"
+                    lines.append(f"[INT-{i}] {src}: {snippet}")
+                rag_block = "\n".join(lines) + "\n\n"
+
     factory = request.app.state.llm_factory
     system = (
         "You translate natural-language questions into a single SQL SELECT query for the schema below.\n"
@@ -123,7 +153,10 @@ async def nl_query(body: NLQueryRequest, request: Request):
         "1. Output ONLY the SQL — no markdown, no explanation, no semicolons at the end.\n"
         "2. Use only SELECT (read-only). No INSERT/UPDATE/DELETE/DDL.\n"
         "3. If the question is unanswerable from the schema, output exactly: NO_QUERY\n"
-        "4. Always include a LIMIT clause (max 200 rows).\n\n"
+        "4. Always include a LIMIT clause (max 200 rows).\n"
+        "5. When the supplied internal docs apply, follow their conventions over\n"
+        "   what you'd guess from column names alone.\n\n"
+        f"{rag_block}"
         f"Schema:\n{schema_text}"
     )
     try:
@@ -183,6 +216,10 @@ async def nl_query(body: NLQueryRequest, request: Request):
             "elapsed_ms": result.elapsed_ms,
             "provider": completion.provider.value,
             "model": completion.model,
+            "rag_hits_used": len(rag_hits),
+            "rag_sources": [
+                (h.get("metadata") or {}).get("filename") or h.get("id") for h in rag_hits
+            ],
         },
     }
 

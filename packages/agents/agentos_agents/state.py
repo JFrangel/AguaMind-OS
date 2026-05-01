@@ -13,6 +13,7 @@ class AgentState(TypedDict, total=False):
     findings: Annotated[list[str], _append]
     rag_context: list[dict]
     web_context: list[dict]
+    fused_context: list[dict]
     analysis: str
     response: str
     cascade: str

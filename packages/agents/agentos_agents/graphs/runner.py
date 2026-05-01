@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from agentos_llm import LLMFactory
 
 from ..errors import friendly_all_providers_failed
+from ..fusion import fuse_results
 from ..language import resolve, status_text
 from ..nodes.analyst import analyst_node
 from ..nodes.researcher import researcher_node
@@ -163,6 +164,19 @@ async def run_graph_stream(
                             for r in web_results
                         ],
                     }
+
+            # Re-rank RAG ⊕ Web into a single ordered context so the
+            # researcher gets one prioritised list instead of two siloed
+            # blocks. Only kicks in when both modalities are active and
+            # produced hits — otherwise the standalone contexts pass
+            # through unchanged.
+            if use_rag and use_web:
+                fused = fuse_results(
+                    state.get("rag_context") or [],
+                    state.get("web_context") or [],
+                    top_k=6,
+                )
+                state["fused_context"] = fused
 
             yield _emit_status("researcher", lang)
             update = await researcher_node(state, factory)

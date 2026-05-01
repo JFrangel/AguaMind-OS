@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 
 from agentos_llm import LLMFactory
 
+from ..fusion import fuse_results
 from ..language import resolve, status_text
 from ..nodes.analyst import analyst_node
 from ..nodes.researcher import researcher_node
@@ -91,6 +92,14 @@ async def run_research_stream(
                     for r in web_results
                 ],
             }
+
+    # Re-rank when both modalities are active.
+    if use_rag and use_web:
+        state["fused_context"] = fuse_results(
+            state.get("rag_context") or [],
+            state.get("web_context") or [],
+            top_k=6,
+        )
 
     yield {
         "type": "status",
