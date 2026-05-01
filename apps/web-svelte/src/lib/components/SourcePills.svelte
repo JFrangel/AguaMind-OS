@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { lightbox } from "$lib/stores/lightbox.svelte";
   import type { RagSourceItem, WebSourceItem } from "$lib/types";
 
   let {
@@ -18,6 +19,16 @@
     }
   }
 
+  function previewSource(src: WebSourceItem): void {
+    if (!src.image) return;
+    lightbox.show({
+      src: src.image,
+      alt: src.title,
+      sourceUrl: src.url,
+      caption: src.title,
+    });
+  }
+
   const webWithImage = $derived((web ?? []).filter((s) => s.image));
 </script>
 
@@ -26,12 +37,12 @@
     {#if webWithImage.length > 0}
       <div class="flex flex-wrap gap-2">
         {#each webWithImage as src, i (src.url ?? i)}
-          <a
-            href={src.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="group block w-32 overflow-hidden rounded-md border border-bg-elevated bg-bg-card transition-colors hover:border-accent-blue"
+          <button
+            type="button"
+            onclick={() => previewSource(src)}
+            class="group block w-32 overflow-hidden rounded-md border border-bg-elevated bg-bg-card text-left transition-colors hover:border-accent-blue"
             title={src.title || src.url}
+            aria-label={`Vista previa de ${src.title ?? "imagen"}`}
           >
             <img
               src={src.image ?? ""}
@@ -45,7 +56,7 @@
             <div class="px-1.5 py-1 text-[10px] leading-tight text-text-secondary truncate">
               {host(src.url)}
             </div>
-          </a>
+          </button>
         {/each}
       </div>
     {/if}

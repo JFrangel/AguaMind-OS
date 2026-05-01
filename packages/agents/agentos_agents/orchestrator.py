@@ -37,6 +37,7 @@ class Orchestrator:
         language = ctx.get("language")
         use_rag = bool(ctx.get("use_rag"))
         use_web = bool(ctx.get("use_web"))
+        system_prompt_override = ctx.get("system_prompt_override")
 
         if engine == "crew":
             from .crews import run_crew_stream
@@ -55,6 +56,7 @@ class Orchestrator:
                 use_web=use_web,
                 rag_tool=self.rag_tool,
                 web_tool=self.web_tool,
+                system_prompt_override=system_prompt_override,
             ):
                 yield event
             return
@@ -68,6 +70,7 @@ class Orchestrator:
             use_web=use_web,
             rag_tool=self.rag_tool,
             web_tool=self.web_tool,
+            system_prompt_override=system_prompt_override,
         ):
             yield event
 

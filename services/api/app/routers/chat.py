@@ -17,6 +17,10 @@ class ChatRequest(BaseModel):
     use_rag: bool = False
     use_web: bool = False
     cascade: str | None = None
+    # Profiles (/apps/<slug>) pass their domain prompt here. The router/
+    # researcher/analyst keep their generic prompts; only the responder/
+    # writer (the user-facing voice) get replaced.
+    system_prompt_override: str | None = None
 
 
 @router.post("/stream")
@@ -44,6 +48,8 @@ async def chat_stream(body: ChatRequest, request: Request):
             ctx["language"] = body.language
         if body.cascade:
             ctx["cascade"] = body.cascade
+        if body.system_prompt_override:
+            ctx["system_prompt_override"] = body.system_prompt_override
         async for event in orchestrator.run(body.message, ctx):
             yield {"data": json.dumps(event)}
 

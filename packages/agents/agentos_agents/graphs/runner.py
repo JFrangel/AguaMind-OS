@@ -63,6 +63,7 @@ async def run_graph_stream(
     use_web: bool = False,
     rag_tool: RAGTool | None = None,
     web_tool: WebSearchTool | None = None,
+    system_prompt_override: str | None = None,
 ) -> AsyncGenerator[GraphEvent, None]:
     """Run the multi-agent chat graph, yielding SSE events as nodes execute.
 
@@ -80,6 +81,7 @@ async def run_graph_stream(
         "language": resolved_language,
         "use_rag": use_rag,
         "use_web": use_web,
+        "system_prompt_override": system_prompt_override,
     }
 
     lang = resolved_language

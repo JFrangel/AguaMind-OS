@@ -20,4 +20,8 @@ class AgentState(TypedDict, total=False):
     language: str
     use_rag: bool
     use_web: bool
+    # When set, overrides WRITER_SYSTEM / RESPONDER_SYSTEM for this run.
+    # Used by /apps/<slug> profiles to inject domain-specific behaviour
+    # (medical, legal, retail, …) without forking the codebase.
+    system_prompt_override: str | None
     error: str | None

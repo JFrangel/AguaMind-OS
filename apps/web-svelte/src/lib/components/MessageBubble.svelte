@@ -1,5 +1,6 @@
 <script lang="ts">
   import { bindTableToolbars, renderMarkdown } from "@agentos/ui/markdown";
+  import { lightbox } from "$lib/stores/lightbox.svelte";
   import type { ChatMessage } from "$lib/types";
   import SourcePills from "./SourcePills.svelte";
 
@@ -20,12 +21,34 @@
     });
   });
 
-  // After every re-render, wire the copy/download CSV buttons that the
-  // markdown renderer drops into long tables.
+  // After every re-render: wire CSV toolbar + click-to-zoom on images.
+  // Both are idempotent (data-bound flag) so streaming re-renders don't
+  // duplicate listeners.
   $effect(() => {
     html;
-    queueMicrotask(() => bindTableToolbars(mdRoot ?? null));
+    queueMicrotask(() => {
+      bindTableToolbars(mdRoot ?? null);
+      bindImageZoom();
+    });
   });
+
+  function bindImageZoom(): void {
+    if (!mdRoot) return;
+    mdRoot.querySelectorAll("img").forEach((img) => {
+      if ((img as HTMLImageElement).dataset.zoomBound === "1") return;
+      (img as HTMLImageElement).dataset.zoomBound = "1";
+      img.style.cursor = "zoom-in";
+      img.addEventListener("click", (e) => {
+        e.preventDefault();
+        const el = e.currentTarget as HTMLImageElement;
+        lightbox.show({
+          src: el.src,
+          alt: el.alt,
+          caption: el.alt || undefined,
+        });
+      });
+    });
+  }
 </script>
 
 <div class="flex {isUser ? 'justify-end' : 'justify-start'}">

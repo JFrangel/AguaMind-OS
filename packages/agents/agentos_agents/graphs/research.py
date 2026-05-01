@@ -22,6 +22,7 @@ async def run_research_stream(
     use_web: bool = False,
     rag_tool: RAGTool | None = None,
     web_tool: WebSearchTool | None = None,
+    system_prompt_override: str | None = None,
 ) -> AsyncGenerator[dict, None]:
     """Dedicated research pipeline: skips the router and always runs
     researcher → analyst → writer with a reasoning-biased cascade.
@@ -36,6 +37,7 @@ async def run_research_stream(
         "language": resolved,
         "use_rag": use_rag,
         "use_web": use_web,
+        "system_prompt_override": system_prompt_override,
     }
 
     if use_rag:

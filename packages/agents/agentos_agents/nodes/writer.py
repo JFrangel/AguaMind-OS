@@ -91,10 +91,12 @@ async def writer_stream(state: AgentState, factory: LLMFactory) -> AsyncGenerato
         parts.append(_format_rag_block(rag_context))
     user_content = "\n\n".join(parts)
 
-    # Only ask for the Sources section when there *are* sources to cite.
-    # Without web/rag context the directive would force the writer to
-    # invent links, which is worse than no citation.
-    system = WRITER_SYSTEM
+    # Profile-level override: when /apps/<slug> sets a custom system
+    # prompt (medical assistant, legal research, etc.) we replace the
+    # generic WRITER_SYSTEM but still append the sources directive when
+    # web context is present so citations stay consistent.
+    base_system = state.get("system_prompt_override") or WRITER_SYSTEM
+    system = base_system
     if web_context:
         system = f"{system}\n\n{WRITER_SOURCES_DIRECTIVE}"
 

@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
 
+  import ImageLightbox from "$lib/components/ImageLightbox.svelte";
   import { theme } from "$lib/stores/theme.svelte";
 
   let { children } = $props();
@@ -18,4 +19,5 @@
 
 <QueryClientProvider client={queryClient}>
   {@render children?.()}
+  <ImageLightbox />
 </QueryClientProvider>

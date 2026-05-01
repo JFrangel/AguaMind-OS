@@ -15,9 +15,13 @@ RESPONDER_SYSTEM = (
 async def responder_stream(state: AgentState, factory: LLMFactory) -> AsyncGenerator[str, None]:
     language = resolve(state.get("language"), state.get("query"))
     cascade = state.get("cascade") or "speed"
+    # Profiles (`/apps/<slug>`) can replace the default system prompt without
+    # touching the codebase. The language instruction is still appended so
+    # the override author doesn't have to remember it.
+    system = state.get("system_prompt_override") or RESPONDER_SYSTEM
     async for token in factory.stream_with_fallback(
         messages=[
-            {"role": "system", "content": f"{RESPONDER_SYSTEM}\n\n{instruction(language)}"},
+            {"role": "system", "content": f"{system}\n\n{instruction(language)}"},
             {"role": "user", "content": state.get("query", "")},
         ],
         cascade=cascade,
