@@ -76,6 +76,37 @@ app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_
 
 from .routers import agents, chat, data, database, geo, health, ml, notify, rag, reports
 
+
+@app.get("/", tags=["meta"])
+async def root() -> dict:
+    """Friendly landing for `GET /`. Hitting the FastAPI root with no path
+    used to return `{"detail":"Not Found"}`, which is technically correct
+    but unhelpful when the user is just checking the URL is alive.
+
+    Returns a small index of useful entry points so curl/Postman/browser
+    immediately tell you what's available.
+    """
+    return {
+        "service": "AgentOS API",
+        "version": "0.1.0",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "openapi": "/openapi.json",
+        "health": "/health",
+        "endpoints": {
+            "chat": "POST /chat/stream",
+            "agents": "POST /agents/run · POST /agents/complete",
+            "rag": "POST /rag/ingest · POST /rag/search · DELETE /rag/source/{id}",
+            "data": "POST /data/upload · POST /data/analyze",
+            "geo": "POST /geo/geocode · POST /geo/reverse",
+            "ml": "POST /ml/anomalies",
+            "reports": "POST /reports/generate",
+            "notify": "POST /notify/send · GET /notify/channels",
+            "database": "GET /database/schema · POST /database/query · POST /database/nl-query",
+        },
+    }
+
+
 app.include_router(health.router)
 app.include_router(chat.router, prefix="/chat", tags=["chat"])
 app.include_router(agents.router, prefix="/agents", tags=["agents"])

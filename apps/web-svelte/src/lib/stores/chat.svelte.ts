@@ -4,8 +4,10 @@ import type {
   ChatMessage,
   ContextType,
   Language,
+  RagSourceItem,
   SSEEvent,
   SendOptions,
+  WebSourceItem,
 } from "$lib/types";
 
 const uid = (): string =>
@@ -186,6 +188,18 @@ class ChatStore {
       case "token":
         msg.content += event.content ?? "";
         break;
+      case "sources": {
+        // Web/RAG sources are emitted as a single event with all hits.
+        // Stash them on the assistant message so MessageBubble can render
+        // pills under the streamed answer.
+        const items = event.items ?? [];
+        if (event.kind === "web") {
+          msg.webSources = [...(msg.webSources ?? []), ...(items as WebSourceItem[])];
+        } else if (event.kind === "rag") {
+          msg.ragSources = [...(msg.ragSources ?? []), ...(items as RagSourceItem[])];
+        }
+        break;
+      }
       case "error": {
         // Friendly path: rate-limit on all 3 providers shows a compact summary
         // + per-provider status instead of dumping the raw stack trace.

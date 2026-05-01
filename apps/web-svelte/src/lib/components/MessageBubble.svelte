@@ -1,6 +1,7 @@
 <script lang="ts">
   import { renderMarkdown } from "@agentos/ui/markdown";
   import type { ChatMessage } from "$lib/types";
+  import SourcePills from "./SourcePills.svelte";
 
   let { message }: { message: ChatMessage } = $props();
   const isUser = $derived(message.role === "user");
@@ -42,6 +43,7 @@
     {:else if message.content}
       <!-- eslint-disable-next-line svelte/no-at-html-tags -->
       {@html html || `<p>${message.content.replace(/</g, "&lt;")}</p>`}
+      <SourcePills web={message.webSources} rag={message.ragSources} />
     {:else}
       <span class="inline-flex items-center gap-1 text-text-muted">
         <span class="thinking-dot inline-block h-1.5 w-1.5 rounded-full bg-text-muted"></span>

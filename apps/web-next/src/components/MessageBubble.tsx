@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 import type { ChatMessage } from "@/lib/types";
 
+import { SourcePills } from "./SourcePills";
+
 export function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const [html, setHtml] = useState("");
@@ -51,11 +53,14 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : null
         ) : message.content ? (
-          html ? (
-            <div dangerouslySetInnerHTML={{ __html: html }} />
-          ) : (
-            <p className="whitespace-pre-wrap">{message.content}</p>
-          )
+          <>
+            {html ? (
+              <div dangerouslySetInnerHTML={{ __html: html }} />
+            ) : (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            )}
+            <SourcePills web={message.webSources} rag={message.ragSources} />
+          </>
         ) : (
           <span className="inline-flex items-center gap-1 text-text-muted">
             <span className="thinking-dot inline-block h-1.5 w-1.5 rounded-full bg-text-muted" />

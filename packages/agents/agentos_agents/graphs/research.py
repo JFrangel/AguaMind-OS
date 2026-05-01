@@ -40,24 +40,57 @@ async def run_research_stream(
     if use_rag:
         tool = rag_tool or default_rag_tool()
         yield {"type": "status", "node": "rag", "content": status_text("rag.search", resolved)}
-        results = await tool.query(query, top_k=4)
-        state["rag_context"] = results
-        yield {
-            "type": "status",
-            "node": "rag",
-            "content": status_text("rag.result", resolved, n=len(results)),
-        }
+        rag_results = await tool.query(query, top_k=4)
+        state["rag_context"] = rag_results
+        if not rag_results:
+            yield {
+                "type": "status",
+                "node": "rag",
+                "content": status_text("rag.empty", resolved),
+            }
+        else:
+            yield {
+                "type": "status",
+                "node": "rag",
+                "content": status_text("rag.result", resolved, n=len(rag_results)),
+            }
+            yield {
+                "type": "sources",
+                "kind": "rag",
+                "items": [
+                    {
+                        "id": h.get("id"),
+                        "score": h.get("score"),
+                        "filename": (h.get("metadata") or {}).get("filename"),
+                        "snippet": (h.get("content") or "")[:200],
+                    }
+                    for h in rag_results
+                ],
+            }
 
     if use_web:
         tool = web_tool or default_web_tool()
         yield {"type": "status", "node": "web", "content": status_text("web.search", resolved)}
-        results = await tool.search(query, top_k=3)
-        state["web_context"] = results
+        web_results = await tool.search(query, top_k=3)
+        state["web_context"] = web_results
         yield {
             "type": "status",
             "node": "web",
-            "content": status_text("web.result", resolved, n=len(results)),
+            "content": status_text("web.result", resolved, n=len(web_results)),
         }
+        if web_results:
+            yield {
+                "type": "sources",
+                "kind": "web",
+                "items": [
+                    {
+                        "title": r.get("title"),
+                        "url": r.get("url"),
+                        "snippet": (r.get("snippet") or "")[:200],
+                    }
+                    for r in web_results
+                ],
+            }
 
     yield {
         "type": "status",

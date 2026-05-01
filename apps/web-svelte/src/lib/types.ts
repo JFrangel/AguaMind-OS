@@ -4,7 +4,21 @@ export type SSEEventType =
   | "crew_status"
   | "thinking"
   | "done"
-  | "error";
+  | "error"
+  | "sources";
+
+export interface WebSourceItem {
+  title?: string;
+  url?: string;
+  snippet?: string;
+}
+
+export interface RagSourceItem {
+  id?: string;
+  score?: number;
+  filename?: string;
+  snippet?: string;
+}
 
 export interface SSEEvent {
   type: SSEEventType;
@@ -14,11 +28,13 @@ export interface SSEEvent {
   task?: string;
   error?: string;
   // Extended shape emitted by the runner when AllProvidersFailed:
-  kind?: "all_providers_failed";
+  kind?: "all_providers_failed" | "rag" | "web";
   summary?: string;
   providers?: { name: string; reason: string; retry_seconds: number | null }[];
   retry_seconds?: number | null;
   stage?: string;
+  // For type="sources":
+  items?: (WebSourceItem | RagSourceItem)[];
 }
 
 export interface ChatMessage {
@@ -28,6 +44,8 @@ export interface ChatMessage {
   timestamp: number;
   agentTrace?: AgentTraceEntry[];
   attachments?: ChatAttachment[];
+  webSources?: WebSourceItem[];
+  ragSources?: RagSourceItem[];
 }
 
 export interface ChatAttachment {

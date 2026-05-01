@@ -14,12 +14,13 @@ RESPONDER_SYSTEM = (
 
 async def responder_stream(state: AgentState, factory: LLMFactory) -> AsyncGenerator[str, None]:
     language = resolve(state.get("language"), state.get("query"))
-    adapter = factory.get(state.get("cascade") or "speed")
-    async for token in adapter.stream(
+    cascade = state.get("cascade") or "speed"
+    async for token in factory.stream_with_fallback(
         messages=[
             {"role": "system", "content": f"{RESPONDER_SYSTEM}\n\n{instruction(language)}"},
             {"role": "user", "content": state.get("query", "")},
         ],
+        cascade=cascade,
         temperature=0.7,
     ):
         yield token

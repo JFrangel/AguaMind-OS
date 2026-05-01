@@ -46,6 +46,7 @@ watch(
       <template v-else-if="message.content">
         <div v-if="html" v-html="html" />
         <p v-else class="whitespace-pre-wrap">{{ message.content }}</p>
+        <SourcePills :web="message.webSources" :rag="message.ragSources" />
       </template>
       <span v-else class="inline-flex items-center gap-1 text-text-muted">
         <span class="thinking-dot inline-block h-1.5 w-1.5 rounded-full bg-text-muted" />

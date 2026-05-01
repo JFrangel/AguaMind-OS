@@ -109,6 +109,14 @@ _STATUS = {
         "de": "{n} Fragmente abgerufen",
         "it": "{n} frammenti recuperati",
     },
+    "rag.empty": {
+        "es": "Sin documentos en la base. Sube uno con 📎 o desactiva RAG",
+        "en": "No documents in the knowledge base. Upload one with 📎 or turn RAG off",
+        "pt": "Sem documentos na base. Envie um com 📎 ou desative RAG",
+        "fr": "Aucun document dans la base. Téléverse un fichier avec 📎 ou désactive RAG",
+        "de": "Keine Dokumente in der Wissensbasis. Lade eines mit 📎 hoch oder deaktiviere RAG",
+        "it": "Nessun documento nella base. Carica un file con 📎 o disattiva RAG",
+    },
     "web.search": {
         "es": "Buscando en la web",
         "en": "Searching the web",

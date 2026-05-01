@@ -106,11 +106,36 @@ async def run_graph_stream(
                 yield _emit_status("rag", lang)
                 rag_results = await tool.query(query, top_k=4)
                 state["rag_context"] = rag_results
-                yield {
-                    "type": "status",
-                    "node": "rag",
-                    "content": status_text("rag.result", lang, n=len(rag_results)),
-                }
+                # Distinguish "0 chunks because the store is empty" (an
+                # actionable user state) from "0 chunks because nothing
+                # matched" — both look the same in the trace today, but
+                # the empty-store case deserves explicit guidance.
+                if not rag_results:
+                    yield {
+                        "type": "status",
+                        "node": "rag",
+                        "content": status_text("rag.empty", lang),
+                    }
+                else:
+                    yield {
+                        "type": "status",
+                        "node": "rag",
+                        "content": status_text("rag.result", lang, n=len(rag_results)),
+                    }
+                    # Emit the actual hits so the UI can render them as pills.
+                    yield {
+                        "type": "sources",
+                        "kind": "rag",
+                        "items": [
+                            {
+                                "id": h.get("id"),
+                                "score": h.get("score"),
+                                "filename": (h.get("metadata") or {}).get("filename"),
+                                "snippet": (h.get("content") or "")[:200],
+                            }
+                            for h in rag_results
+                        ],
+                    }
 
             if use_web:
                 tool = web_tool or default_web_tool()
@@ -122,6 +147,22 @@ async def run_graph_stream(
                     "node": "web",
                     "content": status_text("web.result", lang, n=len(web_results)),
                 }
+                if web_results:
+                    # Same pattern: surface the URLs separately so the UI
+                    # can render clickable source pills under the answer
+                    # even before the writer finishes streaming tokens.
+                    yield {
+                        "type": "sources",
+                        "kind": "web",
+                        "items": [
+                            {
+                                "title": r.get("title"),
+                                "url": r.get("url"),
+                                "snippet": r.get("snippet", "")[:200],
+                            }
+                            for r in web_results
+                        ],
+                    }
 
             yield _emit_status("researcher", lang)
             update = await researcher_node(state, factory)

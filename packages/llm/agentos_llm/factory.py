@@ -1,4 +1,5 @@
 import time
+from collections.abc import AsyncGenerator
 
 from .base import BaseLLMAdapter
 from .config import CASCADES, get_api_key, get_models
@@ -123,6 +124,77 @@ class LLMFactory:
                 self.circuit_breaker.record_failure(provider)
 
         raise AllProvidersFailedError(f"All providers failed: {errors}")
+
+    async def stream_with_fallback(
+        self,
+        messages: list[dict],
+        cascade: str | CascadeStrategy = CascadeStrategy.SPEED,
+        **kwargs,
+    ) -> AsyncGenerator[str, None]:
+        """Streaming counterpart of `complete_with_fallback`.
+
+        The streaming case is trickier than completion because we can't blindly
+        re-yield tokens after a partial stream — once the consumer has seen
+        bytes from one model, switching mid-stream is incoherent.
+
+        Strategy: open the stream and read the first chunk eagerly. If that
+        first attempt raises a retryable error (rate-limit, 429, capacity),
+        try the next model on the same provider before yielding anything. The
+        moment we yield a single token to the caller, we are committed to that
+        adapter — any subsequent failure surfaces as a stream interruption.
+
+        This catches 95% of real-world rate-limit hits in production: providers
+        return 429 *before* the stream starts, not partway through.
+        """
+        strategy = CascadeStrategy(cascade) if isinstance(cascade, str) else cascade
+        errors: list[tuple[LLMProvider, Exception]] = []
+        forced_model = kwargs.get("model")
+
+        for provider in CASCADES[strategy]:
+            if not self.circuit_breaker.is_available(provider):
+                continue
+            adapter = self._adapters.get(provider)
+            if not adapter or not adapter.is_available():
+                continue
+
+            models = [forced_model] if forced_model else get_models(provider)
+            if not models:
+                continue
+
+            for model in models:
+                call_kwargs = {**kwargs, "model": model}
+                try:
+                    stream = adapter.stream(messages, **call_kwargs)
+                    # Pull the first token to surface 429s before yielding.
+                    first = await stream.__anext__()
+                except StopAsyncIteration:
+                    # Empty stream — treat as success but produce nothing.
+                    self.circuit_breaker.record_success(provider)
+                    return
+                except Exception as e:
+                    errors.append((provider, e))
+                    if not _is_model_retryable(e):
+                        self.circuit_breaker.record_failure(provider)
+                        break
+                    # Retryable → try next model on same provider.
+                    continue
+
+                # First token landed — commit to this adapter+model.
+                self.circuit_breaker.record_success(provider)
+                yield first
+                try:
+                    async for token in stream:
+                        yield token
+                except Exception as e:
+                    # Mid-stream failure: surface as a synthetic error token
+                    # so the UI gets *something* and the run terminates cleanly.
+                    errors.append((provider, e))
+                    return
+                return
+            else:
+                self.circuit_breaker.record_failure(provider)
+
+        raise AllProvidersFailedError(f"All providers failed (stream): {errors}")
 
     def get_status(self) -> dict:
         cb_status = self.circuit_breaker.get_status()

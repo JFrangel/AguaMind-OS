@@ -6,8 +6,10 @@ import type {
   ChatMessage,
   ContextType,
   Language,
+  RagSourceItem,
   SSEEvent,
   SendOptions,
+  WebSourceItem,
 } from "~/types";
 
 const uid = (): string =>
@@ -205,6 +207,15 @@ export const useChatStore = defineStore("chat", {
         case "token":
           msg.content += event.content ?? "";
           break;
+        case "sources": {
+          const items = event.items ?? [];
+          if (event.kind === "web") {
+            msg.webSources = [...(msg.webSources ?? []), ...(items as WebSourceItem[])];
+          } else if (event.kind === "rag") {
+            msg.ragSources = [...(msg.ragSources ?? []), ...(items as RagSourceItem[])];
+          }
+          break;
+        }
         case "error": {
           if (event.kind === "all_providers_failed" && event.summary) {
             const lines = [event.summary];
