@@ -1,0 +1,8 @@
+packages:
+  - "apps/web-svelte"
+  - "apps/web-next"
+  - "apps/web-vue"
+  - "services/api-express"
+  - "services/api-nest"
+  - "packages/shared-types"
+  - "packages/ui"

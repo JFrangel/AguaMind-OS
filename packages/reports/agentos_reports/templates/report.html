@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+<p>{{ description | default('') }}</p>
+
+{% if metrics %}
+<div>
+  {% for metric in metrics %}
+  <div class="metric">
+    <div class="metric-value">{{ metric.value }}</div>
+    <div class="metric-label">{{ metric.label }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if charts %}
+{% for chart in charts %}
+<h2>{{ chart.title | default('') }}</h2>
+<img src="{{ chart.image }}" alt="{{ chart.title | default('chart') }}">
+{% endfor %}
+{% endif %}
+
+{% if table_data %}
+<h2>{{ table_title | default('Data') }}</h2>
+<table>
+  <thead>
+    <tr>{% for col in table_columns %}<th>{{ col }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in table_data %}
+    <tr>{% for col in table_columns %}<td>{{ row[col] | default('') }}</td>{% endfor %}</tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if summary %}
+<h2>Summary</h2>
+<p>{{ summary }}</p>
+{% endif %}
+{% endblock %}

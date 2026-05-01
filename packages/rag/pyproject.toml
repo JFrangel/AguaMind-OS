@@ -1,0 +1,22 @@
+[project]
+name = "agentos-rag"
+version = "0.1.0"
+description = "RAG pipeline with pgvector/FAISS and SBERT embeddings"
+requires-python = ">=3.11"
+dependencies = [
+    "sentence-transformers>=3.0.0",
+    "faiss-cpu>=1.9.0",
+    "asyncpg>=0.30.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

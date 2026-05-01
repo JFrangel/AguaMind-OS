@@ -1,0 +1,26 @@
+[project]
+name = "agentos-files"
+version = "0.1.0"
+description = "Universal file adapter — normalize any input format to text + tabular for downstream agents"
+requires-python = ">=3.11"
+dependencies = [
+    "pdfplumber>=0.11.0",
+    "python-docx>=1.1.0",
+    "openpyxl>=3.1.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",
+    "markdown>=3.6",
+    "chardet>=5.2.0",
+    "pandas>=2.2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="es" data-theme="dark-blue">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AgentOS — la base modular para apps con IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root[data-theme="dark-blue"] {
+        --bg-primary: #0a0e1a;
+        --bg-secondary: #0f1629;
+        --bg-card: #111827;
+        --bg-elevated: #1e293b;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --accent-soft: rgba(37, 99, 235, 0.12);
+        --status-green: #10b981;
+        --status-yellow: #f59e0b;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #475569;
+        --border: #1e293b;
+      }
+      :root[data-theme="dark-purple"] {
+        --bg-primary: #16161a;
+        --bg-secondary: #1c1c21;
+        --bg-card: #1f1f24;
+        --bg-elevated: #2a2a30;
+        --accent: #7f5af0;
+        --accent-hover: #6c47e0;
+        --accent-soft: rgba(127, 90, 240, 0.14);
+        --status-green: #2cb67d;
+        --status-yellow: #f5a623;
+        --text-primary: #fffffe;
+        --text-secondary: #94a1b2;
+        --text-muted: #5f6c7b;
+        --border: #2a2a30;
+      }
+      :root[data-theme="light"] {
+        --bg-primary: #fafaf8;
+        --bg-secondary: #f4f4f0;
+        --bg-card: #ffffff;
+        --bg-elevated: #e6e6df;
+        --accent: #6246ea;
+        --accent-hover: #4d35bd;
+        --accent-soft: rgba(98, 70, 234, 0.1);
+        --status-green: #2cb67d;
+        --status-yellow: #d97706;
+        --text-primary: #2b2c34;
+        --text-secondary: #4d4d5a;
+        --text-muted: #9b9ba6;
+        --border: #d8d8d6;
+      }
+
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0; padding: 0;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 14px; line-height: 1.55;
+        transition: background 220ms ease, color 220ms ease;
+      }
+      h1, h2, h3 {
+        font-family: "Space Grotesk", "Inter", sans-serif;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      a { color: inherit; text-decoration: none; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+      header.top {
+        position: sticky; top: 0; z-index: 10;
+        background: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+      }
+      header.top .row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 0;
+      }
+      .brand { display: inline-flex; align-items: center; gap: 10px; }
+      .brand .logo {
+        width: 30px; height: 30px; border-radius: 8px;
+        background: var(--accent); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700; font-size: 14px;
+      }
+      .brand .name { font-family: "Space Grotesk"; font-weight: 600; font-size: 15px; }
+      .brand .ver { font-family: "JetBrains Mono"; font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+
+      .theme-picker {
+        display: inline-flex; gap: 4px; padding: 3px;
+        border: 1px solid var(--border); border-radius: 8px;
+        background: var(--bg-card);
+      }
+      .theme-picker button {
+        all: unset; cursor: pointer;
+        font: 500 11px "Inter", sans-serif;
+        padding: 5px 10px; border-radius: 5px;
+        color: var(--text-secondary);
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: background 120ms, color 120ms;
+      }
+      .theme-picker button[aria-pressed="true"] {
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+      }
+      .swatch { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+      .hero { padding: 80px 0 48px; }
+      .hero .tag {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        padding: 4px 10px; border-radius: 999px;
+        background: var(--accent-soft); color: var(--accent);
+        margin-bottom: 22px;
+        animation: fadeUp 600ms ease-out 0ms both;
+      }
+      .hero h1 {
+        font-size: clamp(32px, 5vw, 48px);
+        line-height: 1.08;
+        font-weight: 700;
+        max-width: 760px;
+        animation: fadeUp 600ms ease-out 80ms both;
+      }
+      .hero h1 .accent { color: var(--accent); }
+      .hero p.lead {
+        max-width: 640px; margin-top: 18px;
+        color: var(--text-secondary);
+        font-size: 16px; line-height: 1.6;
+        animation: fadeUp 600ms ease-out 160ms both;
+      }
+      .hero .actions { margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap; animation: fadeUp 600ms ease-out 240ms both; }
+      .btn { padding: 11px 18px; border-radius: 8px; font-weight: 500; font-size: 13px; transition: all 120ms; cursor: pointer; }
+      .btn-primary { background: var(--accent); color: white; border: 1px solid var(--accent); }
+      .btn-primary:hover { background: var(--accent-hover); }
+      .btn-ghost { border: 1px solid var(--border); color: var(--text-primary); background: transparent; }
+      .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      section.block { padding: 56px 0; border-top: 1px solid var(--border); }
+      section h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+      section .sub { color: var(--text-secondary); font-size: 13px; margin-bottom: 26px; max-width: 620px; }
+
+      .reveal { opacity: 0; transform: translateY(16px); transition: opacity 600ms ease, transform 600ms ease; }
+      .reveal.visible { opacity: 1; transform: translateY(0); }
+
+      .grid { display: grid; gap: 14px; }
+      .grid.cols-3, .grid.cols-4, .grid.cols-2 { grid-template-columns: 1fr; }
+      @media (min-width: 720px) {
+        .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        transition: border-color 120ms, transform 80ms;
+      }
+      .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+      .feature-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        margin-bottom: 8px;
+        display: block;
+      }
+      .feature-tag.green { color: var(--status-green); }
+      .feature-tag.yellow { color: var(--status-yellow); }
+      .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+      .card .desc { color: var(--text-secondary); font-size: 12.5px; line-height: 1.55; margin-bottom: 12px; }
+      .card ul { list-style: none; padding: 0; margin: 0; }
+      .card ul li {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin: 4px 0;
+        display: flex; align-items: flex-start; gap: 8px;
+      }
+      .card ul li::before { content: "▸"; color: var(--accent); flex-shrink: 0; }
+      .card.green ul li::before { color: var(--status-green); }
+      .card.yellow ul li::before { color: var(--status-yellow); }
+
+      .deps {
+        margin-top: 10px;
+        padding: 6px 10px;
+        background: var(--bg-elevated);
+        border-radius: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      .stack-tile {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .stack-tile .label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+      .stack-tile .value { font-family: "Space Grotesk"; font-weight: 600; font-size: 13px; }
+      .stack-tile .sub   { font-family: "JetBrains Mono"; font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+      .chooser-card {
+        display: block;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        transition: border-color 120ms, transform 80ms;
+      }
+      .chooser-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+      .chooser-card .badge-lg {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        padding: 3px 8px; border-radius: 999px;
+        background: var(--accent-soft); color: var(--accent);
+      }
+      .chooser-card .name { font-family: "Space Grotesk"; font-weight: 600; font-size: 15px; margin: 8px 0 2px; }
+      .chooser-card .meta { font-family: "JetBrains Mono"; font-size: 11px; color: var(--text-muted); }
+      .chooser-card .desc { color: var(--text-secondary); font-size: 12.5px; margin-top: 10px; }
+
+      .trace-demo {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+      .trace-line {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--border);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        opacity: 0;
+        animation: traceIn 500ms ease-out forwards;
+      }
+      .trace-line:last-child { border-bottom: none; }
+      .trace-line .pill {
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .pill.router    { color: var(--accent);       border-color: var(--accent); }
+      .pill.rag       { color: #06b6d4;             border-color: #06b6d4; }
+      .pill.web       { color: #ec4899;             border-color: #ec4899; }
+      .pill.researcher{ color: var(--status-green); border-color: var(--status-green); }
+      .pill.analyst   { color: var(--status-yellow);border-color: var(--status-yellow); }
+      .pill.writer    { color: #a855f7;             border-color: #a855f7; }
+      .trace-line .ts { color: var(--text-muted); margin-left: auto; }
+
+      @keyframes traceIn {
+        from { opacity: 0; transform: translateX(-6px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        margin-top: 40px;
+        padding: 28px 0;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="container row">
+        <div class="brand">
+          <span class="logo">A</span>
+          <span class="name">AgentOS</span>
+          <span class="ver">v0.1 · 66 tests · MIT</span>
+        </div>
+        <div class="theme-picker" role="group" aria-label="Tema">
+          <button data-theme-btn="dark-blue"   aria-pressed="true">
+            <span class="swatch" style="background:#2563eb"></span> Slate
+          </button>
+          <button data-theme-btn="dark-purple" aria-pressed="false">
+            <span class="swatch" style="background:#7f5af0"></span> Indigo
+          </button>
+          <button data-theme-btn="light"       aria-pressed="false">
+            <span class="swatch" style="background:#6246ea"></span> Ivory
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero container">
+      <span class="tag">Boilerplate · multi-frontend · multi-LLM</span>
+      <h1>
+        La base con la que construyes apps de IA <span class="accent">en horas, no en semanas</span>.
+      </h1>
+      <p class="lead">
+        AgentOS es la plomería que cualquier app con IA necesita: orquestación multi-agente con razonamiento visible,
+        cascada con failover entre 3 proveedores LLM, RAG sobre tus documentos, búsqueda web,
+        consultas en lenguaje natural a tu base de datos, notificaciones, exportación a PDF.
+        Tú pones el dominio del problema; el resto ya está.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#frontends">Elegir un frontend →</a>
+        <a class="btn btn-ghost" href="#features">Ver qué tiene</a>
+      </div>
+    </section>
+
+    <section id="frontends" class="block">
+      <div class="container">
+        <h2 class="reveal">Mismo backend · 3 frontends</h2>
+        <p class="sub reveal">
+          Cualquiera de los tres consume la misma API SSE. Haz clic para abrir el dev server (asegúrate de tener
+          <span class="mono" style="color:var(--text-primary)">pnpm dev:&lt;svelte|next|vue&gt;</span> corriendo).
+        </p>
+        <div class="grid cols-3">
+          <a class="chooser-card reveal" href="http://localhost:5173" target="_blank" rel="noopener">
+            <span class="badge-lg">SVELTE</span>
+            <div class="name">SvelteKit 2</div>
+            <div class="meta">localhost:5173</div>
+            <p class="desc">Svelte 5 runes + TanStack Query. El más liviano y el que arranca primero.</p>
+
+
+          </a>
+          <a class="chooser-card reveal" href="http://localhost:3000" target="_blank" rel="noopener">
+            <span class="badge-lg">REACT</span>
+            <div class="name">Next.js 15</div>
+            <div class="meta">localhost:3000</div>
+            <p class="desc">App Router + Zustand + React 19. Si tu equipo viene del ecosistema React.</p>
+
+
+          </a>
+          <a class="chooser-card reveal" href="http://localhost:3001" target="_blank" rel="noopener">
+            <span class="badge-lg">VUE</span>
+            <div class="name">Nuxt 3</div>
+            <div class="meta">localhost:3001</div>
+            <p class="desc">Pinia + Vue Query + auto-imports. Si prefieres Vue o composition API.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="container">
+        <h2 class="reveal">Razonamiento visible · stream en tiempo real</h2>
+        <p class="sub reveal">
+          Esto es lo que ves en el panel lateral del chat mientras los agentes trabajan. Cada nodo emite un
+          evento SSE; el frontend los va dibujando, el último (writer/responder) además streamea tokens.
+        </p>
+        <div class="trace-demo reveal">
+          <div class="trace-line" style="animation-delay:.1s">
+            <span class="pill router">router</span>
+            <span>Classifying intent and planning next steps</span>
+            <span class="ts">+12 ms</span>
+          </div>
+          <div class="trace-line" style="animation-delay:.4s">
+            <span class="pill router">router</span>
+            <span>intent: research · es</span>
+            <span class="ts">+312 ms</span>
+          </div>
+          <div class="trace-line" style="animation-delay:.7s">
+            <span class="pill rag">rag</span>
+            <span>Searching internal knowledge base · 1 chunks recuperados</span>
+            <span class="ts">+44 ms</span>
+          </div>
+          <div class="trace-line" style="animation-delay:1s">
+            <span class="pill web">web</span>
+            <span>Searching the web · 3 resultados</span>
+            <span class="ts">+820 ms</span>
+          </div>
+          <div class="trace-line" style="animation-delay:1.3s">
+            <span class="pill researcher">researcher</span>
+            <span>5 findings collected</span>
+            <span class="ts">+1.1 s</span>
+          </div>
+          <div class="trace-line" style="animation-delay:1.6s">
+            <span class="pill analyst">analyst</span>
+            <span>analysis ready</span>
+            <span class="ts">+2.3 s</span>
+          </div>
+          <div class="trace-line" style="animation-delay:1.9s">
+            <span class="pill writer">writer</span>
+            <span>Composing the final response · streaming tokens…</span>
+            <span class="ts">+2.4 s</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="block">
+      <div class="container">
+        <h2 class="reveal">¿Qué te da listo?</h2>
+        <p class="sub reveal">
+          Cada feature es un paquete independiente; puedes borrar lo que no uses sin romper nada.
+          Las que dependen de una key opcional están marcadas.
+        </p>
+        <div class="grid cols-2">
+
+          <div class="card reveal">
+            <span class="feature-tag">[LLM]</span>
+            <h3>Cascada con failover</h3>
+            <p class="desc">
+              Una sola llamada (<span class="mono">complete_with_fallback</span>) prueba Groq → OpenRouter → Gemini.
+              Circuit breaker abre el proveedor caído por 60s. Tu usuario nunca se entera.
+            </p>
+            <ul>
+              <li>4 cascadas: speed · reasoning · cheap · multimodal</li>
+              <li>3 proveedores con planes gratuitos por default</li>
+              <li>Tests: 13 (failover + breaker + status shape)</li>
+            </ul>
+          </div>
+
+          <div class="card reveal green">
+            <span class="feature-tag green">[AGT]</span>
+            <h3>Multi-agente con razonamiento visible</h3>
+            <p class="desc">
+              LangGraph (router → researcher → analyst → writer) + CrewAI (crews colaborativos).
+              Cada paso emite un SSE; el panel lateral del chat lo dibuja en vivo.
+            </p>
+            <ul>
+              <li>2 motores: graph (chat) · crew (colaborativo)</li>
+              <li>Tools inyectables: RAG, Web search</li>
+              <li>Multi-idioma: es / en / pt / fr / de / it</li>
+            </ul>
+          </div>
+
+          <div class="card reveal">
+            <span class="feature-tag">[RAG]</span>
+            <h3>RAG con file adapter universal</h3>
+            <p class="desc">
+              Sube cualquier archivo y el agente lo usa. PDF · DOCX · XLSX · CSV · JSON · MD · HTML · TXT
+              · Parquet · XML. La pipeline (chunk + SBERT + FAISS / pgvector) es compartida con los agentes.
+            </p>
+            <ul>
+              <li>FileAdapterFactory normaliza a texto + tabular</li>
+              <li>SBERT MiniLM-L6-v2 (384-dim) · sentence-aware chunks</li>
+              <li>Tests: 9 chunking + FAISS · 9 file factory</li>
+            </ul>
+            <div class="deps">depende: ninguna API key · runs offline</div>
+          </div>
+
+          <div class="card reveal yellow">
+            <span class="feature-tag yellow">[WEB]</span>
+            <h3>Búsqueda web</h3>
+            <p class="desc">
+              Toggle <span class="mono">use_web</span> en el chat. Por default scraping HTML de DuckDuckGo
+              (sin key). Con <span class="mono">TAVILY_API_KEY</span> sube de tier automáticamente.
+            </p>
+            <ul>
+              <li>DuckDuckGo HTML (resultados reales, sin Wikipedia-only)</li>
+              <li>Tavily como upgrade opt-in</li>
+              <li>Inyectable como tool en el orchestrator</li>
+            </ul>
+            <div class="deps">depende: opcional <span class="mono" style="color:var(--text-secondary)">TAVILY_API_KEY</span></div>
+          </div>
+
+          <div class="card reveal">
+            <span class="feature-tag">[DB]</span>
+            <h3>NL → SQL sobre tu DB</h3>
+            <p class="desc">
+              Conecta Postgres / MySQL / SQLite. <span class="mono">/database/nl-query</span> traduce
+              lenguaje natural a SELECT seguro (DML/DDL bloqueado, multi-statement bloqueado, LIMIT auto).
+            </p>
+            <ul>
+              <li>SchemaIntrospector listo para LLM context</li>
+              <li>SafeQueryExecutor con regex de bloqueo</li>
+              <li>Tests: 12 (executor + introspector)</li>
+            </ul>
+            <div class="deps">depende: tu <span class="mono" style="color:var(--text-secondary)">DATABASE_URL_USER</span></div>
+          </div>
+
+          <div class="card reveal green">
+            <span class="feature-tag green">[NOT]</span>
+            <h3>Notificaciones multi-canal</h3>
+            <p class="desc">
+              El agente puede avisarte cuando algo pasa. Telegram + Email mandados en paralelo
+              (<span class="mono">asyncio.gather</span>). Channels detectados al boot.
+            </p>
+            <ul>
+              <li>Severidades: info · warning · critical</li>
+              <li>Per-channel results · 6 tests con stubs</li>
+            </ul>
+            <div class="deps">depende: <span class="mono" style="color:var(--text-secondary)">TELEGRAM_BOT_TOKEN</span> y/o SMTP</div>
+          </div>
+
+          <div class="card reveal">
+            <span class="feature-tag">[PDF]</span>
+            <h3>Exportar a PDF</h3>
+            <p class="desc">
+              Botón <strong>PDF</strong> en el aside del chat exporta la última respuesta. Doble pipeline:
+              ReportLab por default (pure Python, funciona en Windows), WeasyPrint cuando hay GTK.
+              Markdown del agente se renderiza con tablas, código, listas y links.
+            </p>
+            <ul>
+              <li>Datasheet PDF con <span class="mono">pnpm datasheet</span></li>
+              <li>Reportes con métricas + tablas via WeasyPrint</li>
+            </ul>
+          </div>
+
+          <div class="card reveal yellow">
+            <span class="feature-tag yellow">[SET]</span>
+            <h3>Listo para deploy</h3>
+            <p class="desc">
+              CI corre los 6 paquetes + Go build + 3-frontend matrix. CD auto-despliega Svelte / Next /
+              Vue a Vercel y FastAPI / Go a Koyeb en cada merge a main.
+            </p>
+            <ul>
+              <li>Vercel · Koyeb · Supabase · PocketHost (todos free)</li>
+              <li>JWT auth opcional · rate limiter sliding-window</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="container">
+        <h2 class="reveal">Stack técnico</h2>
+        <p class="sub reveal">Todo open-source. Cada paquete es independientemente desinstalable.</p>
+        <div class="grid cols-4">
+          <div class="stack-tile reveal">
+            <div class="label">FRONTEND</div>
+            <div class="value">SvelteKit · Next.js · Nuxt 3</div>
+            <div class="sub">Tailwind v4 · TanStack Query</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">BACKEND</div>
+            <div class="value">FastAPI + Pydantic</div>
+            <div class="sub">Go (Gin) · Express · NestJS alt</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">AGENTES</div>
+            <div class="value">LangGraph + CrewAI</div>
+            <div class="sub">orchestrator + tools</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">LLM</div>
+            <div class="value">Groq · OpenRouter · Gemini</div>
+            <div class="sub">cascada + circuit breaker</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">RAG</div>
+            <div class="value">SBERT + FAISS / pgvector</div>
+            <div class="sub">sentence-aware chunking</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">DB</div>
+            <div class="value">Supabase + PostGIS</div>
+            <div class="sub">pgvector + RLS multi-tenant</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">PDF</div>
+            <div class="value">ReportLab + WeasyPrint</div>
+            <div class="sub">markdown · tablas · charts</div>
+          </div>
+          <div class="stack-tile reveal">
+            <div class="label">TESTING</div>
+            <div class="value">pytest · vitest · Go test</div>
+            <div class="sub">66+ tests por paquete</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="container">
+        <h2 class="reveal">Empezar en 5 comandos</h2>
+        <p class="sub reveal">Asumiendo Python 3.12 y Node 20+. La primera vez tarda ~3 min por sentence-transformers.</p>
+        <pre class="reveal" style="
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 18px 20px;
+          font-family: 'JetBrains Mono';
+          font-size: 12.5px;
+          line-height: 1.65;
+          overflow-x: auto;
+          color: var(--text-primary);
+          margin: 0;
+        ">
+<span style="color:var(--text-muted)"># 1) clonar y configurar</span>
+git clone &lt;repo&gt; && cd agentos
+cp .env.example .env  <span style="color:var(--text-muted)"># pega GROQ_API_KEY (gratis en console.groq.com)</span>
+
+<span style="color:var(--text-muted)"># 2) instalar packages</span>
+pnpm install
+pip install -e packages/llm packages/agents packages/rag packages/files services/api
+
+<span style="color:var(--text-muted)"># 3) backend</span>
+cd services/api && uvicorn app.main:app --reload
+
+<span style="color:var(--text-muted)"># 4) elegir frontend</span>
+pnpm preview   <span style="color:var(--text-muted)"># abre este selector visual</span>
+
+<span style="color:var(--text-muted)"># 5) verificar</span>
+python scripts/e2e_smoke.py</pre>
+      </div>
+    </section>
+
+    <footer class="container">
+      <span>AgentOS · MIT · 66 tests verdes · 3 frontends · 6 packages independientes</span>
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <a href="/docs/es/QUE-ES-AGENTOS">¿Qué es?</a>
+        <a href="/docs/es/GUIA-RAPIDA">Guía rápida</a>
+        <a href="/docs/es/IMPLEMENTACION">Implementación</a>
+        <a href="/docs/es/FUNCIONALIDADES">Funcionalidades</a>
+        <a href="/docs/agentos-datasheet.pdf" target="_blank" rel="noopener">Datasheet PDF ↗</a>
+      </div>
+    </footer>
+
+    <script>
+      const KEY = "agentos:theme";
+      const stored = localStorage.getItem(KEY);
+      if (stored) document.documentElement.setAttribute("data-theme", stored);
+
+      function setActive(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        localStorage.setItem(KEY, theme);
+        document.querySelectorAll("[data-theme-btn]").forEach((b) => {
+          b.setAttribute("aria-pressed", String(b.dataset.themeBtn === theme));
+        });
+      }
+
+      const initial = document.documentElement.getAttribute("data-theme");
+      setActive(initial);
+      document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
+        btn.addEventListener("click", () => setActive(btn.dataset.themeBtn));
+      });
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,135 @@
+/*
+ * Typography for `<div class="agentos-md">…</div>` produced by renderMarkdown().
+ * Imported by each frontend's entry CSS after tokens.css.
+ */
+
+.agentos-md {
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.agentos-md > *:first-child { margin-top: 0; }
+.agentos-md > *:last-child  { margin-bottom: 0; }
+
+.agentos-md h1,
+.agentos-md h2,
+.agentos-md h3,
+.agentos-md h4,
+.agentos-md h5,
+.agentos-md h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin: 1em 0 0.4em;
+  line-height: 1.25;
+}
+.agentos-md h1 { font-size: 1.25rem; }
+.agentos-md h2 { font-size: 1.1rem; }
+.agentos-md h3 { font-size: 1rem; }
+.agentos-md h4,
+.agentos-md h5,
+.agentos-md h6 { font-size: 0.95rem; }
+
+.agentos-md p {
+  margin: 0.4em 0;
+}
+
+.agentos-md a {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.agentos-md a:hover { color: var(--color-accent-blue-hover); }
+
+.agentos-md strong { font-weight: 600; color: var(--color-text-primary); }
+.agentos-md em     { color: var(--color-text-primary); }
+
+.agentos-md ul,
+.agentos-md ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+.agentos-md li { margin: 0.15em 0; }
+.agentos-md li > p { margin: 0.15em 0; }
+
+.agentos-md blockquote {
+  margin: 0.6em 0;
+  padding: 0.4em 0.9em;
+  border-left: 3px solid var(--color-accent-blue);
+  background: var(--color-bg-elevated);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+}
+
+.agentos-md code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.agentos-md pre {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  padding: 0.8em 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.7em 0;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+.agentos-md pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+.agentos-md table {
+  border-collapse: collapse;
+  margin: 0.7em 0;
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.agentos-md table thead {
+  background: var(--color-bg-elevated);
+}
+.agentos-md table th,
+.agentos-md table td {
+  padding: 0.45em 0.7em;
+  border-bottom: 1px solid var(--color-bg-elevated);
+  text-align: left;
+  vertical-align: top;
+}
+.agentos-md table th {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.agentos-md table tr:last-child td {
+  border-bottom: none;
+}
+
+.agentos-md hr {
+  border: none;
+  border-top: 1px solid var(--color-bg-elevated);
+  margin: 1em 0;
+}
+
+.agentos-md img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 0.5em 0;
+}
+
+/* Bubble override — assistant message has the card background, so code
+ * blocks need to differentiate. Targets when md is inside an assistant card. */
+.assistant-bubble .agentos-md pre,
+.assistant-bubble .agentos-md code {
+  background: var(--color-bg-secondary);
+}

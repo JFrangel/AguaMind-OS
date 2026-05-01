@@ -1,0 +1,19 @@
+[project]
+name = "agentos-reports"
+version = "0.1.0"
+description = "PDF report generation with templates"
+requires-python = ">=3.11"
+dependencies = [
+    "jinja2>=3.1.0",
+    "matplotlib>=3.9.0",
+    "reportlab>=4.2.0",
+    "markdown>=3.6",
+]
+
+[project.optional-dependencies]
+weasyprint = ["weasyprint>=63.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"

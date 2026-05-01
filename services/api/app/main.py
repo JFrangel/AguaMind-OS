@@ -1,0 +1,88 @@
+import os
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+
+def _load_env_file() -> None:
+    """Lightweight .env loader run before settings + LLM adapters import os.environ.
+
+    Walks up from this file looking for the first `.env` and sets any missing
+    keys. Does NOT overwrite existing env vars (so docker/koyeb env wins).
+    """
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        env_path = parent / ".env"
+        if env_path.is_file():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip().strip("'").strip('"')
+                if key and key not in os.environ:
+                    os.environ[key] = value
+            return
+
+
+_load_env_file()
+
+from .config import settings  # noqa: E402  — must follow _load_env_file
+from .middleware import RateLimitMiddleware  # noqa: E402
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from agentos_llm import LLMFactory
+    from agentos_notifications import NotificationDispatcher
+    from agentos_rag import RAGPipeline
+
+    app.state.llm_factory = LLMFactory()
+    app.state.notifier = NotificationDispatcher()
+    # One pipeline per process: shared between /rag/* (upload, search) and the
+    # agents' RAG tool. Without this they used to be two separate FAISS stores
+    # in memory — uploads went to one, chat queried the other empty one.
+    app.state.rag_pipeline = RAGPipeline()
+
+    if settings.supabase_url and settings.supabase_service_key:
+        from .services.supabase_client import SupabaseService
+
+        app.state.supabase = SupabaseService(
+            settings.supabase_url, settings.supabase_service_key
+        )
+    else:
+        app.state.supabase = None
+
+    yield
+
+
+app = FastAPI(
+    title="AgentOS API",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
+
+from .routers import agents, chat, data, database, geo, health, ml, notify, rag, reports
+
+app.include_router(health.router)
+app.include_router(chat.router, prefix="/chat", tags=["chat"])
+app.include_router(agents.router, prefix="/agents", tags=["agents"])
+app.include_router(rag.router, prefix="/rag", tags=["rag"])
+app.include_router(data.router, prefix="/data", tags=["data"])
+app.include_router(geo.router, prefix="/geo", tags=["geo"])
+app.include_router(ml.router, prefix="/ml", tags=["ml"])
+app.include_router(reports.router, prefix="/reports", tags=["reports"])
+app.include_router(notify.router, prefix="/notify", tags=["notifications"])
+app.include_router(database.router, prefix="/database", tags=["database"])

@@ -1,0 +1,35 @@
+name: agentos-go
+
+services:
+  - name: go-api
+    type: web
+    docker:
+      dockerfile: apps/api-go/Dockerfile
+    instance_type: nano
+    regions:
+      - fra
+    ports:
+      - port: 8080
+        protocol: http
+    routes:
+      - path: /
+        port: 8080
+    health_checks:
+      - http:
+          port: 8080
+          path: /health
+        interval: 30
+    scalings:
+      - min: 1
+        max: 1
+    env:
+      - key: GO_API_PORT
+        value: "8080"
+      - key: BACKEND_URL
+        value: https://agentos-api.koyeb.app
+      - key: SUPABASE_JWT_SECRET
+        secret: supabase-jwt-secret
+      - key: AUTH_REQUIRED
+        value: "false"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "240"

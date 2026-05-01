@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title | default('AgentOS — Respuesta') }}</h1>
+{% if subtitle %}<p style="color: #495057; font-size: 13px;">{{ subtitle }}</p>{% endif %}
+<div class="response-body">
+  {% if html_content %}
+    {{ html_content | safe }}
+  {% else %}
+    <pre style="white-space: pre-wrap; font-family: 'Inter', sans-serif; line-height: 1.7;">{{ content }}</pre>
+  {% endif %}
+</div>
+{% endblock %}

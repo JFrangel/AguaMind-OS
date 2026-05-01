@@ -1,0 +1,29 @@
+[project]
+name = "agentos-api"
+version = "0.1.0"
+description = "FastAPI backend for AgentOS"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.6.0",
+    "python-multipart>=0.0.18",
+    "supabase>=2.10.0",
+    "python-jose[cryptography]>=3.3.0",
+    "sse-starlette>=2.2.0",
+    "agentos-llm @ file://../../packages/llm",
+    "agentos-agents @ file://../../packages/agents",
+    "agentos-rag @ file://../../packages/rag",
+    "agentos-data @ file://../../packages/data",
+    "agentos-ml @ file://../../packages/ml",
+    "agentos-geo @ file://../../packages/geo",
+    "agentos-reports @ file://../../packages/reports",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "httpx>=0.28"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"

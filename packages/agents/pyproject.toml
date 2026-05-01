@@ -1,0 +1,21 @@
+[project]
+name = "agentos-agents"
+version = "0.1.0"
+description = "LangGraph + CrewAI agent orchestration"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.3.0",
+    "crewai>=0.100.0",
+    "agentos-llm @ file://../../packages/llm",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

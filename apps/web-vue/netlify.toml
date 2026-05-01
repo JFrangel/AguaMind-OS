@@ -1,0 +1,16 @@
+[build]
+  base = "apps/web-vue"
+  command = "pnpm install --frozen-lockfile=false && pnpm --filter @agentos/shared-types build && pnpm --filter web-vue build"
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_VERSION = "9.15.4"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server/api/:splat"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"

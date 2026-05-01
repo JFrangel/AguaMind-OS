@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "FastAPI backend (Python)",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["app.main:app", "--reload", "--port", "8000", "--app-dir", "services/api"],
+      "port": 8000
+    },
+    {
+      "name": "SvelteKit (web-svelte)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:svelte"],
+      "port": 5173
+    },
+    {
+      "name": "Next.js (web-next)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:next"],
+      "port": 3000
+    },
+    {
+      "name": "Nuxt 3 (web-vue)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:vue"],
+      "port": 3001
+    },
+    {
+      "name": "Preview chooser (landing)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-preview.mjs"],
+      "port": 4173
+    }
+  ]
+}

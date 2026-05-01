@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Local test artifacts
+tmp/
+*.local.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+.svelte-kit/
+.next/
+.nuxt/
+.output/
+.vercel/
+.netlify/
+
+# Python
+*.so
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Go
+apps/api-go/tmp/
+apps/api-go/bin/
+
+# PocketBase
+apps/pocketbase/pb_data/
+
+# Docker
+docker-compose.override.yml
+
+# Turborepo
+.turbo/
+
+# FAISS local indexes
+*.faiss
+*.index
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

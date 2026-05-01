@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  python:
+    name: Python · packages tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install packages
+        run: |
+          pip install -e packages/llm[dev]
+          pip install -e packages/rag
+          pip install -e packages/notifications
+          pip install -e packages/database
+          pip install -e packages/files
+          pip install pytest pytest-asyncio
+      - name: Test packages/llm
+        run: cd packages/llm && pytest -q
+      - name: Test packages/rag
+        run: cd packages/rag && pytest -q
+      - name: Test packages/notifications
+        run: cd packages/notifications && pytest -q
+      - name: Test packages/database
+        run: cd packages/database && pytest -q
+      - name: Test packages/files
+        run: cd packages/files && pytest -q
+      - name: Test packages/agents (runner only, no langgraph)
+        env:
+          PYTHONPATH: packages/agents
+        run: pytest -q packages/agents/tests/test_graph_runner.py
+
+  go-api:
+    name: Go · apps/api-go build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Build
+        working-directory: apps/api-go
+        run: |
+          go mod tidy
+          go build -o /tmp/agentos-go ./cmd/server
+      - name: Vet
+        working-directory: apps/api-go
+        run: go vet ./...
+
+  frontends:
+    name: Frontends · build matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web-svelte, web-next, web-vue]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install
+        run: pnpm install --frozen-lockfile=false
+      - name: Build shared types
+        run: pnpm --filter @agentos/shared-types build
+      - name: Typecheck ${{ matrix.app }}
+        run: pnpm --filter ${{ matrix.app }} typecheck
+        continue-on-error: true
+      - name: Build ${{ matrix.app }}
+        run: pnpm --filter ${{ matrix.app }} build
+        env:
+          BACKEND_URL: http://localhost:8000

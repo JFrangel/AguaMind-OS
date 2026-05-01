@@ -1,0 +1,20 @@
+[project]
+name = "agentos-notifications"
+version = "0.1.0"
+description = "Pluggable notifications: Telegram, Email, extensible to Slack/Discord"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

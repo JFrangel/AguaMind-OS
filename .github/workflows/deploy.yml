@@ -1,0 +1,140 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  api:
+    name: Deploy FastAPI to Koyeb
+    runs-on: ubuntu-latest
+    if: ${{ vars.KOYEB_API_NAME != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger Koyeb redeploy
+        env:
+          KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
+          KOYEB_APP: ${{ vars.KOYEB_API_NAME }}
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${KOYEB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://app.koyeb.com/v1/apps/${KOYEB_APP}/redeploy" \
+            -d '{"use_cache": false}'
+
+  go-api:
+    name: Deploy Go API to Koyeb
+    runs-on: ubuntu-latest
+    if: ${{ vars.KOYEB_GO_NAME != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger Koyeb redeploy
+        env:
+          KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
+          KOYEB_APP: ${{ vars.KOYEB_GO_NAME }}
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${KOYEB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://app.koyeb.com/v1/apps/${KOYEB_APP}/redeploy" \
+            -d '{"use_cache": false}'
+
+  telegram:
+    name: Deploy Telegram bot to Koyeb
+    runs-on: ubuntu-latest
+    if: ${{ vars.KOYEB_TELEGRAM_NAME != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger Koyeb redeploy
+        env:
+          KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
+          KOYEB_APP: ${{ vars.KOYEB_TELEGRAM_NAME }}
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${KOYEB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://app.koyeb.com/v1/apps/${KOYEB_APP}/redeploy" \
+            -d '{"use_cache": false}'
+
+  vercel-svelte:
+    name: Deploy SvelteKit to Vercel
+    runs-on: ubuntu-latest
+    if: ${{ vars.VERCEL_SVELTE_PROJECT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_SVELTE_PROJECT_ID }}
+        working-directory: apps/web-svelte
+        run: |
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          vercel build --prod --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+
+  vercel-next:
+    name: Deploy Next.js to Vercel
+    runs-on: ubuntu-latest
+    if: ${{ vars.VERCEL_NEXT_PROJECT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_NEXT_PROJECT_ID }}
+        working-directory: apps/web-next
+        run: |
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          vercel build --prod --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+
+  vercel-vue:
+    name: Deploy Nuxt 3 to Vercel
+    runs-on: ubuntu-latest
+    if: ${{ vars.VERCEL_VUE_PROJECT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_VUE_PROJECT_ID }}
+        working-directory: apps/web-vue
+        run: |
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          vercel build --prod --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN

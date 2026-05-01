@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @agentos/shared-types build && pnpm --filter web-svelte build",
+  "framework": "sveltekit",
+  "installCommand": "pnpm install --frozen-lockfile=false",
+  "outputDirectory": ".svelte-kit/output"
+}

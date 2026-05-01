@@ -1,0 +1,23 @@
+{
+  "name": "agentos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modular hackathon boilerplate with AI agents, multi-framework support, and auto-failover LLM providers",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:svelte": "pnpm --filter web-svelte dev",
+    "dev:next": "pnpm --filter web-next dev",
+    "dev:vue": "pnpm --filter web-vue dev",
+    "preview": "node scripts/serve-preview.mjs",
+    "preview:choose": "node scripts/launch.mjs",
+    "datasheet": "python scripts/generate_datasheet.py",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  }
+}
