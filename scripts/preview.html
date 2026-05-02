@@ -200,12 +200,33 @@
       .feature-card .desc { color: var(--text-secondary); font-size: 12.5px; line-height: 1.55; margin-bottom: 14px; }
       .feature-card .anim {
         position: relative;
-        height: 130px;
+        height: 150px;
         background: var(--bg-secondary);
         border: 1px solid var(--border);
         border-radius: 8px;
         overflow: hidden;
       }
+
+      /* Frontend chooser cards (Svelte/Next/Nuxt entry points) */
+      .chooser-card {
+        display: block;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        transition: border-color 120ms, transform 80ms;
+      }
+      .chooser-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+      .chooser-card .badge-lg {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        padding: 3px 8px; border-radius: 999px;
+        background: var(--accent-soft); color: var(--accent);
+      }
+      .chooser-card .name { font-family: "Space Grotesk"; font-weight: 600; font-size: 15px; margin: 8px 0 2px; }
+      .chooser-card .meta { font-family: "JetBrains Mono"; font-size: 11px; color: var(--text-muted); }
+      .chooser-card .desc { color: var(--text-secondary); font-size: 12.5px; margin-top: 10px; }
       .feature-card .deps {
         margin-top: 10px;
         padding: 5px 9px;
@@ -229,43 +250,79 @@
 
       /* ──────────────────────────────────────────────────────────────────
          ANIMATION: LLM cascade with circuit breaker
-         3 provider boxes, a request that hops Groq → OpenRouter → Gemini
+         3 provider boxes + a live log of breaker events
          ────────────────────────────────────────────────────────────────── */
-      .anim-cascade { display: flex; align-items: center; justify-content: space-around; padding: 20px; }
+      .anim-cascade { display: flex; flex-direction: column; gap: 8px; padding: 14px; height: 100%; }
+      .anim-cascade .providers { display: flex; align-items: center; justify-content: space-around; }
       .anim-cascade .provider {
-        width: 64px; height: 64px;
+        width: 60px; height: 50px;
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 6px;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         font-family: "JetBrains Mono", monospace;
         font-size: 9px;
         position: relative;
         background: var(--bg-card);
+        transition: all 200ms;
       }
       .anim-cascade .provider .dot {
         width: 6px; height: 6px; border-radius: 50%;
-        background: var(--text-muted); margin-bottom: 4px;
+        background: var(--text-muted); margin-bottom: 3px;
         animation: cascadeDot 6s infinite;
       }
       .anim-cascade .provider:nth-child(1) .dot { animation-delay: 0s; }
       .anim-cascade .provider:nth-child(3) .dot { animation-delay: 1.5s; }
       .anim-cascade .provider:nth-child(5) .dot { animation-delay: 3s; }
+      .anim-cascade .provider:nth-child(1) { animation: cascadeBox 6s infinite; animation-delay: 0s; }
+      .anim-cascade .provider:nth-child(3) { animation: cascadeBox 6s infinite; animation-delay: 1.5s; }
+      .anim-cascade .provider:nth-child(5) { animation: cascadeBox 6s infinite; animation-delay: 3s; }
       .anim-cascade .arrow {
-        font-size: 18px; color: var(--text-muted);
+        font-size: 14px; color: var(--text-muted);
         animation: arrowPulse 6s infinite;
       }
       .anim-cascade .arrow:nth-child(2) { animation-delay: 0.6s; }
       .anim-cascade .arrow:nth-child(4) { animation-delay: 2.1s; }
+      .anim-cascade .log {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--text-muted);
+        line-height: 1.6;
+        height: 50px;
+        overflow: hidden;
+        position: relative;
+      }
+      .anim-cascade .log .line {
+        position: absolute; left: 8px; right: 8px;
+        opacity: 0;
+        animation: logLine 6s infinite;
+      }
+      .anim-cascade .log .line:nth-child(1) { top: 4px;  animation-delay: 0.2s; color: var(--text-secondary); }
+      .anim-cascade .log .line:nth-child(2) { top: 18px; animation-delay: 1.5s; color: var(--status-red); }
+      .anim-cascade .log .line:nth-child(3) { top: 32px; animation-delay: 3s;   color: var(--status-green); }
       @keyframes cascadeDot {
         0%, 24% { background: var(--text-muted); }
         25%, 27% { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
         28%, 49% { background: var(--status-red); }
         50%, 100% { background: var(--text-muted); }
       }
+      @keyframes cascadeBox {
+        0%, 24% { border-color: var(--border); }
+        25%, 49% { border-color: var(--status-red); box-shadow: 0 0 0 1px var(--status-red); }
+        50%, 100% { border-color: var(--border); box-shadow: none; }
+      }
       @keyframes arrowPulse {
         0%, 24% { color: var(--text-muted); transform: translateX(0); }
         25%, 30% { color: var(--accent); transform: translateX(2px); }
         31%, 100% { color: var(--text-muted); transform: translateX(0); }
+      }
+      @keyframes logLine {
+        0%, 5% { opacity: 0; transform: translateX(-8px); }
+        15%, 80% { opacity: 1; transform: translateX(0); }
+        90%, 100% { opacity: 0; }
       }
 
       /* ──────────────────────────────────────────────────────────────────
@@ -414,7 +471,8 @@
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: 4px;
-        padding: 6px 7px;
+        padding: 0;
+        overflow: hidden;
         font-family: "JetBrains Mono", monospace;
         font-size: 9px;
         opacity: 0;
@@ -423,6 +481,19 @@
       .anim-web .result:nth-child(1) { animation-delay: 0.5s; }
       .anim-web .result:nth-child(2) { animation-delay: 0.7s; }
       .anim-web .result:nth-child(3) { animation-delay: 0.9s; }
+      .anim-web .result .thumb {
+        height: 22px;
+        background: linear-gradient(135deg, var(--accent-soft), var(--bg-elevated));
+        position: relative;
+      }
+      .anim-web .result .thumb::after {
+        content: "↗";
+        position: absolute;
+        top: 2px; right: 4px;
+        color: var(--text-muted);
+        font-size: 8px;
+      }
+      .anim-web .result .body { padding: 4px 6px; }
       .anim-web .result .host {
         color: var(--accent); font-size: 8px; margin-bottom: 2px;
       }
@@ -525,13 +596,25 @@
         font-size: 12px; color: var(--text-muted);
       }
       .anim-agents .tokens {
-        margin-top: 12px;
+        margin-top: 10px;
+        padding: 6px 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        border-left: 2px solid #a855f7;
         font-family: "JetBrains Mono", monospace;
         font-size: 10px;
         color: var(--text-secondary);
-        min-height: 14px;
+        min-height: 28px;
+        line-height: 1.5;
       }
-      .anim-agents .tokens span {
+      .anim-agents .tokens .cursor {
+        display: inline-block; width: 6px; height: 10px;
+        background: #a855f7; vertical-align: -1px;
+        animation: cursorBlink 0.8s infinite;
+      }
+      @keyframes cursorBlink { 50% { opacity: 0; } }
+      .anim-agents .tokens span:not(.cursor) {
         opacity: 0;
         animation: tokenIn 6s infinite;
       }
@@ -540,6 +623,7 @@
       .anim-agents .tokens span:nth-child(3) { animation-delay: 4.4s; }
       .anim-agents .tokens span:nth-child(4) { animation-delay: 4.6s; }
       .anim-agents .tokens span:nth-child(5) { animation-delay: 4.8s; }
+      .anim-agents .tokens span:nth-child(6) { animation-delay: 5.0s; }
       @keyframes agentNode {
         0%, 12% { background: var(--bg-card); color: var(--text-secondary); border-color: var(--border); }
         14%, 26% { background: var(--node-color); color: white; border-color: var(--node-color); transform: scale(1.05); }
@@ -702,6 +786,38 @@
       </div>
     </section>
 
+    <!-- ── Frontend chooser: mismo backend, 3 stacks ─────────────────── -->
+    <section id="frontends" class="block">
+      <div class="container">
+        <h2 class="reveal">Mismo backend · 3 frontends</h2>
+        <p class="sub reveal">
+          El chat-test que valida las capacidades está implementado en SvelteKit, Next.js y Nuxt 3 — todos
+          consumen los mismos endpoints SSE. Hacé clic para abrir el dev server (asegurate de tener
+          <span class="mono" style="color:var(--text-primary)">pnpm dev:&lt;svelte|next|vue&gt;</span> corriendo).
+        </p>
+        <div class="grid cols-3">
+          <a class="chooser-card reveal" href="http://localhost:5173" target="_blank" rel="noopener">
+            <span class="badge-lg">SVELTE</span>
+            <div class="name">SvelteKit 2</div>
+            <div class="meta">localhost:5173</div>
+            <p class="desc">Svelte 5 runes + TanStack Query. El más liviano y el que arranca primero.</p>
+          </a>
+          <a class="chooser-card reveal" href="http://localhost:3000" target="_blank" rel="noopener">
+            <span class="badge-lg">REACT</span>
+            <div class="name">Next.js 15</div>
+            <div class="meta">localhost:3000</div>
+            <p class="desc">App Router + Zustand + React 19. Si tu equipo viene del ecosistema React.</p>
+          </a>
+          <a class="chooser-card reveal" href="http://localhost:3001" target="_blank" rel="noopener">
+            <span class="badge-lg">VUE</span>
+            <div class="name">Nuxt 3</div>
+            <div class="meta">localhost:3001</div>
+            <p class="desc">Pinia + Vue Query + auto-imports. Si preferís Vue.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- ── 8 Features con animación ────────────────────────────────────── -->
     <section id="features" class="block">
       <div class="container">
@@ -724,11 +840,18 @@
             </p>
             <div class="anim">
               <div class="anim-cascade">
-                <div class="provider"><span class="dot"></span>groq</div>
-                <span class="arrow">→</span>
-                <div class="provider"><span class="dot"></span>openrouter</div>
-                <span class="arrow">→</span>
-                <div class="provider"><span class="dot"></span>gemini</div>
+                <div class="providers">
+                  <div class="provider"><span class="dot"></span>groq</div>
+                  <span class="arrow">→</span>
+                  <div class="provider"><span class="dot"></span>openrouter</div>
+                  <span class="arrow">→</span>
+                  <div class="provider"><span class="dot"></span>gemini</div>
+                </div>
+                <div class="log">
+                  <span class="line">→ groq · llama-3.3-70b · 142ms</span>
+                  <span class="line">⚠ groq 429 · breaker open · trying openrouter</span>
+                  <span class="line">✓ openrouter:free · 287ms · cached</span>
+                </div>
               </div>
             </div>
             <div class="deps">endpoint: <span style="color:var(--text-secondary)">POST /chat/stream · POST /agents/complete</span></div>
@@ -755,7 +878,7 @@
                   <div class="node writer">writer</div>
                 </div>
                 <div class="tokens">
-                  <span>El </span><span>análisis </span><span>indica </span><span>que </span><span>…</span>
+                  <span>El </span><span>análisis </span><span>indica </span><span>que </span><span>existen </span><span>3 </span><span class="cursor"></span>
                 </div>
               </div>
             </div>
@@ -832,16 +955,25 @@
                 <div class="url-bar">duckduckgo.com/html/ · q=...</div>
                 <div class="results">
                   <div class="result">
-                    <div class="host">olympics.com</div>
-                    <div class="title">Champions semis…</div>
+                    <div class="thumb"></div>
+                    <div class="body">
+                      <div class="host">olympics.com</div>
+                      <div class="title">Champions semis…</div>
+                    </div>
                   </div>
                   <div class="result">
-                    <div class="host">tycsports.com</div>
-                    <div class="title">Cronograma…</div>
+                    <div class="thumb"></div>
+                    <div class="body">
+                      <div class="host">tycsports.com</div>
+                      <div class="title">Cronograma…</div>
+                    </div>
                   </div>
                   <div class="result">
-                    <div class="host">365scores.com</div>
-                    <div class="title">Calendario y cruces…</div>
+                    <div class="thumb"></div>
+                    <div class="body">
+                      <div class="host">365scores.com</div>
+                      <div class="title">Calendario…</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -864,8 +996,8 @@
                 <div class="arrow-down">▼</div>
                 <div class="sql-box">SELECT COUNT(*) FROM clientes WHERE edad &gt; 30 LIMIT 200</div>
                 <div class="rows">
-                  <div class="row-cell">count</div>
-                  <div class="row-cell">142</div>
+                  <div class="row-cell" style="flex:0.6; color:var(--text-muted)">count(*)</div>
+                  <div class="row-cell" style="color:var(--accent); font-weight:600;">142</div>
                 </div>
               </div>
             </div>

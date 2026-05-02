@@ -134,8 +134,13 @@ function enrichTables(html: string, toolbarMinRows: number): string {
     const annotated = annotateNumericCells(full);
     if (rows >= toolbarMinRows + 1) {
       // +1 because the header counts as a row in the regex above.
+      // Two formats: CSV for spreadsheets, MD for pasting back into chat
+      // / docs / GitHub / Notion. Both encoded into data-* attrs so the
+      // bind-time JS doesn't have to re-parse the table.
       const csv = encodeURIComponent(htmlTableToCsv(full));
+      const md = encodeURIComponent(htmlTableToMarkdown(full));
       const toolbar = `<div class="table-toolbar">
+        <button type="button" data-action="copy-md" data-md="${md}" title="Copiar como tabla Markdown">Copiar tabla</button>
         <button type="button" data-action="copy" data-csv="${csv}" title="Copiar como CSV">Copiar CSV</button>
         <button type="button" data-action="download" data-csv="${csv}" title="Descargar CSV">Descargar</button>
       </div>`;
@@ -143,6 +148,25 @@ function enrichTables(html: string, toolbarMinRows: number): string {
     }
     return annotated;
   });
+}
+
+function htmlTableToMarkdown(tableHtml: string): string {
+  const rows = [...tableHtml.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map((rm) => rm[1]);
+  if (!rows.length) return "";
+  const cells = (row: string, tag: "th" | "td") =>
+    [...row.matchAll(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "g"))].map((m) =>
+      stripTags(m[1]).replace(/\|/g, "\\|").replace(/\n/g, " ").trim(),
+    );
+  // Header is the first row's <th>s; bodies are the rest's <td>s.
+  const header = cells(rows[0], "th");
+  if (!header.length) return rows.map((r) => "| " + cells(r, "td").join(" | ") + " |").join("\n");
+  const sep = header.map(() => "---").join(" | ");
+  const out = ["| " + header.join(" | ") + " |", "| " + sep + " |"];
+  for (const row of rows.slice(1)) {
+    const c = cells(row, "td");
+    if (c.length) out.push("| " + c.join(" | ") + " |");
+  }
+  return out.join("\n");
 }
 
 function annotateNumericCells(tableHtml: string): string {
@@ -239,12 +263,22 @@ export function bindTableToolbars(root: HTMLElement | null): void {
     if (btn.dataset.bound === "1") return;
     btn.dataset.bound = "1";
     btn.addEventListener("click", async () => {
-      const csv = decodeURIComponent(btn.dataset.csv || "");
       const action = btn.dataset.action;
+      if (action === "copy-md") {
+        const md = decodeURIComponent(btn.dataset.md || "");
+        try {
+          await navigator.clipboard.writeText(md);
+          flash(btn, "Copiado ✓");
+        } catch {
+          flash(btn, "Error");
+        }
+        return;
+      }
+      const csv = decodeURIComponent(btn.dataset.csv || "");
       if (action === "copy") {
         try {
           await navigator.clipboard.writeText(csv);
-          flash(btn, "Copiado");
+          flash(btn, "Copiado ✓");
         } catch {
           flash(btn, "Error");
         }
