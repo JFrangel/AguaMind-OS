@@ -62,31 +62,27 @@ class WebSearchTool:
             return results
         is_time_sensitive = bool(_TIME_SENSITIVE.search(query))
 
-        # When at least one source has a fetched body, drop the ones
-        # whose body is empty (fetch timed out or page was JS-only with
-        # no extractable content). Without this filter, an authoritative
-        # site that we couldn't actually scrape (e.g. uefa.com which
-        # times out from this scraper) ends up as `[1]` in the writer's
-        # context with no real content — the writer then falls back to
-        # its training knowledge and hallucinates. Better to use the
-        # blogs that DID have body extraction. We keep all sources if
-        # NONE has a body so the search isn't completely empty.
-        with_body = [r for r in results if (r.get("body") or "").strip()]
-        if with_body:
-            results = with_body
+        # PREFER body items but don't drop the rest. Reorder so items
+        # with a fetched body come first (richer context for the writer),
+        # and items with only a SERP snippet come after. This keeps the
+        # source count high while pushing the empty/timed-out items
+        # (UEFA, JS-heavy sites) to the bottom of the writer's context
+        # rather than to its top. The number of total results stays the
+        # same as what DDG returned.
+        body_items = [r for r in results if (r.get("body") or "").strip()]
+        snippet_only = [r for r in results if not (r.get("body") or "").strip()]
+        results = body_items + snippet_only
 
         # For time-sensitive queries (semifinales, cuartos, "este año"),
         # drop articles older than 180 days — likely from a previous
-        # season / cycle. We never drop dateless items because some
-        # sites just don't expose dates; better to keep them than lose
-        # the source entirely.
+        # season / cycle. Items WITHOUT a date are kept (lack of date
+        # is uninformative). Falls back to the un-filtered list if
+        # filtering would leave us empty.
         if is_time_sensitive:
             cutoff = (datetime.date.today() - datetime.timedelta(days=180)).isoformat()
-            results = [r for r in results if (r.get("published") or "9999") >= cutoff]
-            if not results:
-                # Filtered everything — fall back to the un-filtered list
-                # rather than returning empty.
-                results = with_body or results
+            filtered = [r for r in results if (r.get("published") or "9999") >= cutoff]
+            if filtered:
+                results = filtered
 
         # Compute authority + recency scores then sort by:
         #   (authority desc, recency desc when time-sensitive, original idx)
