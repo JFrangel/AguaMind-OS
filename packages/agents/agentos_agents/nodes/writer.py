@@ -80,22 +80,31 @@ Tone: confident, direct. Don't apologise for limitations unless you
 genuinely can't do the task. Don't restate the query.
 """
 
-WRITER_SOURCES_DIRECTIVE = """When the user-provided context includes web sources, you MUST cite them.
-Follow these rules verbatim — bad citations are worse than no citations.
+WRITER_SOURCES_DIRECTIVE = """When the user-provided context includes web sources, you MUST cite them
+inline. The UI already renders a numbered pill list of all web sources at
+the bottom of every assistant message — your job is to point each claim
+at the source that backs it.
 
 REQUIRED:
-- At least one inline `[N](URL)` marker per non-trivial paragraph or
-  table column when web sources are provided. If you wrote 4 distinct
-  factual claims, expect ~4 inline markers.
-- A `## Fuentes` (or `## Sources` in English) section at the very end
-  listing every source you cited inline.
+- At least one inline `[N](URL)` marker per non-trivial paragraph (and
+  per table column when comparing) whenever web sources are provided.
+  If you wrote 4 distinct factual claims, expect ~4 inline markers.
 - Use the exact `[N]` number that appears in the `Web sources` block
   the user message gives you. Don't renumber. Reuse the same N if the
   same source backs multiple claims.
 
+DO NOT:
+- Do NOT write a `## Fuentes` / `## Sources` / "Referencias" section at
+  the end. The frontend already shows the source list as numbered pills
+  underneath every message — duplicating it as markdown is redundant
+  noise.
+- Do NOT inline the article title as prose ("Según [título]…", "Como
+  se menciona en [título]…"). The marker IS the attribution.
+- Do NOT invent citations when web context is missing. Just write the
+  answer with no markers.
+
 INLINE FORMAT:
-Place `[N](URL)` at the END of the sentence/clause it supports.
-NEVER inline the article title as prose.
+Place `[N](URL)` at the END of the sentence or clause it supports.
 
 ❌ "Según Crewai vs LangGraph: conozca las diferencias, CrewAI se centra
    en orquestar agentes…"
@@ -105,46 +114,18 @@ NEVER inline the article title as prose.
 ✅ "CrewAI orquesta múltiples agentes con roles definidos [1](https://www.truefoundry.com/es/blog/crewai-vs-langgraph)."
 ✅ "LangGraph modela el flujo como un grafo explícito de estados [2](https://redwerk.es/blog/langgraph-vs-crewai/)."
 
-`## Fuentes` SECTION FORMAT (one bullet per source, in this exact shape):
-
-```
-## Fuentes
-- [1] [TrueFoundry — CrewAI vs LangGraph](https://www.truefoundry.com/es/blog/crewai-vs-langgraph) — comparación de arquitectura.
-- [2] [Redwerk — guía de producción](https://redwerk.es/blog/langgraph-vs-crewai/) — costes, depuración y migración.
-- [3] [Agent Patterns](https://www.agentpatterns.tech/es/vs/crewai-vs-langgraph) — diferencias técnicas resumidas.
-```
-
-Notes on Fuentes formatting:
-- The title MUST be a markdown link: `[Title](URL)`. Never write the URL
-  as plain text after the title.
-- SHORTEN the title to ≤6 words: domain + topic, or just the brand. Strip
-  SEO suffixes ("conozca las diferencias", "¿Cuál es la diferencia?",
-  "complete guide", trailing pipes/dashes/sites names).
-- One sentence after the em-dash (—) explaining what the source contributed.
-
-❌ "[1] Crewai vs LangGraph: conozca las diferencias https://www.truefoundry.com/..."
-   (raw URL, full SEO title, no markdown link)
-❌ "[2] LangGraph vs. CrewAI: ¿Cuál sobrevivirá a la producción? — sitio."
-   (full SEO title, vague description)
-✅ "- [1] [TrueFoundry — CrewAI vs LangGraph](https://www.truefoundry.com/es/blog/crewai-vs-langgraph) — comparación de arquitectura."
-
 WRONG vs RIGHT — full mini-example with sources [1] [2]:
 
 ❌ Wrong:
    CrewAI organiza agentes con roles. LangGraph usa grafos. Ambos son útiles.
+
    ## Fuentes
-   [1] Crewai vs LangGraph: conozca las diferencias https://x.com/a
-   [2] LangGraph vs CrewAI: la guía completa https://y.com/b
+   - [1] [TrueFoundry](https://x.com/a) — orquestación.
+   - [2] [Redwerk](https://y.com/b) — flujo.
 
 ✅ Right:
    CrewAI organiza agentes con roles definidos para colaboración estructurada [1](https://x.com/a). LangGraph modela el flujo como un grafo explícito de estados y transiciones, lo que da mayor control granular [2](https://y.com/b).
-
-   ## Fuentes
-   - [1] [TrueFoundry — CrewAI vs LangGraph](https://x.com/a) — orquestación de agentes.
-   - [2] [Redwerk — LangGraph en producción](https://y.com/b) — control granular del flujo.
-
-If web context is MISSING, do NOT invent citations and do NOT add a
-`## Fuentes` section.
+   (no Fuentes section — the UI handles it)
 """
 
 
