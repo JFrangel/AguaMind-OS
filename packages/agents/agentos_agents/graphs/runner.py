@@ -143,7 +143,10 @@ async def run_graph_stream(
             if use_web:
                 tool = web_tool or default_web_tool()
                 yield _emit_status("web", lang)
-                web_results = await tool.search(query, top_k=3)
+                # 6 results gives the writer real choices after the spam
+                # filter trims ads; with top_k=3 a couple of dropped ads
+                # would leave only 1 organic source.
+                web_results = await tool.search(query, top_k=6)
                 state["web_context"] = web_results
                 yield {
                     "type": "status",

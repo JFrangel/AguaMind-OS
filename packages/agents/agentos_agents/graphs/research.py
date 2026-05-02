@@ -74,7 +74,9 @@ async def run_research_stream(
     if use_web:
         tool = web_tool or default_web_tool()
         yield {"type": "status", "node": "web", "content": status_text("web.search", resolved)}
-        web_results = await tool.search(query, top_k=3)
+        # See runner.py — 6 results gives the writer real choices after
+        # the spam filter trims ads from the SERP.
+        web_results = await tool.search(query, top_k=6)
         state["web_context"] = web_results
         yield {
             "type": "status",

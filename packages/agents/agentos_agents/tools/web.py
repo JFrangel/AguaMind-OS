@@ -58,6 +58,52 @@ _HTML_RESULT = re.compile(
     r'.*?<a[^>]+class="result__snippet"[^>]*>(?P<snippet>.+?)</a>',
     re.DOTALL,
 )
+# DuckDuckGo HTML SERP wraps sponsored slots in `result result--ad` blocks
+# alongside organic `result results_links` blocks. Strip ad blocks before
+# regex extraction so eBay / ticket vendors / shopping ads don't pollute
+# the source list. Match the opening div + everything until the next
+# closing </div> at the same nesting level — DDG's ad blocks are flat so
+# a non-greedy match works.
+_AD_BLOCK = re.compile(
+    r'<div[^>]+class="[^"]*result--ad[^"]*"[^>]*>.*?<div\s+class="clear"></div>',
+    re.DOTALL | re.IGNORECASE,
+)
+# Domains that consistently pollute SERPs with shopping / ticket ads
+# regardless of the query topic. Filtered after parsing as a backstop.
+_SPAM_HOSTS = (
+    "ebay.com",
+    "ebay.es",
+    "amazon.com",
+    "amazon.es",
+    "amazon.co.uk",
+    "vividseats.com",
+    "stubhub.com",
+    "seatgeek.com",
+    "ticketmaster.com",
+    "viagogo.com",
+    "expedia.com",
+    "booking.com",
+)
+# Title patterns that scream "this is an ad, not informational content".
+_SPAM_TITLE = re.compile(
+    r"(?:Official Site\s*[-—|]|Buy Now|Last[- ]Minute Tickets|Fantastic Prices|"
+    r"Lowest Prices|Shop On |Compra productos únicos|Descubre grandes ofertas)",
+    re.IGNORECASE,
+)
+# Queries that reference "current", "right now", "this season/year/month/week"
+# get scoped to DuckDuckGo's past-year window via `df=y`. We don't trigger on
+# bare year numbers alone — the user might ask about 2023 historically — but
+# explicit "actual" / "reciente" / "current" / "now" / "este año" is unambiguous.
+_TIME_SENSITIVE = re.compile(
+    r"\b("
+    r"actual(?:es|mente)?|reciente(?:s|mente)?|hoy|ahora|"
+    r"este\s+(?:año|mes|semana|temporada)|esta\s+(?:semana|temporada)|"
+    r"current(?:ly)?|recent(?:ly)?|today|now|latest|"
+    r"this\s+(?:year|month|week|season)|"
+    r"who\s+is\s+winning|going\s+on\s+now"
+    r")\b",
+    re.IGNORECASE,
+)
 _TAG = re.compile(r"<[^>]+>")
 _OG_IMAGE = re.compile(
     r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']',
@@ -76,7 +122,18 @@ def _images_enabled() -> bool:
 async def _duckduckgo_html(query: str, top_k: int) -> list[dict[str, Any]]:
     """Scrape DuckDuckGo's lite HTML SERP. The endpoint returns a stable
     static page (no JS) so a regex pass is enough — no Selenium, no API key.
-    Returns up to `top_k` results with title/url/snippet.
+    Returns up to `top_k` filtered results with title/url/snippet.
+
+    Filtering pipeline (in order):
+      1. Strip the entire `result--ad` block from the HTML before parsing —
+         removes sponsored slots that DDG injects into the SERP regardless
+         of relevance (eBay, Amazon, ticket vendors etc.).
+      2. After regex extraction, drop any result whose host matches a
+         known shopping/ticket spam domain (_SPAM_HOSTS) — backstop in
+         case an ad slipped past step 1 without the result--ad class.
+      3. Drop results whose title matches the ad-copy patterns
+         (`_SPAM_TITLE`: "Buy Now", "Official Site -", "Last-Minute
+         Tickets", etc.).
     """
     import httpx
 
@@ -92,10 +149,20 @@ async def _duckduckgo_html(query: str, top_k: int) -> list[dict[str, Any]]:
     async with httpx.AsyncClient(
         timeout=12.0, follow_redirects=True, headers=headers
     ) as client:
-        resp = await client.post(url, data={"q": query, "kl": "wt-wt"})
+        # Pass `kl=wt-wt` (no region bias). When the query looks
+        # time-sensitive ("current Champions semis", "este año") add
+        # `df=y` so DDG scopes to the past 12 months — old recap pages
+        # were drowning recent news in the SERP for these queries.
+        form = {"q": query, "kl": "wt-wt"}
+        if _TIME_SENSITIVE.search(query):
+            form["df"] = "y"
+        resp = await client.post(url, data=form)
         if resp.status_code != 200:
             return []
         html = resp.text
+
+    # Step 1 — strip ad blocks at the HTML level.
+    html = _AD_BLOCK.sub("", html)
 
     results: list[dict[str, Any]] = []
     for match in _HTML_RESULT.finditer(html):
@@ -111,6 +178,14 @@ async def _duckduckgo_html(query: str, top_k: int) -> list[dict[str, Any]]:
         title = _strip(match.group("title"))
         snippet = _strip(match.group("snippet"))
         if not title or not target:
+            continue
+        # Step 2 — drop results whose host is on the spam list.
+        host = urlparse(target).hostname or ""
+        host_norm = host.lower().lstrip("www.")
+        if any(host_norm == s or host_norm.endswith("." + s) for s in _SPAM_HOSTS):
+            continue
+        # Step 3 — drop results with ad-copy titles.
+        if _SPAM_TITLE.search(title):
             continue
         results.append({"title": title, "url": target, "snippet": snippet, "image": None})
         if len(results) >= top_k:
