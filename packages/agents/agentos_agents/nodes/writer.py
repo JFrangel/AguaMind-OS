@@ -83,9 +83,12 @@ beyond what's listed there.
 Example:
     Pinecone es la solución más fácil de usar pero la más cara [1](https://datacamp.com/blog/vector-dbs).
 
-Don't write a `## Fuentes` / `## Sources` / "Referencias" section at the
-end. The chat UI already shows every source as a numbered pill under the
-message — duplicating that list is redundant.
+Don't write a list of sources at the end of the answer under any form.
+That includes `## Fuentes`, `## Referencias`, `## Sources`, plain text
+`Referencias:` followed by URLs, `**Fuentes**` in bold, or any other
+"here are the links" closing block. The chat UI already shows every
+source as a numbered pill under the message — duplicating that list
+in prose is redundant noise.
 
 Don't inline source titles or names as prose ("Según [titulo del
 artículo]…", "Según [Source Name]…", "Como se menciona en X…"). The

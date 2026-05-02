@@ -60,15 +60,25 @@ export async function renderMarkdown(input: string, opts: RenderOptions = {}): P
  * frontend already shows numbered source pills under every message via
  * SourcePills, so a markdown duplicate of the same list is pure noise.
  *
- * This is a defense-in-depth strip: if the LAST `<heading>` (or bolded
- * standalone line) in the message is one of the forbidden labels, drop it
- * and everything that follows. We only strip when the section is at the
- * tail of the message — if "Referencias" appears mid-answer it's probably
- * topical content (e.g. the user asked about academic references) and we
- * leave it alone.
+ * This is a defense-in-depth strip: if the LAST heading-like line in the
+ * message uses one of the forbidden labels, drop it and everything that
+ * follows. We accept four shapes:
+ *   - `## Referencias` / `### Fuentes` / `# Sources`   (markdown heading)
+ *   - `**Referencias**` / `*Fuentes*`                  (bold/italic standalone)
+ *   - `Referencias:` / `Fuentes:`                      (plain text + colon)
+ *   - `Referencias\n` / `Fuentes\n`                    (plain text alone on a line)
+ *
+ * Only strips when the section is at the tail of the message — if
+ * "Referencias" appears mid-answer it's probably topical content (the
+ * user asked about academic references) and we leave it alone.
  */
+// Match: optional heading/bold prefix, the forbidden label word,
+// optional colon and bold-close, newline(s), then one or more lines
+// that LOOK like a sources list (URL, bullet, numbered, or [N]
+// reference). Requiring the URL/list-pattern follow-up avoids false
+// positives like "Aquí mis referencias importantes." in prose.
 const FORBIDDEN_SOURCE_HEADINGS =
-  /(?:^|\n)\s*(?:#{1,3}\s+|\*\*\s*)(Referencias|Fuentes|Sources|Citations?|References|Bibliograf[íi]a|Bibliography)\b\s*(?:\*\*)?\s*\n[\s\S]*$/i;
+  /(?:^|\n)\s*(?:#{1,3}\s+|\*{1,2}\s*)?(?:Referencias|Fuentes|Sources|Citations?|References|Bibliograf[íi]a|Bibliography)\b\s*:?\s*\*{0,2}\s*\n+(?:\s*(?:https?:\/\/|[-*]\s|\d+[.)]\s|\[\s*\d)[^\n]*\n?)+\s*$/i;
 
 function stripDuplicateSourcesSection(input: string): string {
   return input.replace(FORBIDDEN_SOURCE_HEADINGS, "");
