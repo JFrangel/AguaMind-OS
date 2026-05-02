@@ -26,10 +26,13 @@ jobs:
           # exits 5 (NO_TESTS_COLLECTED), which fails the build.
           pip install -e "packages/database[sqlite]"
           pip install -e packages/files
-          # agents tests don't need langgraph/crewai at import time — the
-          # package itself does, but the four test files we run import the
-          # smaller submodules (graph_runner, fusion, language, tools).
-          pip install -e packages/agents
+          # agents pyproject pins agentos-llm via a relative file:// URI
+          # that pip can't resolve on CI ("non-local file URIs are not
+          # supported"). agentos-llm is already installed above, so install
+          # the agents package without re-resolving its deps.
+          # langgraph/crewai aren't needed for the test files we run
+          # (graph_runner, fusion, language, tools all use submodules).
+          pip install --no-deps -e packages/agents
           pip install pytest pytest-asyncio
       - name: Test packages/llm
         run: cd packages/llm && pytest -q
