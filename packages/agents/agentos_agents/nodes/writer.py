@@ -106,38 +106,44 @@ Tone: confident, direct. Don't apologise for limitations unless you
 genuinely can't do the task. Don't restate the query.
 """
 
-WRITER_SOURCES_DIRECTIVE = """Citations — when web sources are in the context, attach them inline.
+WRITER_SOURCES_DIRECTIVE = """Citations — HARD CONSTRAINTS (read these FIRST, no exceptions):
 
-THE FORMAT IS A MARKDOWN LINK. The exact bytes are:
-    space, open-bracket, number, close-bracket, open-paren, FULL URL, close-paren.
+[A] NEVER write a list of sources at the bottom. Not under any heading.
+    Forbidden headings include: "## Referencias", "## Fuentes",
+    "## Sources", "## Bibliografía", "## Bibliography", "## Citations",
+    "## References", and any bold/plain variant of those words. The
+    chat UI ALREADY renders a numbered pill list of every web source
+    under each message — the user can see them. Duplicating that list
+    in markdown is pure noise.
 
-Example with real values:
-    los agentes colaboran con roles definidos [1](https://www.truefoundry.com/es/blog/crewai-vs-langgraph).
+[B] NEVER cite a number that isn't in the user message's "Web sources"
+    block. If that block lists [1] [2] [3], you can ONLY use [1], [2],
+    [3] in your answer. NEVER invent [4], [5], [N+1]. Don't number
+    findings, snippets, or your own observations as if they were
+    sources.
 
-The full URL inside the parentheses is REQUIRED. A bare digit, a digit
-in brackets, or anything without the `(https://…)` part is broken.
+[C] NEVER attribute by inlining source names as prose. Patterns banned:
+    "Según X,", "Como se menciona en X,", "Per X,", "X dice que…",
+    "X indica que…", "X afirma…". The marker IS the attribution.
 
-  ❌ "los agentes colaboran con roles definidos 1."             (bare digit)
-  ❌ "los agentes colaboran con roles definidos [1]."            (no URL)
-  ❌ "los agentes colaboran [como se ve aquí](https://...)."     (link text is prose, not a number)
-  ❌ "Según Crewai vs LangGraph: conozca las diferencias, los agentes…"
-                                                                 (article title inlined as prose)
-  ✅ "los agentes colaboran con roles definidos [1](https://www.truefoundry.com/es/blog/crewai-vs-langgraph)."
+INLINE FORMAT (only valid form):
+    space, "[", number, "]", "(", FULL https URL, ")".
 
-The number must match the `[N]` index in the `Web sources` block of the
-user message. Don't renumber. Reuse the same number if the same source
-backs multiple claims.
+  ❌ "datos crecen 30% anual 1."             (bare digit)
+  ❌ "datos crecen 30% anual [1]."            (no parens/URL)
+  ❌ "datos crecen 30% anual [como se ve aquí](url)."  (link text is prose)
+  ❌ "Según DataCamp, los datos crecen…"     (prose attribution, banned by [C])
+  ❌ "datos crecen 30% anual [5]."            (invented number, banned by [B])
+  ❌ "## Referencias\n1 Título A\n2 Título B" (banned by [A])
+  ✅ "datos crecen 30% anual [2](https://datacamp.com/blog/vector-dbs)."
 
-How many citations: aim for at least one per non-trivial paragraph and
-one per row of a comparison table when sources are provided. If you
-wrote 4 substantive factual claims, you should have ~4 markers.
+How many: aim for at least one inline marker per non-trivial paragraph
+and one per row of a comparison table when sources exist. If you wrote
+4 substantive claims, expect ~4 markers — but ONLY using numbers from
+the Web sources block.
 
-Don't write a `## Fuentes` / `## Sources` / "Referencias" section. The
-UI already lists every source as numbered pills under each message.
-Duplicating that list in markdown is redundant.
-
-Don't invent citations. If web context is missing, just write the answer
-without any markers.
+If web context is MISSING, write the answer with no markers and no
+"sources" list of any kind.
 """
 
 

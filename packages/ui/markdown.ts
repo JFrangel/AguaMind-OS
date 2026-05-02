@@ -47,10 +47,31 @@ export interface RenderOptions {
 
 export async function renderMarkdown(input: string, opts: RenderOptions = {}): Promise<string> {
   if (!input) return "";
-  const raw = (await marked.parse(input)) as string;
+  const stripped = stripDuplicateSourcesSection(input);
+  const raw = (await marked.parse(stripped)) as string;
   const enriched = enrichTables(raw, opts.tableToolbarRows ?? 5);
   const sanitized = await sanitize(enriched);
   return opts.wrap === false ? sanitized : `<div class="agentos-md">${sanitized}</div>`;
+}
+
+/**
+ * Some models keep emitting a "Referencias" / "Fuentes" / "Sources" section
+ * at the bottom of an answer despite the system prompt forbidding it. The
+ * frontend already shows numbered source pills under every message via
+ * SourcePills, so a markdown duplicate of the same list is pure noise.
+ *
+ * This is a defense-in-depth strip: if the LAST `<heading>` (or bolded
+ * standalone line) in the message is one of the forbidden labels, drop it
+ * and everything that follows. We only strip when the section is at the
+ * tail of the message — if "Referencias" appears mid-answer it's probably
+ * topical content (e.g. the user asked about academic references) and we
+ * leave it alone.
+ */
+const FORBIDDEN_SOURCE_HEADINGS =
+  /(?:^|\n)\s*(?:#{1,3}\s+|\*\*\s*)(Referencias|Fuentes|Sources|Citations?|References|Bibliograf[íi]a|Bibliography)\b\s*(?:\*\*)?\s*\n[\s\S]*$/i;
+
+function stripDuplicateSourcesSection(input: string): string {
+  return input.replace(FORBIDDEN_SOURCE_HEADINGS, "");
 }
 
 let purifyPromise: Promise<(input: string) => string> | null = null;
