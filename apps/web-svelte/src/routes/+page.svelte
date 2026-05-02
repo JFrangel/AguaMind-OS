@@ -46,13 +46,6 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <a
-          href="/apps"
-          class="rounded-md border border-bg-elevated px-2 py-1 font-mono text-[11px] text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue"
-          title="Ver el catálogo de apps por problemática"
-        >
-          /apps
-        </a>
         <ChannelsBadge />
         <ThemeSwitch />
         <LanguageSelect value={chat.language} onChange={setLanguage} />

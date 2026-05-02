@@ -6,4 +6,3 @@ packages:
   - "services/api-nest"
   - "packages/shared-types"
   - "packages/ui"
-  - "packages/profiles"

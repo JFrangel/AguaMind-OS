@@ -11,6 +11,9 @@
       rel="stylesheet"
     />
     <style>
+      /* ──────────────────────────────────────────────────────────────────
+         THEMES — same 3 themes the chat UI uses
+         ────────────────────────────────────────────────────────────────── */
       :root[data-theme="dark-blue"] {
         --bg-primary: #0a0e1a;
         --bg-secondary: #0f1629;
@@ -21,6 +24,7 @@
         --accent-soft: rgba(37, 99, 235, 0.12);
         --status-green: #10b981;
         --status-yellow: #f59e0b;
+        --status-red: #ef4444;
         --text-primary: #f8fafc;
         --text-secondary: #94a3b8;
         --text-muted: #475569;
@@ -36,6 +40,7 @@
         --accent-soft: rgba(127, 90, 240, 0.14);
         --status-green: #2cb67d;
         --status-yellow: #f5a623;
+        --status-red: #ef4444;
         --text-primary: #fffffe;
         --text-secondary: #94a1b2;
         --text-muted: #5f6c7b;
@@ -51,6 +56,7 @@
         --accent-soft: rgba(98, 70, 234, 0.1);
         --status-green: #2cb67d;
         --status-yellow: #d97706;
+        --status-red: #dc2626;
         --text-primary: #2b2c34;
         --text-secondary: #4d4d5a;
         --text-muted: #9b9ba6;
@@ -159,21 +165,23 @@
       .reveal.visible { opacity: 1; transform: translateY(0); }
 
       .grid { display: grid; gap: 14px; }
-      .grid.cols-3, .grid.cols-4, .grid.cols-2 { grid-template-columns: 1fr; }
+      .grid.cols-2 { grid-template-columns: 1fr; }
+      .grid.cols-3 { grid-template-columns: 1fr; }
+      .grid.cols-4 { grid-template-columns: 1fr; }
       @media (min-width: 720px) {
         .grid.cols-2 { grid-template-columns: 1fr 1fr; }
         .grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
         .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
       }
 
-      .card {
+      .feature-card {
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 20px;
-        transition: border-color 120ms, transform 80ms;
+        padding: 22px;
+        transition: border-color 120ms;
       }
-      .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+      .feature-card:hover { border-color: var(--accent); }
 
       .feature-tag {
         font-family: "JetBrains Mono", monospace;
@@ -184,95 +192,28 @@
       }
       .feature-tag.green { color: var(--status-green); }
       .feature-tag.yellow { color: var(--status-yellow); }
-      .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-      .card .desc { color: var(--text-secondary); font-size: 12.5px; line-height: 1.55; margin-bottom: 12px; }
-      .card ul { list-style: none; padding: 0; margin: 0; }
-      .card ul li {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11px;
-        color: var(--text-secondary);
-        margin: 4px 0;
-        display: flex; align-items: flex-start; gap: 8px;
-      }
-      .card ul li::before { content: "▸"; color: var(--accent); flex-shrink: 0; }
-      .card.green ul li::before { color: var(--status-green); }
-      .card.yellow ul li::before { color: var(--status-yellow); }
+      .feature-tag.cyan { color: #06b6d4; }
+      .feature-tag.pink { color: #ec4899; }
+      .feature-tag.purple { color: #a855f7; }
 
-      .deps {
+      .feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+      .feature-card .desc { color: var(--text-secondary); font-size: 12.5px; line-height: 1.55; margin-bottom: 14px; }
+      .feature-card .anim {
+        position: relative;
+        height: 130px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .feature-card .deps {
         margin-top: 10px;
-        padding: 6px 10px;
+        padding: 5px 9px;
         background: var(--bg-elevated);
         border-radius: 6px;
         font-family: "JetBrains Mono", monospace;
         font-size: 10px;
         color: var(--text-muted);
-      }
-
-      .stack-tile {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 14px;
-      }
-      .stack-tile .label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-      .stack-tile .value { font-family: "Space Grotesk"; font-weight: 600; font-size: 13px; }
-      .stack-tile .sub   { font-family: "JetBrains Mono"; font-size: 10px; color: var(--text-muted); margin-top: 4px; }
-
-      .chooser-card {
-        display: block;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px;
-        transition: border-color 120ms, transform 80ms;
-      }
-      .chooser-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-      .chooser-card .badge-lg {
-        display: inline-block;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
-        padding: 3px 8px; border-radius: 999px;
-        background: var(--accent-soft); color: var(--accent);
-      }
-      .chooser-card .name { font-family: "Space Grotesk"; font-weight: 600; font-size: 15px; margin: 8px 0 2px; }
-      .chooser-card .meta { font-family: "JetBrains Mono"; font-size: 11px; color: var(--text-muted); }
-      .chooser-card .desc { color: var(--text-secondary); font-size: 12.5px; margin-top: 10px; }
-
-      .trace-demo {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px;
-      }
-      .trace-line {
-        display: flex; align-items: center; gap: 10px;
-        padding: 8px 0;
-        border-bottom: 1px dashed var(--border);
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11.5px;
-        color: var(--text-secondary);
-        opacity: 0;
-        animation: traceIn 500ms ease-out forwards;
-      }
-      .trace-line:last-child { border-bottom: none; }
-      .trace-line .pill {
-        font-size: 10px;
-        padding: 2px 7px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        flex-shrink: 0;
-      }
-      .pill.router    { color: var(--accent);       border-color: var(--accent); }
-      .pill.rag       { color: #06b6d4;             border-color: #06b6d4; }
-      .pill.web       { color: #ec4899;             border-color: #ec4899; }
-      .pill.researcher{ color: var(--status-green); border-color: var(--status-green); }
-      .pill.analyst   { color: var(--status-yellow);border-color: var(--status-yellow); }
-      .pill.writer    { color: #a855f7;             border-color: #a855f7; }
-      .trace-line .ts { color: var(--text-muted); margin-left: auto; }
-
-      @keyframes traceIn {
-        from { opacity: 0; transform: translateX(-6px); }
-        to   { opacity: 1; transform: translateX(0); }
       }
 
       footer {
@@ -284,6 +225,442 @@
         color: var(--text-muted);
         display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
       }
+      footer a:hover { color: var(--accent); }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: LLM cascade with circuit breaker
+         3 provider boxes, a request that hops Groq → OpenRouter → Gemini
+         ────────────────────────────────────────────────────────────────── */
+      .anim-cascade { display: flex; align-items: center; justify-content: space-around; padding: 20px; }
+      .anim-cascade .provider {
+        width: 64px; height: 64px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        position: relative;
+        background: var(--bg-card);
+      }
+      .anim-cascade .provider .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--text-muted); margin-bottom: 4px;
+        animation: cascadeDot 6s infinite;
+      }
+      .anim-cascade .provider:nth-child(1) .dot { animation-delay: 0s; }
+      .anim-cascade .provider:nth-child(3) .dot { animation-delay: 1.5s; }
+      .anim-cascade .provider:nth-child(5) .dot { animation-delay: 3s; }
+      .anim-cascade .arrow {
+        font-size: 18px; color: var(--text-muted);
+        animation: arrowPulse 6s infinite;
+      }
+      .anim-cascade .arrow:nth-child(2) { animation-delay: 0.6s; }
+      .anim-cascade .arrow:nth-child(4) { animation-delay: 2.1s; }
+      @keyframes cascadeDot {
+        0%, 24% { background: var(--text-muted); }
+        25%, 27% { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        28%, 49% { background: var(--status-red); }
+        50%, 100% { background: var(--text-muted); }
+      }
+      @keyframes arrowPulse {
+        0%, 24% { color: var(--text-muted); transform: translateX(0); }
+        25%, 30% { color: var(--accent); transform: translateX(2px); }
+        31%, 100% { color: var(--text-muted); transform: translateX(0); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: File adapter — files turn into normalized chunks
+         ────────────────────────────────────────────────────────────────── */
+      .anim-files { padding: 14px; display: flex; align-items: center; justify-content: space-around; gap: 10px; }
+      .anim-files .files-in {
+        display: flex; flex-direction: column; gap: 4px;
+        animation: filesIn 5s infinite;
+      }
+      .anim-files .file {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        padding: 3px 7px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--bg-card);
+        color: var(--text-secondary);
+      }
+      .anim-files .arrow-large {
+        font-size: 22px; color: var(--accent);
+        animation: arrowSlide 5s infinite;
+      }
+      .anim-files .out {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--accent);
+        text-align: center;
+      }
+      .anim-files .out .chunks {
+        display: flex; flex-direction: column; gap: 2px; margin-top: 6px;
+      }
+      .anim-files .chunk {
+        width: 70px; height: 4px; background: var(--accent-soft);
+        border-radius: 2px; position: relative; overflow: hidden;
+      }
+      .anim-files .chunk::after {
+        content: ""; position: absolute; inset: 0;
+        background: var(--accent);
+        transform: scaleX(0); transform-origin: left;
+        animation: chunkFill 5s infinite;
+      }
+      .anim-files .chunk:nth-child(2)::after { animation-delay: 0.3s; }
+      .anim-files .chunk:nth-child(3)::after { animation-delay: 0.6s; }
+      @keyframes filesIn {
+        0%, 30% { transform: translateX(0); opacity: 1; }
+        45%, 60% { transform: translateX(-12px); opacity: 0.4; }
+        70%, 100% { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes arrowSlide {
+        0%, 30% { transform: translateX(-4px); opacity: 0.4; }
+        45%, 60% { transform: translateX(0); opacity: 1; }
+        70%, 100% { transform: translateX(-4px); opacity: 0.4; }
+      }
+      @keyframes chunkFill {
+        0%, 40% { transform: scaleX(0); }
+        55%, 75% { transform: scaleX(1); }
+        90%, 100% { transform: scaleX(0); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: RAG — query → embeddings → vector search hits
+         ────────────────────────────────────────────────────────────────── */
+      .anim-rag { padding: 14px; }
+      .anim-rag .query-bar {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-secondary);
+        padding: 4px 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 10px;
+        animation: ragQuery 4s infinite;
+      }
+      .anim-rag .vec {
+        display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px;
+        margin-bottom: 8px;
+      }
+      .anim-rag .vec span {
+        height: 6px; background: var(--accent-soft); border-radius: 2px;
+      }
+      .anim-rag .vec span {
+        animation: vecBar 4s infinite;
+      }
+      .anim-rag .vec span:nth-child(1) { animation-delay: 0.0s; }
+      .anim-rag .vec span:nth-child(2) { animation-delay: 0.05s; }
+      .anim-rag .vec span:nth-child(3) { animation-delay: 0.10s; }
+      .anim-rag .vec span:nth-child(4) { animation-delay: 0.15s; }
+      .anim-rag .vec span:nth-child(5) { animation-delay: 0.20s; }
+      .anim-rag .vec span:nth-child(6) { animation-delay: 0.25s; }
+      .anim-rag .vec span:nth-child(7) { animation-delay: 0.30s; }
+      .anim-rag .vec span:nth-child(8) { animation-delay: 0.35s; }
+      .anim-rag .hits { display: flex; flex-direction: column; gap: 3px; }
+      .anim-rag .hit {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--text-secondary);
+        padding: 3px 7px;
+        background: var(--bg-card);
+        border-left: 2px solid var(--accent);
+        border-radius: 0 4px 4px 0;
+        opacity: 0;
+        animation: hitIn 4s infinite;
+      }
+      .anim-rag .hit:nth-child(1) { animation-delay: 1.4s; }
+      .anim-rag .hit:nth-child(2) { animation-delay: 1.7s; }
+      .anim-rag .hit:nth-child(3) { animation-delay: 2.0s; }
+      @keyframes ragQuery {
+        0%, 10% { opacity: 0.3; }
+        20%, 80% { opacity: 1; }
+        90%, 100% { opacity: 0.3; }
+      }
+      @keyframes vecBar {
+        0%, 25% { background: var(--accent-soft); }
+        30%, 60% { background: var(--accent); }
+        65%, 100% { background: var(--accent-soft); }
+      }
+      @keyframes hitIn {
+        0%, 30% { opacity: 0; transform: translateX(-6px); }
+        40%, 80% { opacity: 1; transform: translateX(0); }
+        90%, 100% { opacity: 0; transform: translateX(-6px); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: Web search — search bar → SERP cards
+         ────────────────────────────────────────────────────────────────── */
+      .anim-web { padding: 14px; }
+      .anim-web .url-bar {
+        display: flex; align-items: center; gap: 6px;
+        padding: 5px 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+      }
+      .anim-web .url-bar::before {
+        content: "🔍"; font-size: 11px;
+      }
+      .anim-web .results { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+      .anim-web .result {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 6px 7px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        opacity: 0;
+        animation: webResult 4s infinite;
+      }
+      .anim-web .result:nth-child(1) { animation-delay: 0.5s; }
+      .anim-web .result:nth-child(2) { animation-delay: 0.7s; }
+      .anim-web .result:nth-child(3) { animation-delay: 0.9s; }
+      .anim-web .result .host {
+        color: var(--accent); font-size: 8px; margin-bottom: 2px;
+      }
+      .anim-web .result .title { color: var(--text-secondary); }
+      @keyframes webResult {
+        0%, 10% { opacity: 0; transform: translateY(6px); }
+        25%, 80% { opacity: 1; transform: translateY(0); }
+        90%, 100% { opacity: 0; transform: translateY(6px); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: NL → SQL — question becomes SELECT becomes rows
+         ────────────────────────────────────────────────────────────────── */
+      .anim-sql { padding: 14px; }
+      .anim-sql .nl {
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        animation: nlPulse 5s infinite;
+      }
+      .anim-sql .arrow-down {
+        text-align: center;
+        color: var(--accent);
+        font-size: 12px;
+        margin: 4px 0;
+        animation: arrowDownPulse 5s infinite;
+      }
+      .anim-sql .sql-box {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--accent);
+        padding: 4px 7px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        margin-bottom: 6px;
+        opacity: 0;
+        animation: sqlIn 5s infinite;
+      }
+      .anim-sql .rows {
+        display: flex; gap: 4px; opacity: 0; animation: rowsIn 5s infinite;
+      }
+      .anim-sql .row-cell {
+        flex: 1;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        padding: 3px 5px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        color: var(--text-secondary);
+        text-align: center;
+      }
+      @keyframes nlPulse {
+        0%, 15% { opacity: 0.3; }
+        20%, 35% { opacity: 1; }
+        45%, 100% { opacity: 0.6; }
+      }
+      @keyframes arrowDownPulse {
+        0%, 30% { opacity: 0.3; }
+        40%, 60% { opacity: 1; }
+        70%, 100% { opacity: 0.3; }
+      }
+      @keyframes sqlIn {
+        0%, 30% { opacity: 0; }
+        45%, 70% { opacity: 1; }
+        85%, 100% { opacity: 0; }
+      }
+      @keyframes rowsIn {
+        0%, 65% { opacity: 0; transform: translateY(6px); }
+        75%, 95% { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: Multi-agent — router → researcher → analyst → writer
+         ────────────────────────────────────────────────────────────────── */
+      .anim-agents { padding: 14px; }
+      .anim-agents .pipeline {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 4px;
+      }
+      .anim-agents .node {
+        flex: 1;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        padding: 6px 4px;
+        text-align: center;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        animation: agentNode 6s infinite;
+      }
+      .anim-agents .node.router      { animation-delay: 0.0s; --node-color: var(--accent); }
+      .anim-agents .node.researcher  { animation-delay: 1.0s; --node-color: var(--status-green); }
+      .anim-agents .node.analyst     { animation-delay: 2.0s; --node-color: var(--status-yellow); }
+      .anim-agents .node.writer      { animation-delay: 3.0s; --node-color: #a855f7; }
+      .anim-agents .conn {
+        font-size: 12px; color: var(--text-muted);
+      }
+      .anim-agents .tokens {
+        margin-top: 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--text-secondary);
+        min-height: 14px;
+      }
+      .anim-agents .tokens span {
+        opacity: 0;
+        animation: tokenIn 6s infinite;
+      }
+      .anim-agents .tokens span:nth-child(1) { animation-delay: 4.0s; }
+      .anim-agents .tokens span:nth-child(2) { animation-delay: 4.2s; }
+      .anim-agents .tokens span:nth-child(3) { animation-delay: 4.4s; }
+      .anim-agents .tokens span:nth-child(4) { animation-delay: 4.6s; }
+      .anim-agents .tokens span:nth-child(5) { animation-delay: 4.8s; }
+      @keyframes agentNode {
+        0%, 12% { background: var(--bg-card); color: var(--text-secondary); border-color: var(--border); }
+        14%, 26% { background: var(--node-color); color: white; border-color: var(--node-color); transform: scale(1.05); }
+        28%, 100% { background: var(--bg-card); color: var(--text-muted); border-color: var(--border); transform: scale(1); }
+      }
+      @keyframes tokenIn {
+        0%, 65% { opacity: 0; }
+        72%, 90% { opacity: 1; }
+        92%, 100% { opacity: 0; }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: Notifications — fan-out to Telegram + Email in parallel
+         ────────────────────────────────────────────────────────────────── */
+      .anim-notify { padding: 14px; display: flex; align-items: center; gap: 14px; justify-content: center; }
+      .anim-notify .source {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        padding: 6px 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        color: var(--accent);
+        position: relative;
+      }
+      .anim-notify .source::after {
+        content: ""; position: absolute;
+        top: 50%; right: -16px;
+        width: 14px; height: 1px;
+        background: var(--accent);
+        animation: notifyLine 3s infinite;
+      }
+      .anim-notify .channels { display: flex; flex-direction: column; gap: 6px; }
+      .anim-notify .channel {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        padding: 5px 9px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .anim-notify .channel .led {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--text-muted);
+        animation: notifyLed 3s infinite;
+      }
+      .anim-notify .channel.tg .led { animation-delay: 0.5s; }
+      .anim-notify .channel.mail .led { animation-delay: 0.9s; }
+      @keyframes notifyLine {
+        0%, 25% { transform: scaleX(0); opacity: 0; transform-origin: left; }
+        35%, 55% { transform: scaleX(1); opacity: 1; }
+        65%, 100% { transform: scaleX(0); opacity: 0; transform-origin: right; }
+      }
+      @keyframes notifyLed {
+        0%, 40% { background: var(--text-muted); }
+        50%, 70% { background: var(--status-green); box-shadow: 0 0 6px var(--status-green); }
+        80%, 100% { background: var(--text-muted); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: Multi-frontend — same chat, 3 frameworks
+         ────────────────────────────────────────────────────────────────── */
+      .anim-frontends { padding: 14px; display: flex; align-items: center; justify-content: space-around; }
+      .anim-frontends .fw {
+        flex: 1; text-align: center;
+        padding: 12px 4px;
+        margin: 0 4px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        animation: frontHighlight 6s infinite;
+      }
+      .anim-frontends .fw:nth-child(1) { animation-delay: 0s; }
+      .anim-frontends .fw:nth-child(2) { animation-delay: 2s; }
+      .anim-frontends .fw:nth-child(3) { animation-delay: 4s; }
+      .anim-frontends .fw .label {
+        display: block;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .anim-frontends .fw .port {
+        font-size: 9px; color: var(--text-muted);
+      }
+      @keyframes frontHighlight {
+        0%, 28% { border-color: var(--border); }
+        33%, 38% { border-color: var(--accent); transform: translateY(-2px); }
+        43%, 100% { border-color: var(--border); transform: translateY(0); }
+      }
+
+      /* ──────────────────────────────────────────────────────────────────
+         ANIMATION: Image preview / sources thumbnails
+         ────────────────────────────────────────────────────────────────── */
+      .anim-images { padding: 14px; display: flex; align-items: center; gap: 8px; justify-content: center; }
+      .anim-images .thumb {
+        width: 60px; height: 50px;
+        background: linear-gradient(135deg, var(--accent-soft), var(--bg-elevated));
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        position: relative;
+        animation: thumbHover 4s infinite;
+      }
+      .anim-images .thumb:nth-child(1) { animation-delay: 0s; }
+      .anim-images .thumb:nth-child(2) { animation-delay: 1.3s; }
+      .anim-images .thumb:nth-child(3) { animation-delay: 2.6s; }
+      .anim-images .thumb::after {
+        content: "↗"; position: absolute;
+        top: 4px; right: 4px;
+        color: var(--text-muted);
+        font-size: 10px;
+      }
+      @keyframes thumbHover {
+        0%, 30% { transform: translateY(0); border-color: var(--border); }
+        40%, 55% { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 4px 8px var(--accent-soft); }
+        65%, 100% { transform: translateY(0); border-color: var(--border); }
+      }
     </style>
   </head>
   <body>
@@ -292,7 +669,7 @@
         <div class="brand">
           <span class="logo">A</span>
           <span class="name">AgentOS</span>
-          <span class="ver">v0.1 · 66 tests · MIT</span>
+          <span class="ver">la base · MIT</span>
         </div>
         <div class="theme-picker" role="group" aria-label="Tema">
           <button data-theme-btn="dark-blue"   aria-pressed="true">
@@ -311,281 +688,302 @@
     <section class="hero container">
       <span class="tag">Boilerplate · multi-frontend · multi-LLM</span>
       <h1>
-        La base con la que construyes apps de IA <span class="accent">en horas, no en semanas</span>.
+        La <span class="accent">base</span> sobre la que construyes apps con IA.
       </h1>
       <p class="lead">
-        AgentOS es la plomería que cualquier app con IA necesita: orquestación multi-agente con razonamiento visible,
-        cascada con failover entre 3 proveedores LLM, RAG sobre tus documentos, búsqueda web,
-        consultas en lenguaje natural a tu base de datos, notificaciones, exportación a PDF.
-        Tú pones el dominio del problema; el resto ya está.
+        AgentOS no es una app — es la plomería que cualquier app con IA necesita: cascada con failover entre proveedores
+        LLM, multi-agente con razonamiento visible, RAG sobre tus archivos, búsqueda web, NL → SQL sobre tu base
+        de datos, notificaciones multicanal y un file adapter universal. Tu app — dashboard, panel, integración o
+        chat — la construyes tú; AgentOS la alimenta.
       </p>
       <div class="actions">
-        <a class="btn btn-primary" href="#frontends">Elegir un frontend →</a>
-        <a class="btn btn-ghost" href="#features">Ver qué tiene</a>
+        <a class="btn btn-primary" href="/">Probar el chat (test harness) →</a>
+        <a class="btn btn-ghost" href="#features">Ver qué hace cada pieza</a>
       </div>
     </section>
 
-    <section id="frontends" class="block">
-      <div class="container">
-        <h2 class="reveal">Mismo backend · 3 frontends</h2>
-        <p class="sub reveal">
-          Cualquiera de los tres consume la misma API SSE. Haz clic para abrir el dev server (asegúrate de tener
-          <span class="mono" style="color:var(--text-primary)">pnpm dev:&lt;svelte|next|vue&gt;</span> corriendo).
-        </p>
-        <div class="grid cols-3">
-          <a class="chooser-card reveal" href="http://localhost:5173" target="_blank" rel="noopener">
-            <span class="badge-lg">SVELTE</span>
-            <div class="name">SvelteKit 2</div>
-            <div class="meta">localhost:5173</div>
-            <p class="desc">Svelte 5 runes + TanStack Query. El más liviano y el que arranca primero.</p>
-
-
-          </a>
-          <a class="chooser-card reveal" href="http://localhost:3000" target="_blank" rel="noopener">
-            <span class="badge-lg">REACT</span>
-            <div class="name">Next.js 15</div>
-            <div class="meta">localhost:3000</div>
-            <p class="desc">App Router + Zustand + React 19. Si tu equipo viene del ecosistema React.</p>
-
-
-          </a>
-          <a class="chooser-card reveal" href="http://localhost:3001" target="_blank" rel="noopener">
-            <span class="badge-lg">VUE</span>
-            <div class="name">Nuxt 3</div>
-            <div class="meta">localhost:3001</div>
-            <p class="desc">Pinia + Vue Query + auto-imports. Si prefieres Vue o composition API.</p>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section class="block">
-      <div class="container">
-        <h2 class="reveal">Razonamiento visible · stream en tiempo real</h2>
-        <p class="sub reveal">
-          Esto es lo que ves en el panel lateral del chat mientras los agentes trabajan. Cada nodo emite un
-          evento SSE; el frontend los va dibujando, el último (writer/responder) además streamea tokens.
-        </p>
-        <div class="trace-demo reveal">
-          <div class="trace-line" style="animation-delay:.1s">
-            <span class="pill router">router</span>
-            <span>Classifying intent and planning next steps</span>
-            <span class="ts">+12 ms</span>
-          </div>
-          <div class="trace-line" style="animation-delay:.4s">
-            <span class="pill router">router</span>
-            <span>intent: research · es</span>
-            <span class="ts">+312 ms</span>
-          </div>
-          <div class="trace-line" style="animation-delay:.7s">
-            <span class="pill rag">rag</span>
-            <span>Searching internal knowledge base · 1 chunks recuperados</span>
-            <span class="ts">+44 ms</span>
-          </div>
-          <div class="trace-line" style="animation-delay:1s">
-            <span class="pill web">web</span>
-            <span>Searching the web · 3 resultados</span>
-            <span class="ts">+820 ms</span>
-          </div>
-          <div class="trace-line" style="animation-delay:1.3s">
-            <span class="pill researcher">researcher</span>
-            <span>5 findings collected</span>
-            <span class="ts">+1.1 s</span>
-          </div>
-          <div class="trace-line" style="animation-delay:1.6s">
-            <span class="pill analyst">analyst</span>
-            <span>analysis ready</span>
-            <span class="ts">+2.3 s</span>
-          </div>
-          <div class="trace-line" style="animation-delay:1.9s">
-            <span class="pill writer">writer</span>
-            <span>Composing the final response · streaming tokens…</span>
-            <span class="ts">+2.4 s</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
+    <!-- ── 8 Features con animación ────────────────────────────────────── -->
     <section id="features" class="block">
       <div class="container">
-        <h2 class="reveal">¿Qué te da listo?</h2>
+        <h2 class="reveal">Cada capacidad, animada</h2>
         <p class="sub reveal">
-          Cada feature es un paquete independiente; puedes borrar lo que no uses sin romper nada.
-          Las que dependen de una key opcional están marcadas.
+          Cada tarjeta corresponde a un endpoint o módulo que tu app puede invocar. La animación muestra qué hace
+          en runtime, no solo qué es. Pasá el cursor o dejá que se reproduzcan en bucle.
         </p>
+
         <div class="grid cols-2">
 
-          <div class="card reveal">
+          <!-- LLM cascade -->
+          <div class="feature-card reveal">
             <span class="feature-tag">[LLM]</span>
-            <h3>Cascada con failover</h3>
+            <h3>Cascada con circuit breaker</h3>
             <p class="desc">
-              Una sola llamada (<span class="mono">complete_with_fallback</span>) prueba Groq → OpenRouter → Gemini.
-              Circuit breaker abre el proveedor caído por 60s. Tu usuario nunca se entera.
+              Una sola llamada prueba Groq → OpenRouter → Gemini. Si Groq da 429, reintenta el siguiente modelo
+              del mismo proveedor antes de saltar; si todos los modelos fallan, marca el proveedor como caído por
+              60 s y prueba el próximo. Tu app nunca ve un 5xx por LLM saturado.
             </p>
-            <ul>
-              <li>4 cascadas: speed · reasoning · cheap · multimodal</li>
-              <li>3 proveedores con planes gratuitos por default</li>
-              <li>Tests: 13 (failover + breaker + status shape)</li>
-            </ul>
+            <div class="anim">
+              <div class="anim-cascade">
+                <div class="provider"><span class="dot"></span>groq</div>
+                <span class="arrow">→</span>
+                <div class="provider"><span class="dot"></span>openrouter</div>
+                <span class="arrow">→</span>
+                <div class="provider"><span class="dot"></span>gemini</div>
+              </div>
+            </div>
+            <div class="deps">endpoint: <span style="color:var(--text-secondary)">POST /chat/stream · POST /agents/complete</span></div>
           </div>
 
-          <div class="card reveal green">
+          <!-- Multi-agent -->
+          <div class="feature-card reveal">
             <span class="feature-tag green">[AGT]</span>
             <h3>Multi-agente con razonamiento visible</h3>
             <p class="desc">
-              LangGraph (router → researcher → analyst → writer) + CrewAI (crews colaborativos).
-              Cada paso emite un SSE; el panel lateral del chat lo dibuja en vivo.
+              Cada query atraviesa router → researcher → analyst → writer. Cada nodo emite un evento SSE; el
+              frontend (o tu app) los muestra en vivo y al final streaming de tokens del writer. Tu UI puede
+              dibujarlos como pasos para ganar confianza del usuario.
             </p>
-            <ul>
-              <li>2 motores: graph (chat) · crew (colaborativo)</li>
-              <li>Tools inyectables: RAG, Web search</li>
-              <li>Multi-idioma: es / en / pt / fr / de / it</li>
-            </ul>
+            <div class="anim">
+              <div class="anim-agents">
+                <div class="pipeline">
+                  <div class="node router">router</div>
+                  <span class="conn">→</span>
+                  <div class="node researcher">researcher</div>
+                  <span class="conn">→</span>
+                  <div class="node analyst">analyst</div>
+                  <span class="conn">→</span>
+                  <div class="node writer">writer</div>
+                </div>
+                <div class="tokens">
+                  <span>El </span><span>análisis </span><span>indica </span><span>que </span><span>…</span>
+                </div>
+              </div>
+            </div>
+            <div class="deps">eventos SSE: <span style="color:var(--text-secondary)">status · token · sources · done · error</span></div>
           </div>
 
-          <div class="card reveal">
+          <!-- File adapter -->
+          <div class="feature-card reveal">
+            <span class="feature-tag cyan">[FIL]</span>
+            <h3>Universal file adapter</h3>
+            <p class="desc">
+              Subís un PDF, DOCX, XLSX, CSV, JSON, MD, HTML, TXT, Parquet, XML o TSV.
+              <span class="mono" style="color:var(--text-primary)">FileAdapterFactory</span> lo normaliza
+              a texto + tabla + metadata. RAG y data analysis lo consumen igual sin importar el origen.
+            </p>
+            <div class="anim">
+              <div class="anim-files">
+                <div class="files-in">
+                  <span class="file">.pdf</span>
+                  <span class="file">.docx</span>
+                  <span class="file">.xlsx</span>
+                </div>
+                <span class="arrow-large">→</span>
+                <div class="out">
+                  texto + tabla
+                  <div class="chunks">
+                    <div class="chunk"></div>
+                    <div class="chunk"></div>
+                    <div class="chunk"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="deps">endpoint: <span style="color:var(--text-secondary)">POST /data/upload?index=true · POST /rag/ingest</span></div>
+          </div>
+
+          <!-- RAG -->
+          <div class="feature-card reveal">
             <span class="feature-tag">[RAG]</span>
-            <h3>RAG con file adapter universal</h3>
+            <h3>RAG sobre tus documentos</h3>
             <p class="desc">
-              Sube cualquier archivo y el agente lo usa. PDF · DOCX · XLSX · CSV · JSON · MD · HTML · TXT
-              · Parquet · XML. La pipeline (chunk + SBERT + FAISS / pgvector) es compartida con los agentes.
+              Sentence-aware chunking + SBERT MiniLM embeddings (384-dim) + FAISS (dev) o pgvector (prod). La
+              pipeline es compartida entre <span class="mono">/rag/ingest</span> y los agentes — lo que subís se
+              indexa en la misma instancia que el chat consulta.
             </p>
-            <ul>
-              <li>FileAdapterFactory normaliza a texto + tabular</li>
-              <li>SBERT MiniLM-L6-v2 (384-dim) · sentence-aware chunks</li>
-              <li>Tests: 9 chunking + FAISS · 9 file factory</li>
-            </ul>
-            <div class="deps">depende: ninguna API key · runs offline</div>
+            <div class="anim">
+              <div class="anim-rag">
+                <span class="query-bar">¿deadline del Q3 roadmap?</span>
+                <div class="vec">
+                  <span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="hits">
+                  <div class="hit">[INT-1] q3-roadmap.md · score 0.91</div>
+                  <div class="hit">[INT-2] vision-2026.pdf · score 0.74</div>
+                  <div class="hit">[INT-3] kpis.xlsx · score 0.58</div>
+                </div>
+              </div>
+            </div>
+            <div class="deps">endpoint: <span style="color:var(--text-secondary)">POST /rag/search · POST /rag/ingest · DELETE /rag/source/{id}</span></div>
           </div>
 
-          <div class="card reveal yellow">
+          <!-- Web search -->
+          <div class="feature-card reveal yellow">
             <span class="feature-tag yellow">[WEB]</span>
-            <h3>Búsqueda web</h3>
+            <h3>Búsqueda web con thumbnails</h3>
             <p class="desc">
-              Toggle <span class="mono">use_web</span> en el chat. Por default scraping HTML de DuckDuckGo
-              (sin key). Con <span class="mono">TAVILY_API_KEY</span> sube de tier automáticamente.
+              DuckDuckGo HTML scraping (sin key) o Tavily (opt-in). Para cada resultado fetcheamos
+              <span class="mono">og:image</span> en paralelo, así tu UI puede mostrar previews clickables que
+              abren la página fuente. La fusión RAG+Web re-rankea cuando ambos están activos.
             </p>
-            <ul>
-              <li>DuckDuckGo HTML (resultados reales, sin Wikipedia-only)</li>
-              <li>Tavily como upgrade opt-in</li>
-              <li>Inyectable como tool en el orchestrator</li>
-            </ul>
-            <div class="deps">depende: opcional <span class="mono" style="color:var(--text-secondary)">TAVILY_API_KEY</span></div>
+            <div class="anim">
+              <div class="anim-web">
+                <div class="url-bar">duckduckgo.com/html/ · q=...</div>
+                <div class="results">
+                  <div class="result">
+                    <div class="host">olympics.com</div>
+                    <div class="title">Champions semis…</div>
+                  </div>
+                  <div class="result">
+                    <div class="host">tycsports.com</div>
+                    <div class="title">Cronograma…</div>
+                  </div>
+                  <div class="result">
+                    <div class="host">365scores.com</div>
+                    <div class="title">Calendario y cruces…</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="deps">depende: <span class="mono" style="color:var(--text-secondary)">opcional TAVILY_API_KEY</span></div>
           </div>
 
-          <div class="card reveal">
+          <!-- NL → SQL -->
+          <div class="feature-card reveal">
             <span class="feature-tag">[DB]</span>
             <h3>NL → SQL sobre tu DB</h3>
             <p class="desc">
-              Conecta Postgres / MySQL / SQLite. <span class="mono">/database/nl-query</span> traduce
-              lenguaje natural a SELECT seguro (DML/DDL bloqueado, multi-statement bloqueado, LIMIT auto).
+              Conectá Postgres / MySQL / SQLite. El introspector arma el schema en texto, el LLM genera el
+              SELECT, <span class="mono">SafeQueryExecutor</span> bloquea DML/DDL/multi-statement y limita filas.
+              Devuelve el SQL + las filas para que tu UI muestre ambos.
             </p>
-            <ul>
-              <li>SchemaIntrospector listo para LLM context</li>
-              <li>SafeQueryExecutor con regex de bloqueo</li>
-              <li>Tests: 12 (executor + introspector)</li>
-            </ul>
-            <div class="deps">depende: tu <span class="mono" style="color:var(--text-secondary)">DATABASE_URL_USER</span></div>
+            <div class="anim">
+              <div class="anim-sql">
+                <div class="nl">"¿cuántos clientes &gt; 30 años?"</div>
+                <div class="arrow-down">▼</div>
+                <div class="sql-box">SELECT COUNT(*) FROM clientes WHERE edad &gt; 30 LIMIT 200</div>
+                <div class="rows">
+                  <div class="row-cell">count</div>
+                  <div class="row-cell">142</div>
+                </div>
+              </div>
+            </div>
+            <div class="deps">depende: <span class="mono" style="color:var(--text-secondary)">DATABASE_URL_USER</span> · solo SELECT</div>
           </div>
 
-          <div class="card reveal green">
+          <!-- Notifications -->
+          <div class="feature-card reveal green">
             <span class="feature-tag green">[NOT]</span>
-            <h3>Notificaciones multi-canal</h3>
+            <h3>Notificaciones multicanal</h3>
             <p class="desc">
-              El agente puede avisarte cuando algo pasa. Telegram + Email mandados en paralelo
-              (<span class="mono">asyncio.gather</span>). Channels detectados al boot.
+              El agente puede avisarte cuando algo importante pasa.
+              <span class="mono">NotificationDispatcher</span> manda Telegram + Email en paralelo
+              (<span class="mono">asyncio.gather</span>) y devuelve el resultado por canal.
             </p>
-            <ul>
-              <li>Severidades: info · warning · critical</li>
-              <li>Per-channel results · 6 tests con stubs</li>
-            </ul>
+            <div class="anim">
+              <div class="anim-notify">
+                <div class="source">/notify/send</div>
+                <div class="channels">
+                  <div class="channel tg"><span class="led"></span> Telegram</div>
+                  <div class="channel mail"><span class="led"></span> Email</div>
+                </div>
+              </div>
+            </div>
             <div class="deps">depende: <span class="mono" style="color:var(--text-secondary)">TELEGRAM_BOT_TOKEN</span> y/o SMTP</div>
           </div>
 
-          <div class="card reveal">
-            <span class="feature-tag">[PDF]</span>
-            <h3>Exportar a PDF</h3>
+          <!-- Multi-frontend / API -->
+          <div class="feature-card reveal pink">
+            <span class="feature-tag pink">[UI]</span>
+            <h3>3 frontends + API headless</h3>
             <p class="desc">
-              Botón <strong>PDF</strong> en el aside del chat exporta la última respuesta. Doble pipeline:
-              ReportLab por default (pure Python, funciona en Windows), WeasyPrint cuando hay GTK.
-              Markdown del agente se renderiza con tablas, código, listas y links.
+              SvelteKit, Next.js y Nuxt 3 sirven el mismo chat-test que valida que las capacidades funcionan.
+              Para tu app real, llamá la API desde donde quieras: otro frontend, móvil, Slack bot, n8n,
+              cualquier cliente HTTP/SSE.
             </p>
-            <ul>
-              <li>Datasheet PDF con <span class="mono">pnpm datasheet</span></li>
-              <li>Reportes con métricas + tablas via WeasyPrint</li>
-            </ul>
-          </div>
-
-          <div class="card reveal yellow">
-            <span class="feature-tag yellow">[SET]</span>
-            <h3>Listo para deploy</h3>
-            <p class="desc">
-              CI corre los 6 paquetes + Go build + 3-frontend matrix. CD auto-despliega Svelte / Next /
-              Vue a Vercel y FastAPI / Go a Koyeb en cada merge a main.
-            </p>
-            <ul>
-              <li>Vercel · Koyeb · Supabase · PocketHost (todos free)</li>
-              <li>JWT auth opcional · rate limiter sliding-window</li>
-            </ul>
+            <div class="anim">
+              <div class="anim-frontends">
+                <div class="fw">
+                  <span class="label">Svelte</span>
+                  <span class="port">:5173</span>
+                </div>
+                <div class="fw">
+                  <span class="label">Next.js</span>
+                  <span class="port">:3000</span>
+                </div>
+                <div class="fw">
+                  <span class="label">Nuxt 3</span>
+                  <span class="port">:3001</span>
+                </div>
+              </div>
+            </div>
+            <div class="deps">o consume desde otro repo: <span class="mono" style="color:var(--text-secondary)">curl /chat/stream</span></div>
           </div>
 
         </div>
       </div>
     </section>
 
+    <!-- ── Stack ──────────────────────────────────────────────────────── -->
     <section class="block">
       <div class="container">
         <h2 class="reveal">Stack técnico</h2>
         <p class="sub reveal">Todo open-source. Cada paquete es independientemente desinstalable.</p>
         <div class="grid cols-4">
-          <div class="stack-tile reveal">
-            <div class="label">FRONTEND</div>
-            <div class="value">SvelteKit · Next.js · Nuxt 3</div>
-            <div class="sub">Tailwind v4 · TanStack Query</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">FRONTEND</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">SvelteKit · Next · Nuxt</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">Tailwind v4 · TanStack Query</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">BACKEND</div>
-            <div class="value">FastAPI + Pydantic</div>
-            <div class="sub">Go (Gin) · Express · NestJS alt</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">BACKEND</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">FastAPI + Pydantic</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">Go · Express · NestJS alt</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">AGENTES</div>
-            <div class="value">LangGraph + CrewAI</div>
-            <div class="sub">orchestrator + tools</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">AGENTES</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">LangGraph + CrewAI</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">orchestrator + tools</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">LLM</div>
-            <div class="value">Groq · OpenRouter · Gemini</div>
-            <div class="sub">cascada + circuit breaker</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">LLM</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Groq · OpenRouter · Gemini</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">cascada + circuit breaker</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">RAG</div>
-            <div class="value">SBERT + FAISS / pgvector</div>
-            <div class="sub">sentence-aware chunking</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">RAG</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">SBERT + FAISS / pgvector</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">sentence-aware chunking</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">DB</div>
-            <div class="value">Supabase + PostGIS</div>
-            <div class="sub">pgvector + RLS multi-tenant</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">DB</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Supabase + PostGIS</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">pgvector + RLS multi-tenant</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">PDF</div>
-            <div class="value">ReportLab + WeasyPrint</div>
-            <div class="sub">markdown · tablas · charts</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">PDF</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">ReportLab + WeasyPrint</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">markdown · tablas · charts</div>
           </div>
-          <div class="stack-tile reveal">
-            <div class="label">TESTING</div>
-            <div class="value">pytest · vitest · Go test</div>
-            <div class="sub">66+ tests por paquete</div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">TESTING</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">pytest · vitest · Go test</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">CI por paquete</div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ── Quickstart ─────────────────────────────────────────────────── -->
     <section class="block">
       <div class="container">
         <h2 class="reveal">Empezar en 5 comandos</h2>
-        <p class="sub reveal">Asumiendo Python 3.12 y Node 20+. La primera vez tarda ~3 min por sentence-transformers.</p>
+        <p class="sub reveal">
+          Asumiendo Python 3.12 y Node 20+. La primera vez tarda ~3 min por sentence-transformers.
+          Tu app real (dashboard, panel, lo que sea) vivirá <strong>fuera</strong> de este repo y consumirá
+          la API que arranques con estos pasos.
+        </p>
         <pre class="reveal" style="
           background: var(--bg-card);
           border: 1px solid var(--border);
@@ -609,18 +1007,19 @@ pip install -e packages/llm packages/agents packages/rag packages/files services
 <span style="color:var(--text-muted)"># 3) backend</span>
 cd services/api && uvicorn app.main:app --reload
 
-<span style="color:var(--text-muted)"># 4) elegir frontend</span>
-pnpm preview   <span style="color:var(--text-muted)"># abre este selector visual</span>
+<span style="color:var(--text-muted)"># 4) probar el chat-test (verifica que las capacidades responden)</span>
+pnpm dev:svelte   <span style="color:var(--text-muted)"># http://localhost:5173</span>
 
-<span style="color:var(--text-muted)"># 5) verificar</span>
-python scripts/e2e_smoke.py</pre>
+<span style="color:var(--text-muted)"># 5) tu app real ya puede llamar a la API:</span>
+curl -X POST http://localhost:8000/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"message":"hola","language":"es"}'</pre>
       </div>
     </section>
 
     <footer class="container">
-      <span>AgentOS · MIT · 66 tests verdes · 3 frontends · 6 packages independientes</span>
+      <span>AgentOS · MIT · base modular para apps con IA</span>
       <div style="display:flex; gap:14px; flex-wrap:wrap;">
-        <a href="/apps">Catálogo de apps</a>
         <a href="/docs/es/QUE-ES-AGENTOS">¿Qué es?</a>
         <a href="/docs/es/GUIA-RAPIDA">Guía rápida</a>
         <a href="/docs/es/IMPLEMENTACION">Implementación</a>

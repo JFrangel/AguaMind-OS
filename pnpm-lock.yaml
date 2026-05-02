@@ -59,9 +59,6 @@ importers:
 
   apps/web-svelte:
     dependencies:
-      '@agentos/profiles':
-        specifier: workspace:*
-        version: link:../../packages/profiles
       '@agentos/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -145,8 +142,6 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
-
-  packages/profiles: {}
 
   packages/shared-types:
     devDependencies:
