@@ -34,11 +34,19 @@ export function renderChart(jsonText: string): string {
   try {
     spec = JSON.parse(jsonText);
   } catch (e) {
+    // Bad JSON is a model bug, not the user's. Surface it inline so the
+    // prompt author can fix it, but do NOT blow up the whole bubble.
     return errorChart(`JSON inválido: ${e instanceof Error ? e.message : "?"}`);
   }
   const points = normalizePoints(spec.data);
-  if (!points.length) {
-    return errorChart("Sin datos para graficar");
+  if (points.length < 2) {
+    // The writer prompt sometimes emits a chart block out of habit even when
+    // the answer is qualitative (e.g. "compare LangGraph vs CrewAI"). With
+    // 0 or 1 points there's nothing meaningful to graph — suppress silently
+    // instead of showing a "Sin datos" warning that looks like a bug to the
+    // end user. Returning empty string drops the chart from the rendered
+    // markdown without affecting the surrounding text.
+    return "";
   }
   const type = spec.type ?? "bar";
   const body =
