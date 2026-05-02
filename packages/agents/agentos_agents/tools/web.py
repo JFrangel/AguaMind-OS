@@ -49,11 +49,17 @@ class WebSearchTool:
             return await _tavily(query, top_k)
         results = await _duckduckgo_html(query, top_k)
         if results:
-            # Single fetch per URL extracts og:image + main article body
-            # in one pass. The body text is what unblocks the writer when
-            # DDG's snippet is too short to contain the actual answer
-            # (team names, prices, etc.).
+            # Single fetch per URL extracts og:image, main article body,
+            # AND publication date in one pass. The body unblocks the
+            # writer when DDG snippets are too short; the date lets us
+            # sort time-sensitive queries newest-first so a speculative
+            # article from before the event doesn't dominate fresh news.
             await _enrich_results(results, with_images=_images_enabled())
+            if _TIME_SENSITIVE.search(query):
+                # Sort by published date descending. Items without a
+                # date end up last (empty string sorts before any real
+                # date, so reverse=True puts them at the bottom).
+                results.sort(key=lambda r: r.get("published") or "", reverse=True)
         return results
 
 
@@ -139,6 +145,22 @@ _TWITTER_IMAGE = re.compile(
 _ARTICLE_TAG = re.compile(r"<article\b[^>]*>([\s\S]*?)</article>", re.IGNORECASE)
 _MAIN_TAG = re.compile(r"<main\b[^>]*>([\s\S]*?)</main>", re.IGNORECASE)
 _BODY_TAG = re.compile(r"<body\b[^>]*>([\s\S]*?)</body>", re.IGNORECASE)
+# Article publication date. Most modern sites expose at least one of
+# these. We try them in order and pick the first hit. The format varies
+# (ISO 8601 with or without timezone) — we just normalize to YYYY-MM-DD
+# for sorting and display.
+_PUBLISHED_PATTERNS = (
+    re.compile(
+        r'<meta[^>]+(?:property|name|itemprop)=["\'](?:article:published_time|og:published_time|article:modified_time|pubdate|datePublished|date)["\'][^>]+content=["\']([^"\']+)["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name|itemprop)=["\'](?:article:published_time|og:published_time|datePublished)["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(r'<time[^>]+datetime=["\']([^"\']+)["\']', re.IGNORECASE),
+)
+_DATE_ISO = re.compile(r"(\d{4}-\d{2}-\d{2})")
 # Tags whose content is NOT article body: scripts, styles, navs, headers,
 # footers, sidebars, forms, ads. Strip these wholesale before we extract
 # the visible text — otherwise the writer sees megabytes of menu items
@@ -272,9 +294,11 @@ async def _enrich_results(
         except Exception:
             return
 
+        # Head metadata lives in the first 64 KB; scan that slice once.
+        head = full[:65_536]
+
         if with_images:
-            # og tags live in <head>, scan only the first 64 KB.
-            m = _OG_IMAGE.search(full[:65_536]) or _TWITTER_IMAGE.search(full[:65_536])
+            m = _OG_IMAGE.search(head) or _TWITTER_IMAGE.search(head)
             if m:
                 img = unescape(m.group(1))
                 if img.startswith("//"):
@@ -283,6 +307,18 @@ async def _enrich_results(
                     parsed = urlparse(url)
                     img = f"{parsed.scheme}://{parsed.netloc}{img}"
                 item["image"] = img
+
+        # Publication date: try several meta tag forms in order, fall
+        # back to the first <time datetime="..."> in the body. We
+        # normalize to YYYY-MM-DD for both display and sortability.
+        for pattern in _PUBLISHED_PATTERNS:
+            dm = pattern.search(head)
+            if dm:
+                raw = unescape(dm.group(1))
+                iso = _DATE_ISO.search(raw)
+                if iso:
+                    item["published"] = iso.group(1)
+                    break
 
         # Article body extraction: prefer <article>/<main>, else <body>.
         # Strip noise tags (script/style/nav/header/footer/aside/form).

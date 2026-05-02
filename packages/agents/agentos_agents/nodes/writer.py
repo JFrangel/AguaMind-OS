@@ -1,3 +1,4 @@
+import datetime
 from collections.abc import AsyncGenerator
 
 from agentos_llm import LLMFactory
@@ -131,21 +132,29 @@ def _format_web_block(web: list[dict]) -> str:
     When the search adapter has fetched the article body (DuckDuckGo path
     via _enrich_results), we surface it instead of the SERP snippet —
     snippets are typically 150 chars and end with "..." so they don't
-    contain the actual answer. The body is already trimmed to ~1500 chars
-    upstream, but we cap again here as a safety net so a malformed item
-    can't blow up the prompt.
+    contain the actual answer. We also include the article publication
+    date (when available) so the writer can prefer recent sources and
+    flag stale ones — critical for time-sensitive queries where an old
+    speculative article can otherwise be confidently quoted as truth.
     """
-    lines = ["Web sources (use these and cite their URLs in your answer):"]
+    today = datetime.date.today().isoformat()
+    lines = [
+        f"Web sources (today is {today}; for time-sensitive facts, prefer "
+        f"recent dates and treat much-older sources as potentially stale "
+        f"— use the most recent source when they disagree):"
+    ]
     for i, item in enumerate(web, 1):
         title = item.get("title") or "(untitled)"
         url = item.get("url") or ""
+        published = (item.get("published") or "").strip()
         body = (item.get("body") or "").strip().replace("\n", " ")
         snippet = (item.get("snippet") or "").strip().replace("\n", " ")
         # Prefer body (article extract) over snippet (DDG SERP teaser).
         text = body or snippet
         if len(text) > 1500:
             text = text[:1497] + "…"
-        lines.append(f"[{i}] {title}\n    URL: {url}\n    {text}")
+        date_tag = f"  ·  published: {published}" if published else ""
+        lines.append(f"[{i}] {title}{date_tag}\n    URL: {url}\n    {text}")
     return "\n".join(lines)
 
 
