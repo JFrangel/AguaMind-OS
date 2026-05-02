@@ -30,21 +30,24 @@ PROVIDER_MODELS: dict[LLMProvider, list[str]] = {
         "mixtral-8x7b-32768",        # legacy but often available
     ],
     LLMProvider.OPENROUTER: [
-        # Strongest free reasoning models first — they're slower but
-        # extract detail from long context far better than tiny models.
-        # The ":free" suffix hits OpenRouter's free tier (rate-limited
-        # but no card needed).
-        "deepseek/deepseek-chat:free",                    # DeepSeek V3 — best free reasoning
-        "qwen/qwen-2.5-72b-instruct:free",                # 72B, very capable
-        "nousresearch/hermes-3-llama-3.1-405b:free",      # 405B, heavy
-        "meta-llama/llama-3.3-70b-instruct:free",         # 70B Llama
-        # Then mid-tier and the meta-router (auto:free picks whatever
-        # backend is up — useful as a wildcard when specific models are
-        # rate-limited).
+        # Order verified live in May 2026 against
+        # https://openrouter.ai/api/v1/models AND benchmarked against a
+        # real semifinals-extraction task. GLM-4.5 Air produced the
+        # richest answer (cruces + cuartos + scores + correct cites) in
+        # the test; gpt-oss-120b followed instructions but was terse;
+        # qwen3-next and hermes-405b were rate-limited at the moment of
+        # the bench so they're deprioritized but still in the list as
+        # fallbacks.
+        "z-ai/glm-4.5-air:free",                          # ★ best extraction in our bench
+        "openai/gpt-oss-120b:free",                       # OpenAI 120B open-source, instruction-following
+        "nvidia/nemotron-3-super-120b-a12b:free",         # NVIDIA flagship, 120B + 256K ctx
+        "qwen/qwen3-next-80b-a3b-instruct:free",          # Qwen3 80B, 262K ctx (often rate-limited)
+        "nousresearch/hermes-3-llama-3.1-405b:free",      # 405B (often rate-limited)
+        "google/gemma-4-31b-it:free",                     # Gemma 4 31B, 262K
+        # Meta-router fallback — picks whatever backend is up.
         "openrouter/auto:free",
-        "google/gemini-2.0-flash-exp:free",
-        "microsoft/phi-3-medium-128k-instruct:free",
-        "mistralai/mistral-7b-instruct:free",
+        # Mid-tier safety net.
+        "openai/gpt-oss-20b:free",
     ],
     LLMProvider.GEMINI: [
         "gemini-2.5-flash",          # 15 RPM free tier
