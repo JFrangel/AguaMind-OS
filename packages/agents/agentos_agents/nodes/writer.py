@@ -97,15 +97,26 @@ artículo]…", "Según [Source Name]…", "Como se menciona en X…"). The
 
 
 def _format_web_block(web: list[dict]) -> str:
-    """Render the web search context as a numbered block for the user message."""
+    """Render the web search context as a numbered block for the user message.
+
+    When the search adapter has fetched the article body (DuckDuckGo path
+    via _enrich_results), we surface it instead of the SERP snippet —
+    snippets are typically 150 chars and end with "..." so they don't
+    contain the actual answer. The body is already trimmed to ~1500 chars
+    upstream, but we cap again here as a safety net so a malformed item
+    can't blow up the prompt.
+    """
     lines = ["Web sources (use these and cite their URLs in your answer):"]
     for i, item in enumerate(web, 1):
         title = item.get("title") or "(untitled)"
         url = item.get("url") or ""
+        body = (item.get("body") or "").strip().replace("\n", " ")
         snippet = (item.get("snippet") or "").strip().replace("\n", " ")
-        if len(snippet) > 280:
-            snippet = snippet[:277] + "…"
-        lines.append(f"[{i}] {title}\n    URL: {url}\n    {snippet}")
+        # Prefer body (article extract) over snippet (DDG SERP teaser).
+        text = body or snippet
+        if len(text) > 1500:
+            text = text[:1497] + "…"
+        lines.append(f"[{i}] {title}\n    URL: {url}\n    {text}")
     return "\n".join(lines)
 
 

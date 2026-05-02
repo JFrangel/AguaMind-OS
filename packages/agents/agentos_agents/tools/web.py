@@ -48,8 +48,12 @@ class WebSearchTool:
         if provider == "tavily" and os.getenv("TAVILY_API_KEY"):
             return await _tavily(query, top_k)
         results = await _duckduckgo_html(query, top_k)
-        if results and _images_enabled():
-            await _enrich_with_og_images(results)
+        if results:
+            # Single fetch per URL extracts og:image + main article body
+            # in one pass. The body text is what unblocks the writer when
+            # DDG's snippet is too short to contain the actual answer
+            # (team names, prices, etc.).
+            await _enrich_results(results, with_images=_images_enabled())
         return results
 
 
@@ -90,6 +94,21 @@ _SPAM_TITLE = re.compile(
     r"Lowest Prices|Shop On |Compra productos únicos|Descubre grandes ofertas)",
     re.IGNORECASE,
 )
+# Queries that explicitly want shopping/commercial results. When a user
+# asks "compara precios de iPhone en eBay" we MUST keep shopping domains
+# in the SERP — the spam filter is the wrong default for those. Detected
+# via intent words; if any match, we skip both the host blocklist and
+# the title blocklist.
+_COMMERCIAL_INTENT = re.compile(
+    r"\b("
+    r"comprar|precio|precios|barato|barata|baratos|baratas|oferta|ofertas|"
+    r"venta|ventas|vender|tienda|tiendas|amazon|ebay|"
+    r"comparar\s+precio|donde\s+comprar|cu[áa]nto\s+(?:cuesta|vale)|"
+    r"price|prices|cheap|deal|deals|buy|where\s+to\s+buy|shopping|"
+    r"how\s+much\s+(?:does|is)|coupon|discount"
+    r")\b",
+    re.IGNORECASE,
+)
 # Queries that reference "current", "right now", "this season/year/month/week"
 # get scoped to DuckDuckGo's past-year window via `df=y`. We don't trigger on
 # bare year numbers alone — the user might ask about 2023 historically — but
@@ -111,6 +130,22 @@ _OG_IMAGE = re.compile(
 )
 _TWITTER_IMAGE = re.compile(
     r'<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+# Article body extractors. Try <article>, then <main>, then <body>. Each
+# is non-greedy and case-insensitive — most modern news sites wrap their
+# main content in <article>. Score depends on which page we hit, but at
+# minimum <body> always exists.
+_ARTICLE_TAG = re.compile(r"<article\b[^>]*>([\s\S]*?)</article>", re.IGNORECASE)
+_MAIN_TAG = re.compile(r"<main\b[^>]*>([\s\S]*?)</main>", re.IGNORECASE)
+_BODY_TAG = re.compile(r"<body\b[^>]*>([\s\S]*?)</body>", re.IGNORECASE)
+# Tags whose content is NOT article body: scripts, styles, navs, headers,
+# footers, sidebars, forms, ads. Strip these wholesale before we extract
+# the visible text — otherwise the writer sees megabytes of menu items
+# and JS libs.
+_NOISE_TAG = re.compile(
+    r"<(?:script|style|nav|header|footer|aside|form|noscript|svg|iframe)\b[^>]*>"
+    r"[\s\S]*?</(?:script|style|nav|header|footer|aside|form|noscript|svg|iframe)>",
     re.IGNORECASE,
 )
 
@@ -161,8 +196,15 @@ async def _duckduckgo_html(query: str, top_k: int) -> list[dict[str, Any]]:
             return []
         html = resp.text
 
-    # Step 1 — strip ad blocks at the HTML level.
-    html = _AD_BLOCK.sub("", html)
+    # Spam filtering is conditional on intent. For informational queries
+    # ("quien va a ganar la champions"), eBay/ticket-vendor results are
+    # noise. For shopping queries ("comparar precios de iPhone en eBay"),
+    # those same domains ARE the answer — never block them.
+    is_shopping = bool(_COMMERCIAL_INTENT.search(query))
+
+    # Step 1 — strip ad blocks at the HTML level (only for non-shopping).
+    if not is_shopping:
+        html = _AD_BLOCK.sub("", html)
 
     results: list[dict[str, Any]] = []
     for match in _HTML_RESULT.finditer(html):
@@ -179,26 +221,35 @@ async def _duckduckgo_html(query: str, top_k: int) -> list[dict[str, Any]]:
         snippet = _strip(match.group("snippet"))
         if not title or not target:
             continue
-        # Step 2 — drop results whose host is on the spam list.
-        host = urlparse(target).hostname or ""
-        host_norm = host.lower().lstrip("www.")
-        if any(host_norm == s or host_norm.endswith("." + s) for s in _SPAM_HOSTS):
-            continue
-        # Step 3 — drop results with ad-copy titles.
-        if _SPAM_TITLE.search(title):
-            continue
+        if not is_shopping:
+            # Step 2 — drop results whose host is on the spam list.
+            host = urlparse(target).hostname or ""
+            host_norm = host.lower().lstrip("www.")
+            if any(host_norm == s or host_norm.endswith("." + s) for s in _SPAM_HOSTS):
+                continue
+            # Step 3 — drop results with ad-copy titles.
+            if _SPAM_TITLE.search(title):
+                continue
         results.append({"title": title, "url": target, "snippet": snippet, "image": None})
         if len(results) >= top_k:
             break
     return results
 
 
-async def _enrich_with_og_images(results: list[dict[str, Any]]) -> None:
-    """Fetch og:image / twitter:image from each result URL in parallel.
+async def _enrich_results(
+    results: list[dict[str, Any]],
+    *,
+    with_images: bool = True,
+    body_max_chars: int = 1500,
+) -> None:
+    """Fetch each result's HTML and extract og:image + main article body
+    text in one pass. Without this, the writer only sees DDG's ~150-char
+    snippets which often end with "..." and don't contain the actual
+    answer (team names, prices, dates, etc.).
 
     Strict per-URL timeout (5s) so a slow page can't drag the whole search
-    down. Failures are silent — the result simply keeps `image=None` and
-    the UI renders without a thumbnail.
+    down. Failures are silent — the result keeps `image=None` and `body=""`
+    and the writer falls back to the snippet.
     """
     import httpx
 
@@ -209,7 +260,7 @@ async def _enrich_with_og_images(results: list[dict[str, Any]]) -> None:
         ),
     }
 
-    async def fetch_image(client: httpx.AsyncClient, item: dict) -> None:
+    async def fetch_one(client: httpx.AsyncClient, item: dict) -> None:
         url = item.get("url")
         if not url:
             return
@@ -217,23 +268,41 @@ async def _enrich_with_og_images(results: list[dict[str, Any]]) -> None:
             r = await client.get(url, headers=headers, timeout=5.0)
             if r.status_code != 200:
                 return
-            # Only scan the first 64 KB — og tags live in <head>.
-            head = r.text[:65_536]
+            full = r.text
         except Exception:
             return
-        m = _OG_IMAGE.search(head) or _TWITTER_IMAGE.search(head)
-        if m:
-            img = unescape(m.group(1))
-            # Resolve relative URLs against the result's host.
-            if img.startswith("//"):
-                img = "https:" + img
-            elif img.startswith("/"):
-                parsed = urlparse(url)
-                img = f"{parsed.scheme}://{parsed.netloc}{img}"
-            item["image"] = img
+
+        if with_images:
+            # og tags live in <head>, scan only the first 64 KB.
+            m = _OG_IMAGE.search(full[:65_536]) or _TWITTER_IMAGE.search(full[:65_536])
+            if m:
+                img = unescape(m.group(1))
+                if img.startswith("//"):
+                    img = "https:" + img
+                elif img.startswith("/"):
+                    parsed = urlparse(url)
+                    img = f"{parsed.scheme}://{parsed.netloc}{img}"
+                item["image"] = img
+
+        # Article body extraction: prefer <article>/<main>, else <body>.
+        # Strip noise tags (script/style/nav/header/footer/aside/form).
+        # Then strip remaining HTML tags, normalize whitespace, truncate.
+        body_match = (
+            _ARTICLE_TAG.search(full)
+            or _MAIN_TAG.search(full)
+            or _BODY_TAG.search(full)
+        )
+        if body_match:
+            chunk = body_match.group(1)
+            chunk = _NOISE_TAG.sub(" ", chunk)
+            chunk = _TAG.sub(" ", chunk)
+            chunk = unescape(chunk)
+            chunk = re.sub(r"\s+", " ", chunk).strip()
+            if chunk:
+                item["body"] = chunk[:body_max_chars]
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        await asyncio.gather(*(fetch_image(client, r) for r in results))
+        await asyncio.gather(*(fetch_one(client, r) for r in results))
 
 
 def _strip(html_fragment: str) -> str:
@@ -261,11 +330,16 @@ async def _tavily(query: str, top_k: int) -> list[dict[str, Any]]:
         data = resp.json()
 
     images = data.get("images") or []
+    # Tavily's `content` field is already the article-extract, much
+    # richer than DDG's snippet. We expose it as both `snippet` (back-
+    # compat) and `body` (so the writer-side block uses the longer text
+    # via the same code path as DDG enrichment).
     return [
         {
             "title": r.get("title", ""),
             "url": r.get("url", ""),
             "snippet": r.get("content", ""),
+            "body": r.get("content", ""),
             "image": images[i] if i < len(images) and isinstance(images[i], str) else None,
         }
         for i, r in enumerate((data.get("results") or [])[:top_k])
