@@ -80,40 +80,71 @@ Tone: confident, direct. Don't apologise for limitations unless you
 genuinely can't do the task. Don't restate the query.
 """
 
-WRITER_SOURCES_DIRECTIVE = """When the user-provided context includes web sources, cite them following
-these STRICT formatting rules. Bad citations are worse than no citations.
+WRITER_SOURCES_DIRECTIVE = """When the user-provided context includes web sources, you MUST cite them.
+Follow these rules verbatim — bad citations are worse than no citations.
 
-1. **Inline citations must be unobtrusive.** Use a numbered marker
-   `[1](URL)` placed at the END of the sentence (or clause) the source
-   supports — NEVER inline the article title as prose.
+REQUIRED:
+- At least one inline `[N](URL)` marker per non-trivial paragraph or
+  table column when web sources are provided. If you wrote 4 distinct
+  factual claims, expect ~4 inline markers.
+- A `## Fuentes` (or `## Sources` in English) section at the very end
+  listing every source you cited inline.
+- Use the exact `[N]` number that appears in the `Web sources` block
+  the user message gives you. Don't renumber. Reuse the same N if the
+  same source backs multiple claims.
 
-   ❌ "Según Crewai vs LangGraph: conozca las diferencias, CrewAI se
-      centra en…"
-   ❌ "Como se menciona en LangGraph vs CrewAI: ¿Cuál sobrevivirá a
-      la producción?, la comparación de costes…"
-   ✅ "CrewAI se centra en orquestar varios agentes con roles claros [1](URL)."
-   ✅ "LangGraph modela el flujo como un grafo explícito de estados [2](URL)."
+INLINE FORMAT:
+Place `[N](URL)` at the END of the sentence/clause it supports.
+NEVER inline the article title as prose.
 
-2. **Numbers match the order of the `## Fuentes` list at the bottom.**
-   Source #1 inline = first entry under `## Fuentes`. Reuse the same
-   number if the same source backs multiple claims.
+❌ "Según Crewai vs LangGraph: conozca las diferencias, CrewAI se centra
+   en orquestar agentes…"
+❌ "Como se menciona en LangGraph vs CrewAI: ¿Cuál sobrevivirá a la
+   producción?, la comparación de costes…"
+❌ "CrewAI orquesta agentes." (zero markers when sources WERE provided)
+✅ "CrewAI orquesta múltiples agentes con roles definidos [1](https://www.truefoundry.com/es/blog/crewai-vs-langgraph)."
+✅ "LangGraph modela el flujo como un grafo explícito de estados [2](https://redwerk.es/blog/langgraph-vs-crewai/)."
 
-3. **Don't cite obvious / definitional statements** — only the specific
-   factual claims a reader might want to verify (numbers, quotes,
-   non-obvious assertions, framework-specific behavior).
+`## Fuentes` SECTION FORMAT (one bullet per source, in this exact shape):
 
-4. **Always end with a `## Fuentes` section** (or `## Sources` in
-   English) when web context was provided. One bullet per source:
-     - [1] [Short clean title](URL) — qué aportó (1 línea)
-   Use a CLEAN short title (the page's main title or domain), not the
-   full SEO-stuffed headline.
+```
+## Fuentes
+- [1] [TrueFoundry — CrewAI vs LangGraph](https://www.truefoundry.com/es/blog/crewai-vs-langgraph) — comparación de arquitectura.
+- [2] [Redwerk — guía de producción](https://redwerk.es/blog/langgraph-vs-crewai/) — costes, depuración y migración.
+- [3] [Agent Patterns](https://www.agentpatterns.tech/es/vs/crewai-vs-langgraph) — diferencias técnicas resumidas.
+```
 
-5. **Don't pad with phrases like "Según fuentes recientes" or
-   "Como se menciona en…"** — write the claim directly and put the
-   citation marker at the end. The marker is the attribution.
+Notes on Fuentes formatting:
+- The title MUST be a markdown link: `[Title](URL)`. Never write the URL
+  as plain text after the title.
+- SHORTEN the title to ≤6 words: domain + topic, or just the brand. Strip
+  SEO suffixes ("conozca las diferencias", "¿Cuál es la diferencia?",
+  "complete guide", trailing pipes/dashes/sites names).
+- One sentence after the em-dash (—) explaining what the source contributed.
 
-If web context is missing, do NOT invent citations. Just write the
-answer without numbered markers.
+❌ "[1] Crewai vs LangGraph: conozca las diferencias https://www.truefoundry.com/..."
+   (raw URL, full SEO title, no markdown link)
+❌ "[2] LangGraph vs. CrewAI: ¿Cuál sobrevivirá a la producción? — sitio."
+   (full SEO title, vague description)
+✅ "- [1] [TrueFoundry — CrewAI vs LangGraph](https://www.truefoundry.com/es/blog/crewai-vs-langgraph) — comparación de arquitectura."
+
+WRONG vs RIGHT — full mini-example with sources [1] [2]:
+
+❌ Wrong:
+   CrewAI organiza agentes con roles. LangGraph usa grafos. Ambos son útiles.
+   ## Fuentes
+   [1] Crewai vs LangGraph: conozca las diferencias https://x.com/a
+   [2] LangGraph vs CrewAI: la guía completa https://y.com/b
+
+✅ Right:
+   CrewAI organiza agentes con roles definidos para colaboración estructurada [1](https://x.com/a). LangGraph modela el flujo como un grafo explícito de estados y transiciones, lo que da mayor control granular [2](https://y.com/b).
+
+   ## Fuentes
+   - [1] [TrueFoundry — CrewAI vs LangGraph](https://x.com/a) — orquestación de agentes.
+   - [2] [Redwerk — LangGraph en producción](https://y.com/b) — control granular del flujo.
+
+If web context is MISSING, do NOT invent citations and do NOT add a
+`## Fuentes` section.
 """
 
 
