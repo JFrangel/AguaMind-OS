@@ -194,20 +194,68 @@ function enrichTables(html: string, toolbarMinRows: number): string {
     const annotated = annotateNumericCells(full);
     if (rows >= toolbarMinRows + 1) {
       // +1 because the header counts as a row in the regex above.
-      // Two formats: CSV for spreadsheets, MD for pasting back into chat
-      // / docs / GitHub / Notion. Both encoded into data-* attrs so the
-      // bind-time JS doesn't have to re-parse the table.
+      // Three formats encoded into data-* attrs so the bind-time JS
+      // doesn't have to re-parse the table:
+      //  - CSV: for pasting into spreadsheets as-is.
+      //  - MD: markdown table for pasting back into chat / docs / GitHub.
+      //  - HTML: fully inline-styled <table> so Word / Google Sheets /
+      //    Notion / Gmail / Outlook keep colors, header bold, zebra rows,
+      //    and right-aligned numeric columns when the user pastes it.
       const csv = encodeURIComponent(htmlTableToCsv(full));
       const md = encodeURIComponent(htmlTableToMarkdown(full));
+      const styledHtml = encodeURIComponent(htmlTableToStyledHtml(annotated));
       const toolbar = `<div class="table-toolbar">
-        <button type="button" data-action="copy-md" data-md="${md}" title="Copiar como tabla Markdown">Copiar tabla</button>
+        <button type="button" data-action="copy-md" data-md="${md}" data-html="${styledHtml}" title="Copiar tabla con formato (Word, Sheets, Notion, Gmail)">Copiar tabla</button>
         <button type="button" data-action="copy" data-csv="${csv}" title="Copiar como CSV">Copiar CSV</button>
-        <button type="button" data-action="download" data-csv="${csv}" title="Descargar CSV">Descargar</button>
+        <button type="button" data-action="download" data-html="${styledHtml}" title="Descargar como HTML con estilos">Descargar</button>
       </div>`;
       return `<div class="table-wrap">${toolbar}${annotated}</div>`;
     }
     return annotated;
   });
+}
+
+/**
+ * Convert a marked-rendered <table> into a fully self-styled HTML snippet:
+ * every <table>/<th>/<td>/<tr> gets an inline `style` attribute so the
+ * styling survives copy-paste into apps that strip <style> blocks (Word,
+ * Google Docs, Sheets, Notion, Gmail, Outlook, Slack canvas).
+ *
+ * Colors are picked to look reasonable on both light and dark recipient
+ * backgrounds — neutral grays + a soft header. Numeric columns (those
+ * tagged data-num="1" by annotateNumericCells) get text-align:right and
+ * tabular-nums. Even-indexed body rows get a subtle zebra background.
+ *
+ * The header row is detected as the FIRST <tr> in the table, regardless
+ * of whether marked wrapped it in <thead> (it usually doesn't for GFM).
+ */
+function htmlTableToStyledHtml(tableHtml: string): string {
+  const TABLE = "border-collapse:collapse;border-spacing:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#1f2937;margin:0;";
+  const TH_BASE = "background:#eef2ff;color:#1e1b4b;font-weight:600;text-align:left;padding:8px 12px;border-bottom:2px solid #6366f1;border-right:1px solid #e0e7ff;";
+  const TH_NUM = TH_BASE + "text-align:right;font-variant-numeric:tabular-nums;";
+  const TD_BASE = "padding:8px 12px;border-bottom:1px solid #e5e7eb;border-right:1px solid #f3f4f6;";
+  const TD_NUM = TD_BASE + "text-align:right;font-variant-numeric:tabular-nums;";
+  const TR_ZEBRA = ' style="background:#fafbfc;"';
+
+  let rowIdx = -1;
+  return tableHtml
+    .replace(/<table>/, `<table style="${TABLE}">`)
+    .replace(/<tr>/g, () => {
+      rowIdx++;
+      // First row is the header — leave it un-zebra'd.
+      if (rowIdx === 0) return "<tr>";
+      // Even body rows get a subtle background. (rowIdx 1 = first body
+      // row, no zebra; rowIdx 2 = second body row, zebra; etc.)
+      return rowIdx % 2 === 0 ? `<tr${TR_ZEBRA}>` : "<tr>";
+    })
+    .replace(/<th([^>]*)>/g, (_m, attrs: string) => {
+      const isNum = /data-num="1"/.test(attrs);
+      return `<th${attrs} style="${isNum ? TH_NUM : TH_BASE}">`;
+    })
+    .replace(/<td([^>]*)>/g, (_m, attrs: string) => {
+      const isNum = /data-num="1"/.test(attrs);
+      return `<td${attrs} style="${isNum ? TD_NUM : TD_BASE}">`;
+    });
 }
 
 function htmlTableToMarkdown(tableHtml: string): string {
@@ -325,29 +373,63 @@ export function bindTableToolbars(root: HTMLElement | null): void {
     btn.addEventListener("click", async () => {
       const action = btn.dataset.action;
       if (action === "copy-md") {
+        // Copy with formatting preserved. Modern clipboard API takes a
+        // ClipboardItem with multiple MIME variants; the receiving app
+        // picks whichever it understands. Word / Sheets / Notion / Gmail
+        // / Outlook all read text/html and render colors + borders +
+        // header bold + zebra rows. Plain editors and the terminal fall
+        // back to text/plain (markdown). If the browser doesn't support
+        // ClipboardItem (very old Safari / Firefox without flag) we
+        // degrade to plain markdown via writeText.
         const md = decodeURIComponent(btn.dataset.md || "");
+        const styled = decodeURIComponent(btn.dataset.html || "");
         try {
-          await navigator.clipboard.writeText(md);
+          if (styled && typeof ClipboardItem !== "undefined") {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                "text/html": new Blob([styled], { type: "text/html" }),
+                "text/plain": new Blob([md], { type: "text/plain" }),
+              }),
+            ]);
+          } else {
+            await navigator.clipboard.writeText(md);
+          }
           flash(btn, "Copiado ✓");
         } catch {
-          flash(btn, "Error");
+          // Clipboard API can reject with NotAllowedError if the page
+          // lost focus mid-click. Fall back to plain markdown.
+          try {
+            await navigator.clipboard.writeText(md);
+            flash(btn, "Copiado ✓");
+          } catch {
+            flash(btn, "Error");
+          }
         }
         return;
       }
-      const csv = decodeURIComponent(btn.dataset.csv || "");
       if (action === "copy") {
+        const csv = decodeURIComponent(btn.dataset.csv || "");
         try {
           await navigator.clipboard.writeText(csv);
           flash(btn, "Copiado ✓");
         } catch {
           flash(btn, "Error");
         }
-      } else if (action === "download") {
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        return;
+      }
+      if (action === "download") {
+        // Download a styled HTML file. Opens in any browser with the
+        // visual table look intact; can also be drag-dropped into Excel
+        // / Sheets / Numbers, all of which import HTML tables and keep
+        // formatting (header bold, alternating rows, right-aligned
+        // numeric columns).
+        const styled = decodeURIComponent(btn.dataset.html || "");
+        const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Tabla AgentOS</title></head><body style="margin:24px;background:#fff;">${styled}</body></html>`;
+        const blob = new Blob([doc], { type: "text/html;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `tabla-${Date.now()}.csv`;
+        a.download = `tabla-${Date.now()}.html`;
         document.body.appendChild(a);
         a.click();
         a.remove();
