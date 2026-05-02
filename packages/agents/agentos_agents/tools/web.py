@@ -46,20 +46,41 @@ class WebSearchTool:
     async def _dispatch(query: str, top_k: int) -> list[dict[str, Any]]:
         provider = (os.getenv("WEB_SEARCH_PROVIDER") or "duckduckgo").lower()
         if provider == "tavily" and os.getenv("TAVILY_API_KEY"):
-            return await _tavily(query, top_k)
-        results = await _duckduckgo_html(query, top_k)
-        if results:
-            # Single fetch per URL extracts og:image, main article body,
-            # AND publication date in one pass. The body unblocks the
-            # writer when DDG snippets are too short; the date lets us
-            # sort time-sensitive queries newest-first so a speculative
-            # article from before the event doesn't dominate fresh news.
-            await _enrich_results(results, with_images=_images_enabled())
-            if _TIME_SENSITIVE.search(query):
-                # Sort by published date descending. Items without a
-                # date end up last (empty string sorts before any real
-                # date, so reverse=True puts them at the bottom).
-                results.sort(key=lambda r: r.get("published") or "", reverse=True)
+            results = await _tavily(query, top_k)
+        else:
+            results = await _duckduckgo_html(query, top_k)
+            if results:
+                # Single fetch per URL extracts og:image, main article body,
+                # AND publication date in one pass. The body unblocks the
+                # writer when DDG snippets are too short; the date lets us
+                # rank time-sensitive queries newest-first so a speculative
+                # article from before the event doesn't dominate fresh news.
+                await _enrich_results(results, with_images=_images_enabled())
+
+        if not results:
+            return results
+        # Compute authority + recency scores once, then sort by:
+        #   (authority desc, recency desc when time-sensitive, original idx)
+        # This gives:
+        #   - SBERT query → sbert.net first, even if buried in the SERP.
+        #   - Champions semis → uefa.com first, then most recent news.
+        #   - Privacy law / .gov → official agency above blogs.
+        # Stable on ties so the original DDG ranking is the final tiebreak.
+        is_time_sensitive = bool(_TIME_SENSITIVE.search(query))
+        for item in results:
+            host = (urlparse(item.get("url") or "").hostname or "").lower()
+            item["_authority"] = _authority_score(host)
+        results.sort(
+            key=lambda r: (
+                -r.get("_authority", 0),
+                # Negate by lexicographic flip — empty string becomes the
+                # smallest (last) when sorting ascending with this trick.
+                _negative_date_key(r.get("published") or "") if is_time_sensitive else 0,
+            )
+        )
+        # Strip the internal field before returning so callers don't see it.
+        for item in results:
+            item.pop("_authority", None)
         return results
 
 
@@ -100,6 +121,87 @@ _SPAM_TITLE = re.compile(
     r"Lowest Prices|Shop On |Compra productos únicos|Descubre grandes ofertas)",
     re.IGNORECASE,
 )
+# Authoritative / official domains that get a ranking boost. Two tiers:
+# tier 2 (highest) for primary sources (the org itself, governments,
+# academic), tier 1 for community-authoritative (Wikipedia, MDN,
+# StackOverflow), 0 for everyone else. Within the same tier we fall
+# back to recency (for time-sensitive queries) or SERP order. A user
+# asking about SBERT gets sbert.net first; about Champions League gets
+# uefa.com first; about "covid CDC guidelines" gets cdc.gov first.
+_AUTHORITY_TIER_2: tuple[str, ...] = (
+    # Sports / orgs
+    "uefa.com", "fifa.com", "olympic.org", "olympics.com", "nba.com",
+    "nfl.com", "mlb.com", "atptour.com", "wtatennis.com",
+    # Tech: official docs / project sites
+    "python.org", "docs.python.org", "nodejs.org", "react.dev",
+    "vuejs.org", "svelte.dev", "angular.dev", "kotlinlang.org",
+    "go.dev", "rust-lang.org", "ruby-lang.org", "kernel.org",
+    "developer.mozilla.org", "w3.org", "whatwg.org", "ietf.org",
+    "rfc-editor.org", "ecma-international.org", "tc39.es",
+    "sbert.net", "huggingface.co", "pytorch.org", "tensorflow.org",
+    "scikit-learn.org", "numpy.org", "scipy.org", "pandas.pydata.org",
+    "fastapi.tiangolo.com", "djangoproject.com", "flask.palletsprojects.com",
+    "pypi.org", "npmjs.com", "rubygems.org", "crates.io",
+    "kubernetes.io", "docker.com", "helm.sh", "terraform.io",
+    "supabase.com", "vercel.com", "cloudflare.com", "anthropic.com",
+    "openai.com", "platform.openai.com", "ai.google.dev",
+    # Science / medical / institutional
+    "nih.gov", "cdc.gov", "fda.gov", "who.int", "europa.eu",
+    "nature.com", "science.org", "arxiv.org", "ncbi.nlm.nih.gov",
+    "pubmed.ncbi.nlm.nih.gov", "mit.edu", "stanford.edu", "cmu.edu",
+)
+_AUTHORITY_TIER_1: tuple[str, ...] = (
+    # Community-authoritative
+    "wikipedia.org", "stackoverflow.com", "github.com",
+    "reuters.com", "bbc.com", "apnews.com",
+)
+# Suffix-based authority — anything ending with these gets tier 2 by
+# default (governments and accredited universities).
+_AUTHORITY_SUFFIXES: tuple[str, ...] = (".gov", ".edu", ".gob.es", ".gob.mx")
+
+
+def _negative_date_key(published: str) -> str:
+    """Sort key that puts the NEWEST date first when used with ascending sort.
+
+    Trick: lexicographic comparison of YYYY-MM-DD strings is the same as
+    chronological. To put newest first under ascending sort we'd negate,
+    but strings can't be negated, so we map "2026-04-30" → a string that
+    sorts EARLIER for newer dates. We use Unicode codepoint inversion via
+    chr(0x10FFFF - ord(c)) — but a far simpler approach is to just put
+    the date string into a tuple `(no_date_flag, -date_int)`. For
+    simplicity here, we return ISO and let Python compare lexicographically
+    AFTER inversion: build a string where each digit is replaced by its
+    9's-complement, so "2026" → "7973" and newer dates get smaller strings.
+    """
+    if not published:
+        # Items without a date go last among the same authority tier.
+        return "￿"  # sorts after any real date string
+    out = []
+    for ch in published:
+        if ch.isdigit():
+            out.append(str(9 - int(ch)))
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def _authority_score(host: str) -> int:
+    h = host.lower().lstrip(".").removeprefix("www.")
+    for d in _AUTHORITY_TIER_2:
+        if h == d or h.endswith("." + d):
+            return 2
+    for d in _AUTHORITY_TIER_1:
+        if h == d or h.endswith("." + d):
+            return 1
+    if any(h.endswith(s) for s in _AUTHORITY_SUFFIXES):
+        return 2
+    # Patterns: docs.* / developer.* / api.* / spec.* are usually
+    # primary technical sources.
+    if h.startswith(("docs.", "developer.", "developers.", "api.", "spec.")):
+        return 1
+    return 0
+
+
 # Queries that explicitly want shopping/commercial results. When a user
 # asks "compara precios de iPhone en eBay" we MUST keep shopping domains
 # in the SERP — the spam filter is the wrong default for those. Detected
