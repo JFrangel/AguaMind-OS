@@ -80,8 +80,18 @@ export async function renderMarkdown(input: string, opts: RenderOptions = {}): P
 const FORBIDDEN_SOURCE_HEADINGS =
   /(?:^|\n)\s*(?:#{1,3}\s+|\*{1,2}\s*)?(?:Referencias|Fuentes|Sources|Citations?|References|Bibliograf[íi]a|Bibliography)\b\s*:?\s*\*{0,2}\s*\n+(?:\s*(?:https?:\/\/|[-*]\s|\d+[.)]\s|\[\s*\d)[^\n]*\n?)+\s*$/i;
 
+// Match a TRAILING markdown table whose header row is a sources-list
+// pattern like `| Fuente | URL |`, `| # | Source | URL |`, etc., and
+// whose body rows contain http URLs. Some models work around the
+// "no Fuentes section" rule by reformatting the same list as a
+// 2-column table at the end. We strip from the table's start to EOI.
+const FORBIDDEN_SOURCE_TABLE =
+  /(?:^|\n)\s*\|[^\n]*\b(?:Fuente|Fuentes|Source|Sources|URL|Link|Enlace|Referencia|Reference)\b[^\n]*\|\s*\n\s*\|[\s\-:|]+\|\s*\n(?:\s*\|[^\n]*https?:\/\/[^\n]*\|\s*\n?)+\s*$/i;
+
 function stripDuplicateSourcesSection(input: string): string {
-  return input.replace(FORBIDDEN_SOURCE_HEADINGS, "");
+  return input
+    .replace(FORBIDDEN_SOURCE_HEADINGS, "")
+    .replace(FORBIDDEN_SOURCE_TABLE, "");
 }
 
 let purifyPromise: Promise<(input: string) => string> | null = null;
