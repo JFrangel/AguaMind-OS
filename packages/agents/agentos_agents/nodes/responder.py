@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 
 from agentos_llm import LLMFactory
 
+from ..cascade import pick_cascade
 from ..language import instruction, resolve
 from ..state import AgentState
 
@@ -41,8 +42,11 @@ Execution rules — IMPORTANT:
 
 
 async def responder_stream(state: AgentState, factory: LLMFactory) -> AsyncGenerator[str, None]:
-    language = resolve(state.get("language"), state.get("query"))
-    cascade = state.get("cascade") or "speed"
+    query = state.get("query")
+    language = resolve(state.get("language"), query)
+    # Auto-upgrade complex chat queries to QUALITY. Casual chitchat
+    # ("hola", "qué hora es") stays on SPEED for low latency.
+    cascade = pick_cascade(query, web_context=None, explicit=state.get("cascade"))
     # Profiles (`/apps/<slug>`) can replace the default system prompt without
     # touching the codebase. The language instruction is still appended so
     # the override author doesn't have to remember it.
@@ -50,7 +54,7 @@ async def responder_stream(state: AgentState, factory: LLMFactory) -> AsyncGener
     async for token in factory.stream_with_fallback(
         messages=[
             {"role": "system", "content": f"{system}\n\n{instruction(language)}"},
-            {"role": "user", "content": state.get("query", "")},
+            {"role": "user", "content": query or ""},
         ],
         cascade=cascade,
         temperature=0.7,
