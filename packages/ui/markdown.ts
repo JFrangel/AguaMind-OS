@@ -126,6 +126,19 @@ function loadPurify(): Promise<(input: string) => string> {
           return `<a${attrs} class="cite">${text}</a>`;
         },
       );
+      // (3) Force every link in chat markdown to open in a new tab. Without
+      // this a click on a citation pill or any other link navigates the
+      // chat tab away, which loses the conversation. We only add target/
+      // rel when missing so we don't clobber anything DOMPurify or the
+      // upstream renderer set. `noopener noreferrer` is mandatory once
+      // target=_blank is set — `noopener` blocks tabnabbing, `noreferrer`
+      // also hides the chat URL from the destination site.
+      out = out.replace(/<a\b([^>]*?)>/g, (m: string, attrs: string) => {
+        const has = (a: string) => new RegExp(`\\b${a}=`).test(attrs);
+        if (has("target")) return m;
+        const extra = ` target="_blank"${has("rel") ? "" : ' rel="noopener noreferrer"'}`;
+        return `<a${attrs}${extra}>`;
+      });
       return out;
     };
   })();
