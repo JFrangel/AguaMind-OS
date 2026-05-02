@@ -7,6 +7,11 @@ CASCADES: dict[CascadeStrategy, list[LLMProvider]] = {
     CascadeStrategy.REASONING: [LLMProvider.GEMINI, LLMProvider.OPENROUTER, LLMProvider.GROQ],
     CascadeStrategy.CHEAP: [LLMProvider.OPENROUTER, LLMProvider.GROQ, LLMProvider.GEMINI],
     CascadeStrategy.MULTIMODAL: [LLMProvider.GEMINI],
+    # QUALITY pulls from OpenRouter first (where the heaviest free models
+    # live — DeepSeek V3, Qwen 72B, Hermes-3 405B), then Gemini, then Groq
+    # llama-3.3-70b as a fast fallback. The OpenRouter model list is
+    # ordered so the strongest reasoning models come first.
+    CascadeStrategy.QUALITY: [LLMProvider.OPENROUTER, LLMProvider.GEMINI, LLMProvider.GROQ],
 }
 
 # Per-provider model lists. The factory walks each list in order: when a
@@ -25,21 +30,21 @@ PROVIDER_MODELS: dict[LLMProvider, list[str]] = {
         "mixtral-8x7b-32768",        # legacy but often available
     ],
     LLMProvider.OPENROUTER: [
-        # The "OpenRouter Free" pool — meta-router across whatever free
-        # models OpenRouter has available right now. When set, this
-        # absorbs most rate-limit hits because OR moves you to a different
-        # backend instead of failing.
+        # Strongest free reasoning models first — they're slower but
+        # extract detail from long context far better than tiny models.
+        # The ":free" suffix hits OpenRouter's free tier (rate-limited
+        # but no card needed).
+        "deepseek/deepseek-chat:free",                    # DeepSeek V3 — best free reasoning
+        "qwen/qwen-2.5-72b-instruct:free",                # 72B, very capable
+        "nousresearch/hermes-3-llama-3.1-405b:free",      # 405B, heavy
+        "meta-llama/llama-3.3-70b-instruct:free",         # 70B Llama
+        # Then mid-tier and the meta-router (auto:free picks whatever
+        # backend is up — useful as a wildcard when specific models are
+        # rate-limited).
         "openrouter/auto:free",
-        # Specific community-hosted free models. Each one routes to a
-        # different upstream provider, so when Venice is rate-limited
-        # one of these usually still works.
-        "meta-llama/llama-3.3-70b-instruct:free",
         "google/gemini-2.0-flash-exp:free",
-        "qwen/qwen-2.5-72b-instruct:free",
-        "deepseek/deepseek-chat:free",
-        "mistralai/mistral-7b-instruct:free",
-        "nousresearch/hermes-3-llama-3.1-405b:free",
         "microsoft/phi-3-medium-128k-instruct:free",
+        "mistralai/mistral-7b-instruct:free",
     ],
     LLMProvider.GEMINI: [
         "gemini-2.5-flash",          # 15 RPM free tier

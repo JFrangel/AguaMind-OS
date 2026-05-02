@@ -214,7 +214,21 @@ async def writer_stream(state: AgentState, factory: LLMFactory) -> AsyncGenerato
     if web_context:
         system = f"{system}\n\n{WRITER_SOURCES_DIRECTIVE}"
 
-    cascade = state.get("cascade") or "speed"
+    # Cascade choice: when the user provides a web context with at least
+    # one source that actually has body text, upgrade to the QUALITY
+    # cascade so the writer uses a model strong enough to extract
+    # specific details (matchups, scores, dates, prices) from a 1500-char
+    # body. With the SPEED cascade (Groq llama-3.3-70b first), responses
+    # were "lazy" — the model would list the high-level facts and ignore
+    # the specifics in the body. State-level override still wins so
+    # callers can force `speed` for explicit low-latency needs.
+    explicit_cascade = state.get("cascade")
+    if explicit_cascade:
+        cascade = explicit_cascade
+    elif any((it.get("body") or "").strip() for it in web_context):
+        cascade = "quality"
+    else:
+        cascade = "speed"
     async for token in factory.stream_with_fallback(
         messages=[
             {"role": "system", "content": f"{system}\n\n{instruction(language)}"},
