@@ -268,14 +268,17 @@
       .anim-cascade .provider .dot {
         width: 6px; height: 6px; border-radius: 50%;
         background: var(--text-muted); margin-bottom: 3px;
-        animation: cascadeDot 6s infinite;
       }
-      .anim-cascade .provider:nth-child(1) .dot { animation-delay: 0s; }
-      .anim-cascade .provider:nth-child(3) .dot { animation-delay: 1.5s; }
-      .anim-cascade .provider:nth-child(5) .dot { animation-delay: 3s; }
-      .anim-cascade .provider:nth-child(1) { animation: cascadeBox 6s infinite; animation-delay: 0s; }
-      .anim-cascade .provider:nth-child(3) { animation: cascadeBox 6s infinite; animation-delay: 1.5s; }
-      .anim-cascade .provider:nth-child(5) { animation: cascadeBox 6s infinite; animation-delay: 3s; }
+      /* Each provider tells a different story per cycle:
+         - groq    : tries first, gets 429 → red
+         - openrouter : steps in, succeeds → green
+         - gemini  : standby (didn't get reached) → neutral with a brief blink */
+      .anim-cascade .provider:nth-child(1) { animation: cascadeFail 6s infinite; }
+      .anim-cascade .provider:nth-child(1) .dot { animation: dotFail 6s infinite; }
+      .anim-cascade .provider:nth-child(3) { animation: cascadeOk 6s infinite; animation-delay: 1.5s; }
+      .anim-cascade .provider:nth-child(3) .dot { animation: dotOk 6s infinite; animation-delay: 1.5s; }
+      .anim-cascade .provider:nth-child(5) { animation: cascadeStandby 6s infinite; animation-delay: 3s; }
+      .anim-cascade .provider:nth-child(5) .dot { animation: dotStandby 6s infinite; animation-delay: 3s; }
       .anim-cascade .arrow {
         font-size: 14px; color: var(--text-muted);
         animation: arrowPulse 6s infinite;
@@ -303,16 +306,41 @@
       .anim-cascade .log .line:nth-child(1) { top: 4px;  animation-delay: 0.2s; color: var(--text-secondary); }
       .anim-cascade .log .line:nth-child(2) { top: 18px; animation-delay: 1.5s; color: var(--status-red); }
       .anim-cascade .log .line:nth-child(3) { top: 32px; animation-delay: 3s;   color: var(--status-green); }
-      @keyframes cascadeDot {
-        0%, 24% { background: var(--text-muted); }
-        25%, 27% { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-        28%, 49% { background: var(--status-red); }
+      /* groq: fails → red dot + red border */
+      @keyframes dotFail {
+        0%, 14% { background: var(--text-muted); }
+        15%, 22% { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+        25%, 45% { background: var(--status-red); box-shadow: 0 0 6px var(--status-red); }
+        50%, 100% { background: var(--text-muted); box-shadow: none; }
+      }
+      @keyframes cascadeFail {
+        0%, 14% { border-color: var(--border); }
+        15%, 22% { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); }
+        25%, 45% { border-color: var(--status-red); box-shadow: 0 0 0 1px var(--status-red); }
+        50%, 100% { border-color: var(--border); box-shadow: none; }
+      }
+      /* openrouter: succeeds → green dot + green border */
+      @keyframes dotOk {
+        0%, 14% { background: var(--text-muted); }
+        15%, 25% { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+        30%, 60% { background: var(--status-green); box-shadow: 0 0 6px var(--status-green); }
+        65%, 100% { background: var(--text-muted); box-shadow: none; }
+      }
+      @keyframes cascadeOk {
+        0%, 14% { border-color: var(--border); }
+        15%, 25% { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); }
+        30%, 60% { border-color: var(--status-green); box-shadow: 0 0 0 1px var(--status-green); }
+        65%, 100% { border-color: var(--border); box-shadow: none; }
+      }
+      /* gemini: standby (not reached this round), brief neutral pulse */
+      @keyframes dotStandby {
+        0%, 30% { background: var(--text-muted); }
+        35%, 45% { background: var(--text-secondary); }
         50%, 100% { background: var(--text-muted); }
       }
-      @keyframes cascadeBox {
-        0%, 24% { border-color: var(--border); }
-        25%, 49% { border-color: var(--status-red); box-shadow: 0 0 0 1px var(--status-red); }
-        50%, 100% { border-color: var(--border); box-shadow: none; }
+      @keyframes cascadeStandby {
+        0%, 100% { border-color: var(--border); }
+        35%, 45% { border-color: var(--text-secondary); }
       }
       @keyframes arrowPulse {
         0%, 24% { color: var(--text-muted); transform: translateX(0); }
@@ -328,35 +356,62 @@
       /* ──────────────────────────────────────────────────────────────────
          ANIMATION: File adapter — files turn into normalized chunks
          ────────────────────────────────────────────────────────────────── */
-      .anim-files { padding: 14px; display: flex; align-items: center; justify-content: space-around; gap: 10px; }
+      .anim-files {
+        padding: 12px;
+        display: flex; align-items: center; justify-content: space-around;
+        gap: 10px;
+        height: 100%;
+      }
       .anim-files .files-in {
-        display: flex; flex-direction: column; gap: 4px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
         animation: filesIn 5s infinite;
       }
       .anim-files .file {
         font-family: "JetBrains Mono", monospace;
-        font-size: 9px;
-        padding: 3px 7px;
+        font-size: 8.5px;
+        padding: 3px 6px;
         border: 1px solid var(--border);
-        border-radius: 4px;
+        border-radius: 3px;
         background: var(--bg-card);
         color: var(--text-secondary);
+        text-align: center;
       }
-      .anim-files .arrow-large {
-        font-size: 22px; color: var(--accent);
-        animation: arrowSlide 5s infinite;
+      .anim-files .factory {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 8.5px;
+        text-align: center;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 5px 10px;
+        border-radius: 4px;
+        position: relative;
+      }
+      .anim-files .factory::before {
+        content: ""; position: absolute; left: -16px; top: 50%;
+        width: 14px; height: 1px; background: var(--accent);
+        animation: factoryLine 5s infinite;
+      }
+      .anim-files .factory::after {
+        content: ""; position: absolute; right: -16px; top: 50%;
+        width: 14px; height: 1px; background: var(--accent);
+        animation: factoryLine 5s infinite; animation-delay: 0.3s;
       }
       .anim-files .out {
         font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
+        font-size: 9.5px;
         color: var(--accent);
-        text-align: center;
+        text-align: left;
+      }
+      .anim-files .out .label {
+        font-size: 8px; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.06em;
+        margin-bottom: 2px;
       }
       .anim-files .out .chunks {
-        display: flex; flex-direction: column; gap: 2px; margin-top: 6px;
+        display: flex; flex-direction: column; gap: 2px; margin-top: 4px;
       }
       .anim-files .chunk {
-        width: 70px; height: 4px; background: var(--accent-soft);
+        width: 80px; height: 4px; background: var(--accent-soft);
         border-radius: 2px; position: relative; overflow: hidden;
       }
       .anim-files .chunk::after {
@@ -367,6 +422,15 @@
       }
       .anim-files .chunk:nth-child(2)::after { animation-delay: 0.3s; }
       .anim-files .chunk:nth-child(3)::after { animation-delay: 0.6s; }
+      .anim-files .out .meta {
+        font-size: 8px; color: var(--text-muted);
+        margin-top: 6px; line-height: 1.4;
+      }
+      @keyframes factoryLine {
+        0%, 25% { opacity: 0; transform: scaleX(0); }
+        35%, 65% { opacity: 1; transform: scaleX(1); }
+        75%, 100% { opacity: 0; }
+      }
       @keyframes filesIn {
         0%, 30% { transform: translateX(0); opacity: 1; }
         45%, 60% { transform: translateX(-12px); opacity: 0.4; }
@@ -587,7 +651,10 @@
         background: var(--bg-card);
         color: var(--text-secondary);
         animation: agentNode 6s infinite;
+        line-height: 1.3;
       }
+      .anim-agents .node .label { display: block; font-weight: 600; margin-bottom: 2px; }
+      .anim-agents .node .role  { display: block; font-size: 7.5px; color: var(--text-muted); }
       .anim-agents .node.router      { animation-delay: 0.0s; --node-color: var(--accent); }
       .anim-agents .node.researcher  { animation-delay: 1.0s; --node-color: var(--status-green); }
       .anim-agents .node.analyst     { animation-delay: 2.0s; --node-color: var(--status-yellow); }
@@ -638,25 +705,41 @@
       /* ──────────────────────────────────────────────────────────────────
          ANIMATION: Notifications — fan-out to Telegram + Email in parallel
          ────────────────────────────────────────────────────────────────── */
-      .anim-notify { padding: 14px; display: flex; align-items: center; gap: 14px; justify-content: center; }
+      .anim-notify { padding: 14px; display: flex; align-items: center; gap: 18px; justify-content: center; }
       .anim-notify .source {
         font-family: "JetBrains Mono", monospace;
-        font-size: 9px;
-        padding: 6px 10px;
+        font-size: 8.5px;
+        padding: 6px 9px;
         background: var(--bg-card);
         border: 1px solid var(--accent);
         border-radius: 6px;
         color: var(--accent);
         position: relative;
+        text-align: center;
+      }
+      .anim-notify .source .severity {
+        margin-top: 4px;
+        display: flex; gap: 3px; justify-content: center;
+      }
+      .anim-notify .source .severity span {
+        width: 5px; height: 5px; border-radius: 50%;
+      }
+      .anim-notify .source .severity .info  { background: var(--text-muted); }
+      .anim-notify .source .severity .warn  { background: var(--status-yellow); animation: severityWarn 3s infinite; }
+      .anim-notify .source .severity .crit  { background: var(--text-muted); }
+      @keyframes severityWarn {
+        0%, 30% { box-shadow: 0 0 0 0 var(--status-yellow); }
+        50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-yellow) 50%, transparent); }
+        80%, 100% { box-shadow: 0 0 0 0 var(--status-yellow); }
       }
       .anim-notify .source::after {
         content: ""; position: absolute;
-        top: 50%; right: -16px;
-        width: 14px; height: 1px;
+        top: 50%; right: -18px;
+        width: 16px; height: 1px;
         background: var(--accent);
         animation: notifyLine 3s infinite;
       }
-      .anim-notify .channels { display: flex; flex-direction: column; gap: 6px; }
+      .anim-notify .channels { display: flex; flex-direction: column; gap: 4px; }
       .anim-notify .channel {
         font-family: "JetBrains Mono", monospace;
         font-size: 9px;
@@ -670,9 +753,24 @@
         width: 6px; height: 6px; border-radius: 50%;
         background: var(--text-muted);
         animation: notifyLed 3s infinite;
+        flex-shrink: 0;
       }
       .anim-notify .channel.tg .led { animation-delay: 0.5s; }
       .anim-notify .channel.mail .led { animation-delay: 0.9s; }
+      .anim-notify .channel .latency {
+        margin-left: auto;
+        font-size: 8px;
+        color: var(--text-muted);
+        opacity: 0;
+        animation: latencyShow 3s infinite;
+      }
+      .anim-notify .channel.tg .latency { animation-delay: 0.5s; }
+      .anim-notify .channel.mail .latency { animation-delay: 0.9s; }
+      @keyframes latencyShow {
+        0%, 50% { opacity: 0; }
+        65%, 90% { opacity: 1; }
+        95%, 100% { opacity: 0; }
+      }
       @keyframes notifyLine {
         0%, 25% { transform: scaleX(0); opacity: 0; transform-origin: left; }
         35%, 55% { transform: scaleX(1); opacity: 1; }
@@ -687,11 +785,15 @@
       /* ──────────────────────────────────────────────────────────────────
          ANIMATION: Multi-frontend — same chat, 3 frameworks
          ────────────────────────────────────────────────────────────────── */
-      .anim-frontends { padding: 14px; display: flex; align-items: center; justify-content: space-around; }
+      .anim-frontends {
+        padding: 12px;
+        display: flex; flex-direction: column;
+        gap: 10px; height: 100%; justify-content: center;
+      }
+      .anim-frontends .fws { display: flex; align-items: center; justify-content: space-around; gap: 4px; }
       .anim-frontends .fw {
         flex: 1; text-align: center;
-        padding: 12px 4px;
-        margin: 0 4px;
+        padding: 10px 4px;
         font-family: "JetBrains Mono", monospace;
         font-size: 10px;
         border: 1px solid var(--border);
@@ -717,6 +819,32 @@
         0%, 28% { border-color: var(--border); }
         33%, 38% { border-color: var(--accent); transform: translateY(-2px); }
         43%, 100% { border-color: var(--border); transform: translateY(0); }
+      }
+      .anim-frontends .api-shared {
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        color: var(--accent);
+        padding: 5px 8px;
+        border: 1px dashed var(--accent);
+        border-radius: 6px;
+        background: var(--accent-soft);
+        position: relative;
+      }
+      .anim-frontends .api-shared::before {
+        content: "↓ ↓ ↓";
+        position: absolute; top: -10px; left: 0; right: 0;
+        font-size: 7px;
+        color: var(--accent);
+        opacity: 0.6;
+        letter-spacing: 32px;
+        padding-left: 24px;
+        animation: apiArrows 3s infinite;
+      }
+      @keyframes apiArrows {
+        0%, 30% { opacity: 0.2; transform: translateY(-2px); }
+        50%, 70% { opacity: 0.7; transform: translateY(0); }
+        85%, 100% { opacity: 0.2; transform: translateY(-2px); }
       }
 
       /* ──────────────────────────────────────────────────────────────────
@@ -869,13 +997,25 @@
             <div class="anim">
               <div class="anim-agents">
                 <div class="pipeline">
-                  <div class="node router">router</div>
+                  <div class="node router">
+                    <span class="label">router</span>
+                    <span class="role">intent + plan</span>
+                  </div>
                   <span class="conn">→</span>
-                  <div class="node researcher">researcher</div>
+                  <div class="node researcher">
+                    <span class="label">researcher</span>
+                    <span class="role">RAG + Web</span>
+                  </div>
                   <span class="conn">→</span>
-                  <div class="node analyst">analyst</div>
+                  <div class="node analyst">
+                    <span class="label">analyst</span>
+                    <span class="role">síntesis</span>
+                  </div>
                   <span class="conn">→</span>
-                  <div class="node writer">writer</div>
+                  <div class="node writer">
+                    <span class="label">writer</span>
+                    <span class="role">stream</span>
+                  </div>
                 </div>
                 <div class="tokens">
                   <span>El </span><span>análisis </span><span>indica </span><span>que </span><span>existen </span><span>3 </span><span class="cursor"></span>
@@ -900,15 +1040,20 @@
                   <span class="file">.pdf</span>
                   <span class="file">.docx</span>
                   <span class="file">.xlsx</span>
+                  <span class="file">.csv</span>
+                  <span class="file">.json</span>
+                  <span class="file">.html</span>
                 </div>
-                <span class="arrow-large">→</span>
+                <div class="factory">FileAdapterFactory</div>
                 <div class="out">
+                  <div class="label">output</div>
                   texto + tabla
                   <div class="chunks">
                     <div class="chunk"></div>
                     <div class="chunk"></div>
                     <div class="chunk"></div>
                   </div>
+                  <div class="meta">+ metadata<br>+ embeddings</div>
                 </div>
               </div>
             </div>
@@ -1015,10 +1160,21 @@
             </p>
             <div class="anim">
               <div class="anim-notify">
-                <div class="source">/notify/send</div>
+                <div class="source">
+                  /notify/send
+                  <div class="severity">
+                    <span class="info" title="info"></span>
+                    <span class="warn" title="warning"></span>
+                    <span class="crit" title="critical"></span>
+                  </div>
+                </div>
                 <div class="channels">
-                  <div class="channel tg"><span class="led"></span> Telegram</div>
-                  <div class="channel mail"><span class="led"></span> Email</div>
+                  <div class="channel tg">
+                    <span class="led"></span> Telegram <span class="latency">142ms</span>
+                  </div>
+                  <div class="channel mail">
+                    <span class="led"></span> Email <span class="latency">238ms</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1036,18 +1192,21 @@
             </p>
             <div class="anim">
               <div class="anim-frontends">
-                <div class="fw">
-                  <span class="label">Svelte</span>
-                  <span class="port">:5173</span>
+                <div class="fws">
+                  <div class="fw">
+                    <span class="label">Svelte</span>
+                    <span class="port">:5173</span>
+                  </div>
+                  <div class="fw">
+                    <span class="label">Next.js</span>
+                    <span class="port">:3000</span>
+                  </div>
+                  <div class="fw">
+                    <span class="label">Nuxt 3</span>
+                    <span class="port">:3001</span>
+                  </div>
                 </div>
-                <div class="fw">
-                  <span class="label">Next.js</span>
-                  <span class="port">:3000</span>
-                </div>
-                <div class="fw">
-                  <span class="label">Nuxt 3</span>
-                  <span class="port">:3001</span>
-                </div>
+                <div class="api-shared">FastAPI · :8000 (mismo backend)</div>
               </div>
             </div>
             <div class="deps">o consume desde otro repo: <span class="mono" style="color:var(--text-secondary)">curl /chat/stream</span></div>
@@ -1102,6 +1261,46 @@
             <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">TESTING</div>
             <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">pytest · vitest · Go test</div>
             <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">CI por paquete</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">FILES</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">pdfplumber · openpyxl</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">python-docx · pandas · 11 formatos</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">DATA</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">pandas · polars · numpy</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">scipy · DataFrame normalizado</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">ML</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">scikit-learn</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">IsolationForest · LOF · z-score</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">GEO</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">geopy + PostGIS</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">Nominatim · ST_DWithin · ST_Distance</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">NOTIFS</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Telegram + SMTP</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">asyncio.gather paralelo · severidades</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">WEB SEARCH</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">DuckDuckGo + Tavily</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">scraping HTML · og:image enrichment</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">BOT</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">python-telegram-bot</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">worker long-polling · webhook ready</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">DEPLOY</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Vercel · Koyeb · Supabase</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">PocketHost · 100% free tier</div>
           </div>
         </div>
       </div>

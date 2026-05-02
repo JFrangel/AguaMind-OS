@@ -46,6 +46,13 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <a
+          href="/preview"
+          class="rounded-md border border-bg-elevated px-2 py-1 font-mono text-[11px] text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue"
+          title="Ver la landing animada con todas las capacidades"
+        >
+          /preview
+        </a>
         <ChannelsBadge />
         <ThemeSwitch />
         <LanguageSelect value={chat.language} onChange={setLanguage} />
