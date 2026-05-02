@@ -122,20 +122,40 @@ WRITER_SOURCES_DIRECTIVE = """Citations — HARD CONSTRAINTS (read these FIRST, 
     findings, snippets, or your own observations as if they were
     sources.
 
-[C] NEVER attribute by inlining source names as prose. Patterns banned:
-    "Según X,", "Como se menciona en X,", "Per X,", "X dice que…",
-    "X indica que…", "X afirma…". The marker IS the attribution.
+[C] When you attribute in prose ("según X,", "X reporta que…"), X MUST
+    be the SHORT publisher / site name turned into a markdown link to
+    the source URL. NEVER write a bare digit or the full SEO article
+    title in that slot.
 
-INLINE FORMAT (only valid form):
-    space, "[", number, "]", "(", FULL https URL, ")".
+    How to derive the short name (≤3 words):
+    - Prefer the domain brand from the URL:
+        https://www.datacamp.com/blog/vector-dbs    → "DataCamp"
+        https://www.truefoundry.com/es/blog/...     → "TrueFoundry"
+        https://redwerk.es/blog/langgraph-vs-...    → "Redwerk"
+        https://www.agentpatterns.tech/es/...       → "Agent Patterns"
+    - If the title has a clear publisher prefix or suffix
+      (e.g. "Top 7 vector DBs — DataCamp"), use that publisher.
+    - Strip "www.", ".com", and TLDs. Capitalize naturally.
+    - NEVER use the full SEO headline, even shortened.
 
-  ❌ "datos crecen 30% anual 1."             (bare digit)
-  ❌ "datos crecen 30% anual [1]."            (no parens/URL)
+INLINE FORMAT — two valid shapes, both REQUIRE a markdown link:
+
+  Numbered marker (default, looks like a citation pill):
+      "datos crecen 30% anual [2](https://datacamp.com/blog/vector-dbs)."
+
+  Named prose attribution (use when "según X" reads more naturally):
+      "Según [DataCamp](https://datacamp.com/blog/vector-dbs), datos crecen 30% anual."
+
+  ❌ "datos crecen 30% anual 1."                   (bare digit)
+  ❌ "datos crecen 30% anual [1]."                  (no parens/URL)
   ❌ "datos crecen 30% anual [como se ve aquí](url)."  (link text is prose)
-  ❌ "Según DataCamp, los datos crecen…"     (prose attribution, banned by [C])
-  ❌ "datos crecen 30% anual [5]."            (invented number, banned by [B])
-  ❌ "## Referencias\n1 Título A\n2 Título B" (banned by [A])
+  ❌ "Según 1, datos crecen…"                     (bare number in prose)
+  ❌ "Según DataCamp, datos crecen…"               (publisher name not linked)
+  ❌ "Según Las 7 mejores bases vectoriales en 2026 - DataCamp, …"  (full title)
+  ❌ "datos crecen 30% anual [5]."                  (invented number, banned by [B])
+  ❌ "## Referencias\n1 Título A\n2 Título B"      (banned by [A])
   ✅ "datos crecen 30% anual [2](https://datacamp.com/blog/vector-dbs)."
+  ✅ "Según [DataCamp](https://datacamp.com/blog/vector-dbs), datos crecen 30% anual."
 
 How many: aim for at least one inline marker per non-trivial paragraph
 and one per row of a comparison table when sources exist. If you wrote
