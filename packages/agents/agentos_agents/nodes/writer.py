@@ -80,14 +80,40 @@ Tone: confident, direct. Don't apologise for limitations unless you
 genuinely can't do the task. Don't restate the query.
 """
 
-WRITER_SOURCES_DIRECTIVE = """When the user-provided context includes web sources, you MUST end your response
-with a `## Fuentes` (or `## Sources` in English) section listing every source URL
-as a markdown link. Format each entry as:
-  - [Title](URL) — short note on what was used from this source
+WRITER_SOURCES_DIRECTIVE = """When the user-provided context includes web sources, cite them following
+these STRICT formatting rules. Bad citations are worse than no citations.
 
-Do NOT skip this section when web context is provided. Inline-cite specific
-facts where appropriate using `[name](URL)` so the reader can verify each
-claim individually.
+1. **Inline citations must be unobtrusive.** Use a numbered marker
+   `[1](URL)` placed at the END of the sentence (or clause) the source
+   supports — NEVER inline the article title as prose.
+
+   ❌ "Según Crewai vs LangGraph: conozca las diferencias, CrewAI se
+      centra en…"
+   ❌ "Como se menciona en LangGraph vs CrewAI: ¿Cuál sobrevivirá a
+      la producción?, la comparación de costes…"
+   ✅ "CrewAI se centra en orquestar varios agentes con roles claros [1](URL)."
+   ✅ "LangGraph modela el flujo como un grafo explícito de estados [2](URL)."
+
+2. **Numbers match the order of the `## Fuentes` list at the bottom.**
+   Source #1 inline = first entry under `## Fuentes`. Reuse the same
+   number if the same source backs multiple claims.
+
+3. **Don't cite obvious / definitional statements** — only the specific
+   factual claims a reader might want to verify (numbers, quotes,
+   non-obvious assertions, framework-specific behavior).
+
+4. **Always end with a `## Fuentes` section** (or `## Sources` in
+   English) when web context was provided. One bullet per source:
+     - [1] [Short clean title](URL) — qué aportó (1 línea)
+   Use a CLEAN short title (the page's main title or domain), not the
+   full SEO-stuffed headline.
+
+5. **Don't pad with phrases like "Según fuentes recientes" or
+   "Como se menciona en…"** — write the claim directly and put the
+   citation marker at the end. The marker is the attribution.
+
+If web context is missing, do NOT invent citations. Just write the
+answer without numbered markers.
 """
 
 

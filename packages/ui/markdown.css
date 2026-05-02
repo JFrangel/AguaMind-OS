@@ -45,6 +45,34 @@
 }
 .agentos-md a:hover { color: var(--color-accent-blue-hover); }
 
+/* Citation markers: `[1](URL)` style. Auto-detected via CSS attribute
+   selector — any link whose visible text is a short number gets pill
+   styling. We use `:has()` to scope on text content via a child check,
+   but since the link content is just a text node we instead rely on
+   the writer prompt (it always uses 1-2 digit numbers between brackets).
+   The decorative styling: small monospace pill, subtle background, no
+   underline, superscript alignment. Hover surfaces the link normally. */
+.agentos-md a.cite,
+.agentos-md sup a {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 0 5px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72em;
+  font-weight: 500;
+  line-height: 1.4;
+  vertical-align: super;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--color-accent-blue) 12%, transparent);
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--color-accent-blue) 24%, transparent);
+}
+.agentos-md a.cite:hover,
+.agentos-md sup a:hover {
+  background: color-mix(in srgb, var(--color-accent-blue) 22%, transparent);
+  text-decoration: none;
+}
+
 .agentos-md strong { font-weight: 600; color: var(--color-text-primary); }
 .agentos-md em     { color: var(--color-text-primary); }
 

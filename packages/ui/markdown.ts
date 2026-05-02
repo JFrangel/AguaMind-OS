@@ -66,7 +66,7 @@ function loadPurify(): Promise<(input: string) => string> {
     const factory = (DOMPurify as any).default ?? DOMPurify;
     const instance = typeof factory === "function" ? factory(window) : factory;
     return (input: string) => {
-      const out = instance.sanitize(input, {
+      let out: string = instance.sanitize(input, {
         // SVG elements + attributes need to survive — chart output is SVG.
         ADD_TAGS: ["svg", "g", "rect", "line", "path", "circle", "text", "title"],
         ADD_ATTR: [
@@ -100,10 +100,15 @@ function loadPurify(): Promise<(input: string) => string> {
         ],
         ALLOW_DATA_ATTR: true,
       });
-      // Post-process <img> tags to add lazy-loading + decoding hints +
+      // Post-process: (1) <img> tags get lazy-loading + decoding hints +
       // referrer policy (so we don't leak the chat URL to image hosts).
-      // Done after sanitize so DOMPurify doesn't strip our additions.
-      return out.replace(/<img\b([^>]*)>/g, (_match: string, attrs: string) => {
+      // (2) <a> tags whose visible text is just a 1-3 digit number get a
+      // `cite` class so the markdown.css pill style applies. The writer
+      // prompt instructs the model to use `[1](URL)` style citations;
+      // detecting numeric-only text here turns those into superscript
+      // pills automatically without the model having to emit HTML. Done
+      // after sanitize so DOMPurify doesn't strip our additions.
+      out = out.replace(/<img\b([^>]*)>/g, (_match: string, attrs: string) => {
         const has = (a: string) => new RegExp(`\\b${a}=`).test(attrs);
         const extra =
           (has("loading") ? "" : ' loading="lazy"') +
@@ -111,6 +116,17 @@ function loadPurify(): Promise<(input: string) => string> {
           (has("referrerpolicy") ? "" : ' referrerpolicy="no-referrer"');
         return `<img${attrs}${extra}>`;
       });
+      out = out.replace(
+        /<a\b([^>]*?)>(\s*\d{1,3}\s*)<\/a>/g,
+        (_m: string, attrs: string, text: string) => {
+          // Don't double-class. Don't break existing class= attribute.
+          if (/\bclass=/.test(attrs)) {
+            return `<a${attrs.replace(/class="([^"]*)"/, 'class="$1 cite"')}>${text}</a>`;
+          }
+          return `<a${attrs} class="cite">${text}</a>`;
+        },
+      );
+      return out;
     };
   })();
   return purifyPromise;
