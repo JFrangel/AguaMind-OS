@@ -157,6 +157,8 @@ async def run_graph_stream(
                     # Same pattern: surface the URLs separately so the UI
                     # can render clickable source pills under the answer
                     # even before the writer finishes streaming tokens.
+                    # Include `published` so the UI can show dates on each
+                    # pill — useful for the user to spot stale articles.
                     yield {
                         "type": "sources",
                         "kind": "web",
@@ -166,6 +168,7 @@ async def run_graph_stream(
                                 "url": r.get("url"),
                                 "snippet": (r.get("snippet") or "")[:200],
                                 "image": r.get("image"),
+                                "published": r.get("published"),
                             }
                             for r in web_results
                         ],

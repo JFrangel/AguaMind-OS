@@ -389,7 +389,12 @@ async def _enrich_results(
         if not url:
             return
         try:
-            r = await client.get(url, headers=headers, timeout=5.0)
+            # 8s is a compromise: enough for JS-heavy authoritative sites
+            # (UEFA, large news outlets) that take a few seconds to serve
+            # their first byte, but capped so a hung server can't drag
+            # down the whole search. asyncio.gather still parallelizes
+            # across results, so total latency is the slowest single hit.
+            r = await client.get(url, headers=headers, timeout=8.0)
             if r.status_code != 200:
                 return
             full = r.text

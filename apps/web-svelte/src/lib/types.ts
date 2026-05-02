@@ -12,6 +12,8 @@ export interface WebSourceItem {
   url?: string;
   snippet?: string;
   image?: string | null;
+  /** ISO YYYY-MM-DD when the article was published, if extractable. */
+  published?: string | null;
 }
 
 export interface RagSourceItem {

@@ -72,11 +72,14 @@
               href={src.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={src.snippet || src.title}
+              title={(src.published ? `${src.published} · ` : "") + (src.snippet || src.title || "")}
               class="inline-flex items-center gap-1.5 rounded-md border border-bg-elevated bg-bg-card px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue"
             >
               <span class="font-mono text-[10px] text-text-muted">{i + 1}</span>
               <span class="max-w-[180px] truncate font-medium">{src.title || host(src.url)}</span>
+              {#if src.published}
+                <span class="font-mono text-[9px] text-text-muted">{src.published}</span>
+              {/if}
               <span class="text-[10px] text-text-muted">↗</span>
             </a>
           {/each}
