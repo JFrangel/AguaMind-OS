@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import os
 import re
 from collections.abc import Awaitable, Callable
@@ -59,26 +60,48 @@ class WebSearchTool:
 
         if not results:
             return results
-        # Compute authority + recency scores once, then sort by:
-        #   (authority desc, recency desc when time-sensitive, original idx)
-        # This gives:
-        #   - SBERT query → sbert.net first, even if buried in the SERP.
-        #   - Champions semis → uefa.com first, then most recent news.
-        #   - Privacy law / .gov → official agency above blogs.
-        # Stable on ties so the original DDG ranking is the final tiebreak.
         is_time_sensitive = bool(_TIME_SENSITIVE.search(query))
+
+        # When at least one source has a fetched body, drop the ones
+        # whose body is empty (fetch timed out or page was JS-only with
+        # no extractable content). Without this filter, an authoritative
+        # site that we couldn't actually scrape (e.g. uefa.com which
+        # times out from this scraper) ends up as `[1]` in the writer's
+        # context with no real content — the writer then falls back to
+        # its training knowledge and hallucinates. Better to use the
+        # blogs that DID have body extraction. We keep all sources if
+        # NONE has a body so the search isn't completely empty.
+        with_body = [r for r in results if (r.get("body") or "").strip()]
+        if with_body:
+            results = with_body
+
+        # For time-sensitive queries (semifinales, cuartos, "este año"),
+        # drop articles older than 180 days — likely from a previous
+        # season / cycle. We never drop dateless items because some
+        # sites just don't expose dates; better to keep them than lose
+        # the source entirely.
+        if is_time_sensitive:
+            cutoff = (datetime.date.today() - datetime.timedelta(days=180)).isoformat()
+            results = [r for r in results if (r.get("published") or "9999") >= cutoff]
+            if not results:
+                # Filtered everything — fall back to the un-filtered list
+                # rather than returning empty.
+                results = with_body or results
+
+        # Compute authority + recency scores then sort by:
+        #   (authority desc, recency desc when time-sensitive, original idx)
+        # SBERT → sbert.net + huggingface.co first; Champions semis →
+        # uefa.com first, then most recent news; .gov queries → agency
+        # above blogs. Stable sort preserves DDG ranking on ties.
         for item in results:
             host = (urlparse(item.get("url") or "").hostname or "").lower()
             item["_authority"] = _authority_score(host)
         results.sort(
             key=lambda r: (
                 -r.get("_authority", 0),
-                # Negate by lexicographic flip — empty string becomes the
-                # smallest (last) when sorting ascending with this trick.
                 _negative_date_key(r.get("published") or "") if is_time_sensitive else 0,
             )
         )
-        # Strip the internal field before returning so callers don't see it.
         for item in results:
             item.pop("_authority", None)
         return results
@@ -218,16 +241,25 @@ _COMMERCIAL_INTENT = re.compile(
     re.IGNORECASE,
 )
 # Queries that reference "current", "right now", "this season/year/month/week"
-# get scoped to DuckDuckGo's past-year window via `df=y`. We don't trigger on
-# bare year numbers alone — the user might ask about 2023 historically — but
-# explicit "actual" / "reciente" / "current" / "now" / "este año" is unambiguous.
+# OR a competition-stage word (semifinal, cuartos, jornada, ranking) get
+# scoped to DuckDuckGo's past-year window via `df=y` AND old articles
+# (>180 days) get filtered out. Stage words imply "current state of the
+# competition" by definition — nobody asks "who's in the semifinal"
+# meaning historically. We don't trigger on bare year numbers alone —
+# the user might ask about 2023 historically.
 _TIME_SENSITIVE = re.compile(
     r"\b("
+    # Explicit recency markers
     r"actual(?:es|mente)?|reciente(?:s|mente)?|hoy|ahora|"
     r"este\s+(?:año|mes|semana|temporada)|esta\s+(?:semana|temporada)|"
     r"current(?:ly)?|recent(?:ly)?|today|now|latest|"
     r"this\s+(?:year|month|week|season)|"
-    r"who\s+is\s+winning|going\s+on\s+now"
+    r"who\s+is\s+winning|going\s+on\s+now|"
+    # Competition-stage / event-state vocabulary (implicitly current)
+    r"semifinal(?:es)?|cuartos|octavos|dieciseisavos|"
+    r"jornada|fixture|ranking|standings|clasificaci[oó]n|"
+    # "están|estan + clasificados|en liza|en la final"
+    r"est[áa]n?\s+(?:clasificad|en\s+liza|en\s+la\s+final|en\s+semis?)"
     r")\b",
     re.IGNORECASE,
 )
