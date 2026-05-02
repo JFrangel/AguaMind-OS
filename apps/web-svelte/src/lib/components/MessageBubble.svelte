@@ -10,15 +10,44 @@
   let html = $state("");
   let mdRoot: HTMLDivElement | undefined = $state();
 
+  // Markdown re-rendering during streaming is the single biggest cost in
+  // the chat: marked + DOMPurify + the post-process regex run on EVERY
+  // token, and the cost is linear in the message length, so a 500-token
+  // response is O(N²). We coalesce updates with requestAnimationFrame so
+  // we render at most ~60Hz no matter how fast tokens arrive.
+  //
+  // Tracks: the last text we actually rendered, and the in-flight RAF id
+  // so we can cancel a pending render when a newer one arrives.
+  let pendingRaf = 0;
+  let lastRendered = "";
+
   $effect(() => {
     const text = message.content;
     if (!text || isUser) {
       html = "";
       return;
     }
-    renderMarkdown(text).then((rendered) => {
-      html = rendered;
+    if (text === lastRendered) return;
+
+    if (pendingRaf) cancelAnimationFrame(pendingRaf);
+    pendingRaf = requestAnimationFrame(() => {
+      pendingRaf = 0;
+      const snapshot = message.content;
+      lastRendered = snapshot;
+      renderMarkdown(snapshot).then((rendered) => {
+        // Discard if a newer token arrived while we were parsing — no
+        // point flashing stale HTML when a fresh render is queued.
+        if (snapshot === lastRendered) html = rendered;
+      });
     });
+
+    // Cleanup if effect re-runs (component teardown / message swap).
+    return () => {
+      if (pendingRaf) {
+        cancelAnimationFrame(pendingRaf);
+        pendingRaf = 0;
+      }
+    };
   });
 
   // After every re-render: wire CSV toolbar + click-to-zoom on images.

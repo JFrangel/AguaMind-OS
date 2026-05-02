@@ -161,31 +161,45 @@ class ChatStore {
     if (idx < 0) return;
     const msg = this.messages[idx];
 
+    // Svelte 5 $state proxies are deeply reactive — direct mutation of
+    // msg.content / msg.agentTrace is enough to trigger updates. We do NOT
+    // do `this.messages = [...this.messages]` because that rebuilds the
+    // array on every token, forcing a re-render of every MessageBubble
+    // (each one then re-runs its markdown effect). With ~100 tokens per
+    // response the cost is quadratic in the message length.
+
     switch (event.type) {
       case "status": {
         this.currentNode = event.node ?? null;
-        const trace: AgentTraceEntry = {
-          id: uid(),
-          node: event.node ?? "unknown",
-          content: event.content ?? "",
-          timestamp: Date.now(),
-        };
-        msg.agentTrace = [...(msg.agentTrace ?? []), trace];
+        msg.agentTrace = [
+          ...(msg.agentTrace ?? []),
+          {
+            id: uid(),
+            node: event.node ?? "unknown",
+            content: event.content ?? "",
+            timestamp: Date.now(),
+          },
+        ];
         break;
       }
       case "crew_status": {
         this.currentAgent = event.agent ?? null;
-        const trace: AgentTraceEntry = {
-          id: uid(),
-          node: "crew",
-          agent: event.agent,
-          content: event.task ?? "",
-          timestamp: Date.now(),
-        };
-        msg.agentTrace = [...(msg.agentTrace ?? []), trace];
+        msg.agentTrace = [
+          ...(msg.agentTrace ?? []),
+          {
+            id: uid(),
+            node: "crew",
+            agent: event.agent,
+            content: event.task ?? "",
+            timestamp: Date.now(),
+          },
+        ];
         break;
       }
       case "token":
+        // Pure mutation — no array rebuild. Token arrival rate is ~30/s
+        // when the LLM is fast; the array reassignment used to dominate
+        // CPU here.
         msg.content += event.content ?? "";
         break;
       case "sources": {
@@ -228,7 +242,6 @@ class ChatStore {
         this.currentAgent = null;
         break;
     }
-    this.messages = [...this.messages];
   }
 
   reset(): void {

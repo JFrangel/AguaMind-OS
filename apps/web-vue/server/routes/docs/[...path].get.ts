@@ -61,7 +61,7 @@ const HTML_FRAME = (title: string, body: string) => `<!doctype html>
 <body>
 <div class="topbar">
   <a class="brand" href="/"><span class="logo">A</span><span style="font-family:'Space Grotesk';font-weight:600">AgentOS</span></a>
-  <nav><a href="/previewagentos">Preview</a><a href="/">Chat</a></nav>
+  <nav><a href="/preview">Preview</a><a href="/">Chat</a></nav>
 </div>
 <main>${body}</main>
 </body>

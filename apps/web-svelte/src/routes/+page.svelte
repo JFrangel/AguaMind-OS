@@ -11,10 +11,23 @@
 
   let scrollEl: HTMLDivElement | undefined = $state();
 
+  // Auto-scroll on new content. We keep scroll synced to the bottom while
+  // tokens stream in, but coalesce calls with rAF so we don't queue dozens
+  // of scrollTo per second (each one triggers layout). Smooth scrolling
+  // gets disabled while streaming because the browser's smooth-scroll
+  // interrupt logic introduces visible jank when called every frame.
+  let scrollRaf = 0;
   $effect(() => {
     chat.messages;
     chat.streaming;
-    queueMicrotask(() => scrollEl?.scrollTo({ top: scrollEl.scrollHeight, behavior: "smooth" }));
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => {
+      scrollRaf = 0;
+      scrollEl?.scrollTo({
+        top: scrollEl.scrollHeight,
+        behavior: chat.streaming ? "auto" : "smooth",
+      });
+    });
   });
 
   const lastAssistant = $derived(

@@ -71,6 +71,31 @@
         font-family: "Inter", system-ui, sans-serif;
         font-size: 14px; line-height: 1.55;
         transition: background 220ms ease, color 220ms ease;
+        scroll-behavior: smooth;
+      }
+      /* Off-screen sections aren't laid out or painted until they come into
+         view. Massive win for this landing because every section ships its
+         own animation; with content-visibility:auto the browser skips work
+         on hidden sections entirely. The contain-intrinsic-size keeps the
+         scrollbar correct so the page doesn't jump as sections reveal. */
+      section.block {
+        content-visibility: auto;
+        contain-intrinsic-size: 1px 600px;
+      }
+      /* Pause CSS animations on cards that aren't visible. Set by the
+         IntersectionObserver near the bottom of the page. */
+      .feature-card.offscreen .anim *,
+      .feature-card.offscreen .anim {
+        animation-play-state: paused !important;
+      }
+      /* Respect users who don't want motion. */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
       }
       h1, h2, h3 {
         font-family: "Space Grotesk", "Inter", sans-serif;
@@ -1453,6 +1478,41 @@ curl -X POST http://localhost:8000/chat/stream \
         { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
       );
       document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+      // Pause animations on feature cards while they're off-screen. The
+      // CSS @keyframes still tick the wall clock, but compositor work
+      // (paint/composite of the moving elements) is suspended, which
+      // matters when the page has 8 simultaneous animations. We toggle
+      // a class instead of inline styles so it interacts cleanly with
+      // prefers-reduced-motion.
+      const animObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            // rootMargin keeps cards "live" slightly before they enter
+            // viewport so the animation isn't visibly mid-frame on reveal.
+            e.target.classList.toggle("offscreen", !e.isIntersecting);
+          });
+        },
+        { threshold: 0, rootMargin: "200px 0px 200px 0px" },
+      );
+      document.querySelectorAll(".feature-card .anim").forEach((card) => {
+        animObserver.observe(card.closest(".feature-card"));
+      });
+
+      // Smooth in-page jumps for any anchor link without forcing the page
+      // to do a layout-blocking instant scroll. The CSS scroll-behavior
+      // already handles this for most browsers, but Safari < 16 needs the
+      // explicit polyfill via scrollIntoView({ behavior: "smooth" }).
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener("click", (e) => {
+          const id = a.getAttribute("href").slice(1);
+          const target = id && document.getElementById(id);
+          if (!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          history.replaceState(null, "", `#${id}`);
+        });
+      });
     </script>
   </body>
 </html>
