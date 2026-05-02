@@ -39,6 +39,72 @@ Acá pasa lo mismo: AgentOS no es "el chatbot médico", es la base sobre la que 
 
 ---
 
+## Los 3 modelos de uso (qué eligen las apps reales)
+
+No hay UNA forma "correcta" de construir sobre AgentOS. Hay tres
+modelos válidos según qué tipo de app necesites. Este es el punto que
+más confunde al principio, así que va explicado primero.
+
+### Modelo A — Fork por proyecto
+
+Clonás el repo, customizás el system prompt + branding, deploy a tu
+propio dominio. Bueno para: hackathons donde vas a hacer una sola app.
+Es lo que documenta [HACKATHON.md](../HACKATHON.md).
+
+### Modelo B — Una instancia, varios profiles (chat-with-personality)
+
+La misma instancia de AgentOS sirve N "perfiles" — cada uno es un
+system prompt + presets + branding distinto. Las URLs viven en
+`/apps/<slug>` dentro del frontend de AgentOS. Bueno para: cuando todas
+tus apps son **chats con personalidad diferente** (asistente médico,
+asistente legal, tutor, etc.).
+
+Cada profile es un archivo TS en `packages/profiles/profiles/<slug>.ts`.
+Si tu UI se parece a un chat, este modelo te ahorra escribir un
+frontend nuevo.
+
+### Modelo C — AgentOS como API headless (lo más común para apps reales)
+
+**Tu app es un proyecto separado** (otro repo, otro dominio, otro
+deploy) que solo consume AgentOS por HTTP/SSE. Este es el modelo
+correcto cuando tu UI **no se parece a un chat**: dashboards, mapas,
+formularios, paneles ejecutivos, integraciones (Slack, móvil, etc.).
+
+Ejemplo concreto vivible en este repo:
+[`examples/dashboard-vanilla/`](../../examples/dashboard-vanilla/) —
+un mini dashboard standalone (HTML+JS sin frameworks) que llama a
+`/health`, `/profiles`, `/chat/stream`, `/rag/search` y arma su propia
+UI. Copiá ese archivo a cualquier servidor estático y ya tenés una app
+funcional sobre AgentOS.
+
+```
+┌────────────────────────────────────────┐         ┌──────────────────────┐
+│  TU APP (proyecto aparte)              │  HTTP   │  AGENTOS (este repo) │
+│  React / Vue / Svelte / móvil / lo     │ ──────▶ │  - LLM cascade       │
+│  que necesites. Tu propio backend si    │         │  - Multi-agente      │
+│  hace falta para datos del dominio.    │  SSE    │  - RAG               │
+│                                        │ ◀────── │  - NL→SQL            │
+│  AgentOS lo invocás solo cuando        │         │  - Notifs            │
+│  necesitás IA.                         │         │  - File adapter      │
+└────────────────────────────────────────┘         └──────────────────────┘
+```
+
+### Cuál elegir
+
+| Tu situación | Modelo |
+|---|---|
+| "Tengo 1 app, voy a deployar 1 vez, no me importa la modularidad" | **A** (fork) |
+| "Tengo varios chats con personalidades distintas, quiero compartir backend" | **B** (profiles) |
+| "Mi app es un dashboard / mapa / panel / formulario / móvil / Slack bot" | **C** (API headless) |
+| "Mi app combina dashboard + chat" | **C** + opcionalmente embeber el chat de B |
+
+Lo que sigue de esta guía cubre **Modelo A** (fork) porque es el más
+simple para empezar. Para **Modelo C** mirá el ejemplo de
+`dashboard-vanilla` directamente — es 30 líneas de fetch + el patrón
+es el mismo en cualquier framework.
+
+---
+
 ## Decisión 1: ¿Qué app vas a construir?
 
 Antes de tocar código, definí en una frase qué hace tu app. Ejemplos reales:

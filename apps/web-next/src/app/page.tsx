@@ -96,7 +96,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-bg-elevated bg-bg-secondary/60 px-6 py-4 backdrop-blur">
+          <div className="px-6 pb-4 pt-2">
             <div className="mx-auto max-w-3xl">
               <ChatComposer />
             </div>

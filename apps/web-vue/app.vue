@@ -102,7 +102,7 @@ watch(
           </div>
         </div>
 
-        <div class="border-t border-bg-elevated bg-bg-secondary/60 px-6 py-4 backdrop-blur">
+        <div class="px-6 pb-4 pt-2">
           <div class="mx-auto max-w-3xl">
             <ChatComposer />
           </div>

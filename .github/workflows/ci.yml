@@ -18,10 +18,13 @@ jobs:
           cache: "pip"
       - name: Install packages
         run: |
-          pip install -e packages/llm[dev]
+          pip install -e "packages/llm[dev]"
           pip install -e packages/rag
           pip install -e packages/notifications
-          pip install -e packages/database
+          # database needs the [sqlite] extra so the in-memory tests can
+          # actually run — without aiosqlite they importorskip and pytest
+          # exits 5 (NO_TESTS_COLLECTED), which fails the build.
+          pip install -e "packages/database[sqlite]"
           pip install -e packages/files
           pip install pytest pytest-asyncio
       - name: Test packages/llm

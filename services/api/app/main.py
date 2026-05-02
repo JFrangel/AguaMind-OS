@@ -74,7 +74,19 @@ app.add_middleware(
 )
 app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
 
-from .routers import agents, chat, data, database, geo, health, ml, notify, rag, reports
+from .routers import (
+    agents,
+    chat,
+    data,
+    database,
+    geo,
+    health,
+    ml,
+    notify,
+    profiles,
+    rag,
+    reports,
+)
 
 
 @app.get("/", tags=["meta"])
@@ -103,6 +115,7 @@ async def root() -> dict:
             "reports": "POST /reports/generate",
             "notify": "POST /notify/send · GET /notify/channels",
             "database": "GET /database/schema · POST /database/query · POST /database/nl-query",
+            "profiles": "GET /profiles · GET /profiles/{slug}",
         },
     }
 
@@ -117,3 +130,4 @@ app.include_router(ml.router, prefix="/ml", tags=["ml"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])
 app.include_router(notify.router, prefix="/notify", tags=["notifications"])
 app.include_router(database.router, prefix="/database", tags=["database"])
+app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
