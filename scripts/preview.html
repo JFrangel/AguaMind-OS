@@ -650,62 +650,82 @@
         border: 1px solid var(--border);
         background: var(--bg-card);
         color: var(--text-secondary);
-        animation: agentNode 6s infinite;
+        animation: agentNode 9s infinite;
         line-height: 1.3;
       }
       .anim-agents .node .label { display: block; font-weight: 600; margin-bottom: 2px; }
       .anim-agents .node .role  { display: block; font-size: 7.5px; color: var(--text-muted); }
-      .anim-agents .node.router      { animation-delay: 0.0s; --node-color: var(--accent); }
-      .anim-agents .node.researcher  { animation-delay: 1.0s; --node-color: var(--status-green); }
-      .anim-agents .node.analyst     { animation-delay: 2.0s; --node-color: var(--status-yellow); }
-      .anim-agents .node.writer      { animation-delay: 3.0s; --node-color: #a855f7; }
+      .anim-agents .node.router      { animation-delay: 0.0s; --node-color: var(--accent);        --node-text: #ffffff; }
+      .anim-agents .node.researcher  { animation-delay: 1.5s; --node-color: var(--status-green);  --node-text: #ffffff; }
+      .anim-agents .node.analyst     { animation-delay: 3.0s; --node-color: var(--status-yellow); --node-text: #1a1a1a; }
+      .anim-agents .node.writer      { animation-delay: 4.5s; --node-color: #a855f7;              --node-text: #ffffff; }
       .anim-agents .conn {
         font-size: 12px; color: var(--text-muted);
       }
-      .anim-agents .tokens {
+      .anim-agents .stage {
         margin-top: 10px;
         padding: 6px 10px;
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: 4px;
-        border-left: 2px solid #a855f7;
+        border-left: 2px solid var(--accent);
         font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
+        font-size: 9.5px;
         color: var(--text-secondary);
         min-height: 28px;
         line-height: 1.5;
+        position: relative;
+        overflow: hidden;
       }
-      .anim-agents .tokens .cursor {
-        display: inline-block; width: 6px; height: 10px;
+      .anim-agents .stage .line {
+        position: absolute;
+        top: 6px; left: 10px; right: 10px;
+        opacity: 0;
+        animation: stageLine 9s infinite;
+      }
+      .anim-agents .stage .line .tag {
+        font-weight: 700;
+        margin-right: 6px;
+      }
+      .anim-agents .stage .line.s1 { animation-delay: 0.0s; }
+      .anim-agents .stage .line.s1 .tag { color: var(--accent); }
+      .anim-agents .stage .line.s2 { animation-delay: 1.5s; }
+      .anim-agents .stage .line.s2 .tag { color: var(--status-green); }
+      .anim-agents .stage .line.s3 { animation-delay: 3.0s; }
+      .anim-agents .stage .line.s3 .tag { color: var(--status-yellow); }
+      .anim-agents .stage .line.s4 { animation-delay: 4.5s; }
+      .anim-agents .stage .line.s4 .tag { color: #a855f7; }
+      .anim-agents .stage .line.s4 .cursor {
+        display: inline-block; width: 5px; height: 9px;
         background: #a855f7; vertical-align: -1px;
         animation: cursorBlink 0.8s infinite;
       }
+      .anim-agents .stage .line.s4 .tok { opacity: 0; animation: tokInline 9s infinite; }
+      .anim-agents .stage .line.s4 .tok:nth-of-type(1) { animation-delay: 5.0s; }
+      .anim-agents .stage .line.s4 .tok:nth-of-type(2) { animation-delay: 5.3s; }
+      .anim-agents .stage .line.s4 .tok:nth-of-type(3) { animation-delay: 5.6s; }
+      .anim-agents .stage .line.s4 .tok:nth-of-type(4) { animation-delay: 5.9s; }
+      .anim-agents .stage .line.s4 .tok:nth-of-type(5) { animation-delay: 6.2s; }
       @keyframes cursorBlink { 50% { opacity: 0; } }
-      .anim-agents .tokens span:not(.cursor) {
-        opacity: 0;
-        animation: tokenIn 6s infinite;
+      @keyframes stageLine {
+        0%, 1% { opacity: 0; transform: translateY(2px); }
+        4%, 16% { opacity: 1; transform: translateY(0); }
+        18%, 100% { opacity: 0; transform: translateY(-2px); }
       }
-      .anim-agents .tokens span:nth-child(1) { animation-delay: 4.0s; }
-      .anim-agents .tokens span:nth-child(2) { animation-delay: 4.2s; }
-      .anim-agents .tokens span:nth-child(3) { animation-delay: 4.4s; }
-      .anim-agents .tokens span:nth-child(4) { animation-delay: 4.6s; }
-      .anim-agents .tokens span:nth-child(5) { animation-delay: 4.8s; }
-      .anim-agents .tokens span:nth-child(6) { animation-delay: 5.0s; }
+      @keyframes tokInline {
+        0%, 49% { opacity: 0; }
+        55%, 95% { opacity: 1; }
+        100% { opacity: 0; }
+      }
       @keyframes agentNode {
-        0%, 12% { background: var(--bg-card); color: var(--text-secondary); border-color: var(--border); }
-        14%, 26% { background: var(--node-color); color: white; border-color: var(--node-color); transform: scale(1.05); }
-        28%, 100% { background: var(--bg-card); color: var(--text-muted); border-color: var(--border); transform: scale(1); }
-      }
-      @keyframes tokenIn {
-        0%, 65% { opacity: 0; }
-        72%, 90% { opacity: 1; }
-        92%, 100% { opacity: 0; }
+        0%, 14% { background: var(--node-color); color: var(--node-text); border-color: var(--node-color); transform: scale(1.05); box-shadow: 0 0 8px color-mix(in srgb, var(--node-color) 40%, transparent); }
+        18%, 100% { background: var(--bg-card); color: var(--text-muted); border-color: var(--border); transform: scale(1); box-shadow: none; }
       }
 
       /* ──────────────────────────────────────────────────────────────────
          ANIMATION: Notifications — fan-out to Telegram + Email in parallel
          ────────────────────────────────────────────────────────────────── */
-      .anim-notify { padding: 14px; display: flex; align-items: center; gap: 18px; justify-content: center; }
+      .anim-notify { padding: 14px; display: flex; align-items: center; gap: 18px; justify-content: center; height: 100%; }
       .anim-notify .source {
         font-family: "JetBrains Mono", monospace;
         font-size: 8.5px;
@@ -1017,8 +1037,11 @@
                     <span class="role">stream</span>
                   </div>
                 </div>
-                <div class="tokens">
-                  <span>El </span><span>análisis </span><span>indica </span><span>que </span><span>existen </span><span>3 </span><span class="cursor"></span>
+                <div class="stage">
+                  <div class="line s1"><span class="tag">[router]</span>clasificando intención · cascade=speed</div>
+                  <div class="line s2"><span class="tag">[researcher]</span>RAG: 4 chunks · web: 3 hits</div>
+                  <div class="line s3"><span class="tag">[analyst]</span>sintetizando 7 hallazgos…</div>
+                  <div class="line s4"><span class="tag">[writer]</span><span class="tok">El </span><span class="tok">análisis </span><span class="tok">indica </span><span class="tok">que </span><span class="tok">existen </span><span class="cursor"></span></div>
                 </div>
               </div>
             </div>
@@ -1301,6 +1324,46 @@
             <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">DEPLOY</div>
             <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Vercel · Koyeb · Supabase</div>
             <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">PocketHost · 100% free tier</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">AUTH</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Supabase JWT (HS256)</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">HTTPBearer · python-jose · RLS</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">RATE LIMIT</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Sliding window in-memory</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">60 req/min · por IP · X-Forwarded-For</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">STREAMING</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">SSE (sse-starlette)</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">tokens · trace · status events</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">NL → SQL</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">SchemaIntrospector + Safe</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">Postgres · MySQL · SQLite (read-only)</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">i18n</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">es · en · pt · fr · de · it</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">detección heurística · override</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">STATE</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Runes · Zustand · Pinia</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">+ TanStack Query (server state)</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">CI / DOCKER</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">GitHub Actions + docker</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">compose dev · Dockerfile por servicio</div>
+          </div>
+          <div class="feature-card reveal" style="padding: 14px;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">POCKETBASE</div>
+            <div style="font-family: 'Space Grotesk'; font-weight: 600; font-size: 13px; margin-top: 4px;">Backend alternativo</div>
+            <div class="mono" style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">SQLite · auth · realtime · admin UI</div>
           </div>
         </div>
       </div>
