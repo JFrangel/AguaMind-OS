@@ -29,6 +29,7 @@ Modular hackathon boilerplate with AI agents, multi-framework frontends, and aut
 - `packages/reports` — PDF generation (WeasyPrint + Jinja2)
 - `packages/notifications` — Telegram + Email dispatcher (multi-channel parallel send)
 - `packages/database` — Multi-DB adapter (PG/MySQL/SQLite) + safe SELECT executor + NL→SQL
+- `packages/files` — Universal file adapter (PDF, DOCX, XLSX, CSV, JSON, MD, HTML, TXT, Parquet, XML, TSV)
 - `packages/shared-types` — Shared TypeScript types
 - `packages/ui` — Shared Tailwind preset
 

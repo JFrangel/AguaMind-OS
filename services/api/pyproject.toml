@@ -19,6 +19,9 @@ dependencies = [
     "agentos-ml @ file://../../packages/ml",
     "agentos-geo @ file://../../packages/geo",
     "agentos-reports @ file://../../packages/reports",
+    "agentos-files @ file://../../packages/files",
+    "agentos-notifications @ file://../../packages/notifications",
+    "agentos-database[sqlite] @ file://../../packages/database",
 ]
 
 [project.optional-dependencies]

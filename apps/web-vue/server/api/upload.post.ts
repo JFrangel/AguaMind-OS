@@ -8,7 +8,8 @@ export default defineEventHandler(async (event) => {
   const upstream = new FormData();
   for (const part of form) {
     if (part.name === "file") {
-      const blob = new Blob([part.data], { type: part.type ?? "application/octet-stream" });
+      // Buffer is a Uint8Array under the hood — wrap so TS sees a valid BlobPart.
+      const blob = new Blob([new Uint8Array(part.data)], { type: part.type ?? "application/octet-stream" });
       upstream.append("file", blob, part.filename ?? "upload");
     }
   }

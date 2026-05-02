@@ -103,7 +103,7 @@ function loadPurify(): Promise<(input: string) => string> {
       // Post-process <img> tags to add lazy-loading + decoding hints +
       // referrer policy (so we don't leak the chat URL to image hosts).
       // Done after sanitize so DOMPurify doesn't strip our additions.
-      return out.replace(/<img\b([^>]*)>/g, (_, attrs: string) => {
+      return out.replace(/<img\b([^>]*)>/g, (_match: string, attrs: string) => {
         const has = (a: string) => new RegExp(`\\b${a}=`).test(attrs);
         const extra =
           (has("loading") ? "" : ' loading="lazy"') +

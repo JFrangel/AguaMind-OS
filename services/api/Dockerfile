@@ -16,7 +16,10 @@ RUN pip install --no-cache-dir \
     -e /packages/data \
     -e /packages/ml \
     -e /packages/geo \
-    -e /packages/reports
+    -e /packages/reports \
+    -e /packages/files \
+    -e /packages/notifications \
+    -e "/packages/database[sqlite]"
 
 COPY services/api/ /app/
 

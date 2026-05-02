@@ -26,6 +26,10 @@ jobs:
           # exits 5 (NO_TESTS_COLLECTED), which fails the build.
           pip install -e "packages/database[sqlite]"
           pip install -e packages/files
+          # agents tests don't need langgraph/crewai at import time — the
+          # package itself does, but the four test files we run import the
+          # smaller submodules (graph_runner, fusion, language, tools).
+          pip install -e packages/agents
           pip install pytest pytest-asyncio
       - name: Test packages/llm
         run: cd packages/llm && pytest -q
@@ -37,10 +41,8 @@ jobs:
         run: cd packages/database && pytest -q
       - name: Test packages/files
         run: cd packages/files && pytest -q
-      - name: Test packages/agents (runner only, no langgraph)
-        env:
-          PYTHONPATH: packages/agents
-        run: pytest -q packages/agents/tests/test_graph_runner.py
+      - name: Test packages/agents (full suite)
+        run: pytest -q packages/agents/tests/
 
   go-api:
     name: Go · apps/api-go build
