@@ -555,7 +555,7 @@ async def chat(message: str):
 
 ## LLM cascade — cuándo usar cada strategy
 
-Definidas en [`packages/llm/agentos_llm/config.py`](../packages/llm/agentos_llm/config.py:5):
+Definidas en [`packages/llm/agentos_llm/config.py`](../../packages/llm/agentos_llm/config.py:5):
 
 | Strategy | Orden de providers | Casos de uso |
 |----------|--------------------|--------------|
@@ -563,8 +563,18 @@ Definidas en [`packages/llm/agentos_llm/config.py`](../packages/llm/agentos_llm/
 | `reasoning` | Gemini → OpenRouter → Groq | Análisis profundo, planning, multi-step reasoning |
 | `cheap` | OpenRouter → Groq → Gemini | Trabajo en background a alto volumen |
 | `multimodal` | Gemini | Imagen + texto, video, structured docs |
+| `quality` | OpenRouter (GLM-4.5 Air, gpt-oss-120b, DeepSeek, Qwen, Hermes-405B) → Gemini → Groq | Extraer detalle de contexto largo, comparar a fondo, tablas multi-columna |
 
-**Regla práctica**: si el prompt es corto y necesita respuesta rápida → `speed`. Si requiere razonamiento o el output es largo y de calidad → `reasoning`. **Siempre llamar via `LLMFactory.complete_with_fallback()`** — nunca instanciar adapters directos.
+**Auto-pick (writer + responder)**: ambos nodos usan [`pick_cascade()`](../../packages/agents/agentos_agents/cascade.py:1) cuando el caller no fuerza una cascade explícitamente:
+
+1. Si el caller pasa `cascade` explícito → ese gana.
+2. Si el web context tiene body extraído → `quality`.
+3. Si la query matches `compara`, `diferencia`, `analiza`, `tabla`, `paso a paso`, `código`, `arquitectura`, etc. (en español o inglés) o es multi-oración o >120 chars → `quality`.
+4. Si nada de lo anterior → `speed`.
+
+Resultado: chat casual ("hola", "qué hora") queda rápido; preguntas profundas se auto-suben al modelo más capaz sin que toques nada.
+
+**Siempre llamar via `LLMFactory.complete_with_fallback()` o `stream_with_fallback()`** — nunca instanciar adapters directos.
 
 ---
 

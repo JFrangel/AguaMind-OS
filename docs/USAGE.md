@@ -563,8 +563,16 @@ Definidas en [`packages/llm/agentos_llm/config.py`](../packages/llm/agentos_llm/
 | `reasoning` | Gemini → OpenRouter → Groq | Análisis profundo, planning, multi-step reasoning |
 | `cheap` | OpenRouter → Groq → Gemini | Trabajo en background a alto volumen |
 | `multimodal` | Gemini | Imagen + texto, video, structured docs |
+| `quality` | OpenRouter (GLM-4.5 Air, gpt-oss-120b, DeepSeek, Qwen, Hermes-405B) → Gemini → Groq | Extraer detalle de contexto largo, comparaciones a fondo, tablas multi-columna |
 
-**Regla práctica**: si el prompt es corto y necesita respuesta rápida → `speed`. Si requiere razonamiento o el output es largo y de calidad → `reasoning`. **Siempre llamar via `LLMFactory.complete_with_fallback()`** — nunca instanciar adapters directos.
+**Auto-pick (writer + responder)**: ambos nodos usan [`pick_cascade()`](../packages/agents/agentos_agents/cascade.py:1) para auto-seleccionar:
+
+1. Si el caller pasa un `cascade` explícito → ese gana.
+2. Si el web context tiene body extraído → `quality` (modelo grande para extraer detalle).
+3. Si la query es compleja (matches `compara`, `diferencia`, `analiza`, `tabla`, `paso a paso`, `código`, `arquitectura`, `step by step`, etc., o es multi-oración o >120 chars) → `quality`.
+4. Si nada de lo anterior → `speed`.
+
+**Regla práctica**: si forzás cascade desde el caller (`/agents/run` con `"cascade":"reasoning"`), respeta tu elección. Si no lo forzás (chat común), se elige sola por la query. **Siempre llamar via `LLMFactory.complete_with_fallback()` o `stream_with_fallback()`** — nunca instanciar adapters directos.
 
 ---
 

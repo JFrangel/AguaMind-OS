@@ -23,11 +23,15 @@ Si recién llegás, leé estos en orden:
 
 - **Multi-agent visible streaming** — every reasoning step (router → researcher → analyst → writer) emits SSE events, displayed live in the UI
 - **LLM cascade with circuit breaker** — Groq → OpenRouter → Gemini auto-failover. Free-tier defaults (Groq free + OpenRouter `:free` suffix + Gemini Flash 15 RPM). 3 fails opens the breaker for 60s, then probes again
+- **Auto-cascade picker** — the writer/responder default to `speed` for casual chat but auto-upgrade to `quality` (DeepSeek/Qwen/GLM 4.5 Air via OpenRouter) when the query is complex (compare, analyze, list, code) or when web context has fetched body text. No config needed — the chat just gets sharper when the question deserves it
+- **Smart web search** — DuckDuckGo HTML scraping (no key) or Tavily (when configured); ad blocks stripped, shopping/spam domains filtered for informational queries (kept for shopping intent), articles older than 180 days dropped on time-sensitive queries, official/authoritative domains (uefa.com, sbert.net, .gov, .edu, etc.) boosted in ranking, full article body extracted from each top result so the writer sees ~1500 chars per source instead of 150-char SERP snippets
+- **Configurable embeddings** — default `all-MiniLM-L6-v2` (384-dim, ~80MB, CPU-only, no API key) for plug-and-play. Set `EMBEDDING_MODEL=gemini-embedding-001` to upgrade to multilingual 3072-dim via the same `GEMINI_API_KEY` (free tier ~1500 RPD, 0 MB install)
 - **3 frontends, same backend** — SvelteKit / Next.js / Nuxt 3 all dark-mode by default, all consume the same SSE chat API
 - **Multi-idioma** — UI y agentes operan en `es` por default y soportan `en/pt/fr/de/it`. Cada request pasa el idioma; los prompts inyectan la directiva al final del system message
 - **Universal file adapter** — `packages/files` normaliza PDF · DOCX · XLSX · CSV · JSON · MD · HTML · TXT · TSV · XML · Parquet a texto + tabular antes de RAG/análisis
 - **RAG + Web search en agentes** — toggles `use_rag` / `use_web` en cada chat. RAG usa el pipeline pgvector/FAISS; web usa DuckDuckGo (sin key) o Tavily (opcional)
 - **2 agent engines** — LangGraph para streaming chat con routing condicional, CrewAI para tareas colaborativas multi-step
+- **Rich citation rendering** — when web context is enabled the writer cites each claim as `[N](url)` markdown; the frontend auto-styles numeric link text as superscript pill badges and opens every source in a new tab so clicking doesn't lose the chat. Tables get a 3-button toolbar that copies as styled HTML (preserves colors when pasted into Word/Sheets/Notion), as Markdown, or downloads as `.html`
 - **Notifications** — Telegram + Email dispatcher en paralelo
 - **NL→SQL** — conectá cualquier DB (Postgres/MySQL/SQLite) y consultala en lenguaje natural con safe-query enforcement
 - **PDF export** — botón en cada UI para exportar la última respuesta a PDF (WeasyPrint + Jinja2)
@@ -46,7 +50,7 @@ Si recién llegás, leé estos en orden:
 | Bot | python-telegram-bot |
 | Agents | LangGraph 0.3 (DAG) + CrewAI 0.100 (sequential crews) |
 | LLM | Groq SDK · OpenAI SDK (OpenRouter) · google-genai (Gemini) |
-| RAG | sentence-transformers (all-MiniLM-L6-v2) + FAISS / pgvector |
+| RAG | sentence-transformers (`all-MiniLM-L6-v2` default) **or** Gemini embeddings via API (`gemini-embedding-001`, free tier) — configurable via `EMBEDDING_MODEL`. Vector store: FAISS in-memory or pgvector |
 | Data | pandas · numpy · scipy · scikit-learn |
 | Geo | geopy (Nominatim) + PostGIS |
 | Reports | WeasyPrint + Jinja2 + matplotlib |
@@ -163,8 +167,18 @@ Defined in [`packages/llm/agentos_llm/config.py`](packages/llm/agentos_llm/confi
 | `reasoning` | Gemini → OpenRouter → Groq | analysis, planning, multi-step |
 | `cheap` | OpenRouter → Groq → Gemini | high-volume background work |
 | `multimodal` | Gemini | images, video, structured docs |
+| `quality` | OpenRouter (DeepSeek / Qwen / GLM 4.5 Air / Hermes 405B) → Gemini → Groq | extraction from rich context, comparisons, deep tables |
 
 Always call via `LLMFactory.complete_with_fallback(messages, cascade=...)` — never instantiate adapters directly.
+
+**Auto-pick (writer + responder).** Both nodes use [`pick_cascade()`](packages/agents/agentos_agents/cascade.py:1) when the caller doesn't force one:
+
+1. Caller-set `cascade` wins always.
+2. Web context with fetched body → `quality` (so the writer can extract from ~1500-char article bodies).
+3. Query matches a complex-intent regex (`compara`, `diferencia`, `analiza`, `lista`, `tabla`, `paso a paso`, `código`, `arquitectura`, `compare`, `step by step`, etc.) or is multi-sentence / >120 chars → `quality`.
+4. Otherwise → `speed`.
+
+Result: casual chat ("hola", "qué hora es") stays low-latency; complex questions ("compara langgraph vs crewai", "que equipos en semifinal") auto-upgrade to a stronger model without you flipping a flag.
 
 ## Multi-agent flow (LangGraph)
 

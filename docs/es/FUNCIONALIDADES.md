@@ -28,7 +28,7 @@ El usuario nunca supo que Groq falló.
 
 ### Cómo funciona por dentro
 
-Hay 4 "estrategias de cascada" que decidís según la necesidad:
+Hay 5 "estrategias de cascada" que decidís según la necesidad:
 
 | Estrategia | Orden | Cuándo usarla |
 |-----------|-------|---------------|
@@ -36,10 +36,19 @@ Hay 4 "estrategias de cascada" que decidís según la necesidad:
 | `reasoning` | Gemini → OpenRouter → Groq | Análisis, pensamiento profundo |
 | `cheap` | OpenRouter → Groq → Gemini | Trabajo masivo en segundo plano |
 | `multimodal` | Gemini | Cuando hay imágenes o audio |
+| `quality` | OpenRouter (GLM 4.5 Air, gpt-oss-120b, DeepSeek, Qwen, Hermes-405B) → Gemini → Groq | Extraer detalle de un texto largo, comparar a fondo, armar tablas con muchas columnas |
+
+**No tenés que elegir manualmente.** El chat usa `pick_cascade()` y se auto-ajusta por query:
+
+- "hola", "qué hora es" → `speed` (rápido y barato)
+- "compara langchain vs crewai", "explica paso a paso", "lista 10 frameworks", queries largas o multi-oración → `quality` (modelo más grande, mejor extracción)
+- Cuando hay contexto web con artículo completo (~1500 chars extraídos) → `quality` (para que aproveche todo el detalle, no solo el snippet)
+
+Vos no tocás nada — la cascade adecuada se elige sola.
 
 ### Limitación honesta
 
-Los modelos gratuitos tienen límites. Groq te limita a algunas peticiones por minuto, Gemini a 15. Si tenés muchísimo tráfico, vas a chocar contra esos topes y la cascada va a saltar mucho. Para producción seria, vas a querer claves de pago.
+Los modelos gratuitos tienen límites. Groq te limita a algunas peticiones por minuto, Gemini a 15. Los modelos pesados de OpenRouter (`quality` cascade) a veces devuelven 429; cuando eso pasa, la cascade sigue cayendo a Gemini y Groq automáticamente. Para producción seria, vas a querer claves de pago.
 
 ---
 
@@ -138,11 +147,32 @@ curl -X POST http://localhost:8000/rag/ingest -F "file=@manual_empleados.pdf"
 - **Borrado por origen**: si actualizás un documento, podés borrar todos sus chunks viejos antes de subir la nueva versión.
 - **Sentence-aware chunking**: en vez de cortar a media palabra, respeta el final de oración. Mejora mucho la calidad.
 
+### Modelos de embedding disponibles
+
+Por defecto AgentOS usa **`all-MiniLM-L6-v2`** (~80 MB, corre en CPU, sin API key, 384 dimensiones, inglés-oriented). Es la opción "funciona donde sea sin pensar".
+
+Si querés más calidad — sobre todo para multilingüe (español + inglés mezclados) — podés cambiar a **`gemini-embedding-001`** vía API gratuita:
+
+```bash
+# en .env
+EMBEDDING_MODEL=gemini-embedding-001
+EMBEDDING_DIM=3072  # o 768 / 1536 si querés ahorrar storage
+```
+
+Ventajas de Gemini:
+- **0 MB de descarga** (es API, no modelo local)
+- **Multilingüe nativo** (100+ idiomas)
+- **Free tier ~1500 RPD** en AI Studio — sobra para hackathon
+- **Reusa la `GEMINI_API_KEY`** que ya tenés para el LLM (no es otra key)
+- **3072 dimensiones** (configurable a 1536 / 768 con Matryoshka truncation — la calidad baja muy poco)
+
+Limitación: si superás los rate limits del free tier te tira 429. Si querés todo offline, quedate con MiniLM (o BGE-M3 self-hosted, pero pesa 2 GB y rompe el "deploy en free tier").
+
 ### Limitación honesta
 
 - En desarrollo local usa **FAISS** (en memoria). Si reiniciás el servidor, **se pierde todo**.
 - Para producción se conecta a Supabase con pgvector. Ahí sí persiste.
-- El modelo de embeddings (SBERT all-MiniLM-L6-v2) es gratis pero no es perfecto. Para casos críticos de calidad querrás OpenAI Embeddings o algo similar.
+- Si cambiás `EMBEDDING_MODEL` después de tener docs ingestados, hay que re-embeddearlos (los vectores viejos no son compatibles con el nuevo modelo) y hacer `ALTER TABLE documents ALTER COLUMN embedding TYPE vector(3072)`.
 
 ---
 

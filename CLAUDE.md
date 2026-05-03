@@ -5,9 +5,11 @@ Modular hackathon boilerplate with AI agents, multi-framework frontends, and aut
 ## Stack
 - **Frontends**: SvelteKit (Svelte stores), Next.js (Zustand), Nuxt 3 (Pinia) — all with Tailwind + TanStack Query
 - **Backends**: FastAPI (Python), Go Gin/Fiber, Express, NestJS, PocketBase
-- **AI**: LangGraph + CrewAI agents with LLMFactory cascade (Groq → OpenRouter → Gemini)
+- **AI**: LangGraph + CrewAI agents with LLMFactory cascade. 5 strategies (`speed` / `reasoning` / `cheap` / `multimodal` / `quality`); writer/responder use `pick_cascade()` to auto-upgrade complex queries or rich-context turns to `quality` (OpenRouter heavy free models: GLM-4.5 Air, gpt-oss-120b, DeepSeek, Qwen, Hermes-405B)
+- **Embeddings**: configurable via `EMBEDDING_MODEL`. Default `all-MiniLM-L6-v2` (384-dim, ~80MB, CPU). Recommended upgrade `gemini-embedding-001` (3072-dim, free API, multilingual, reuses `GEMINI_API_KEY`, 0 MB install)
 - **Data**: pgvector + FAISS (RAG), pandas/polars, scikit-learn, PostGIS, WeasyPrint PDFs
 - **DB**: Supabase (PostgreSQL + pgvector + PostGIS + auth + realtime)
+- **Web search**: DuckDuckGo HTML (default, no key) or Tavily. Authority-boosted, ad-stripped, time-sensitive queries get recency filter + 180-day cutoff, full article body extracted (~1500 chars) with og:image and `article:published_time` metadata
 - **Deploy**: Vercel (frontends), Koyeb (backends), PocketHost (PocketBase), Supabase (DB)
 
 ## Monorepo Layout
@@ -48,7 +50,9 @@ Modular hackathon boilerplate with AI agents, multi-framework frontends, and aut
 - Svelte stores for ephemeral state, TanStack Query for server state
 - Zustand for React client state, Pinia for Vue client state
 - All API responses: `{data, error, meta}` shape
-- LLM calls always through `LLMFactory.complete_with_fallback()`
+- LLM calls always through `LLMFactory.complete_with_fallback()` (or `stream_with_fallback`)
+- Cascade picking: writer/responder rely on `pick_cascade(query, web_context)` — don't hardcode `"speed"` unless you need low-latency for a specific node
 - Never hardcode API keys — always from env
 - Python imports: absolute paths (`from agentos_llm.factory import ...`)
 - Each package is independently deletable without breaking others
+- Web sources: cite specific claims inline as `[N](URL)` markdown links — frontend auto-styles numeric link text as citation pills. Don't write a closing `## Fuentes` / `Referencias` / `| Fuente | URL |` block; the UI's `SourcePills` component already lists every source as numbered pills
