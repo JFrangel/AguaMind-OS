@@ -1,33 +1,32 @@
 """Embedding service with two backends: local SBERT and Gemini API.
 
-AgentOS is a free-tier-friendly boilerplate, so the embedding pick has
-to honor "works on Koyeb free tier with no GPU" while still letting
-users opt into a stronger model when they want one.
+AgentOS is a free-tier-friendly boilerplate (Koyeb free, Render free,
+Vercel hobby) — anything that needs GB-scale model downloads or a GPU
+breaks the "deploy on free tier" promise. We support exactly the two
+embedding paths that respect that constraint:
 
-Backends, picked automatically from ``EMBEDDING_MODEL``:
-
-  =====================================  ========  ==========  ==========================
-  EMBEDDING_MODEL value                  Backend   Dim         Trade-off
-  =====================================  ========  ==========  ==========================
-  all-MiniLM-L6-v2  (default)            sbert     384         tiny, ~80MB, CPU, offline
-  BAAI/bge-m3                            sbert     1024        ~2GB, multilingual, CPU
-  intfloat/multilingual-e5-large         sbert     1024        ~2GB
-  Qwen/Qwen3-Embedding-8B                sbert     7168        needs GPU (~24 GB VRAM)
-  nvidia/NV-Embed-v2                     sbert     4096        needs GPU + non-commercial
-  gemini-embedding-001                   gemini    3072 (cfg)  ★ free via API, multilingual
-  text-embedding-004                     gemini    768         legacy free tier
-  =====================================  ========  ==========  ==========================
+  =================================  ========  ==========  ===================================
+  EMBEDDING_MODEL value              Backend   Dim         Trade-off
+  =================================  ========  ==========  ===================================
+  all-MiniLM-L6-v2  (default)        sbert     384         tiny, ~80MB, CPU, offline, no key
+  gemini-embedding-001               gemini    3072 (cfg)  ★ free API, multilingual,
+                                                            reuses GEMINI_API_KEY, 0 MB install
+  text-embedding-004                 gemini    768         legacy free Gemini, simpler
+  =================================  ========  ==========  ===================================
 
 Gemini path needs ``GEMINI_API_KEY`` set (same key as the LLM cascade
 already uses). Free tier on AI Studio is generous enough for hackathon
 volume (~1500 RPD on the embed endpoint as of 2026-05); over that it
-falls back to paid pricing or 429s. We don't try to "smart cascade"
-between the two — pick one with EMBEDDING_MODEL and the matching
-backend handles it.
+falls back to paid pricing or 429s.
 
-Switching model means the vector dim changes (e.g. 384 → 3072), so the
-pgvector column has to be re-ALTERed and existing rows re-embedded.
-The FAISS in-memory index detects dim at construction.
+Pick one with EMBEDDING_MODEL and the matching backend handles it.
+Switching means the vector dim changes (384 → 3072), so the pgvector
+column has to be re-ALTERed and existing rows re-embedded. The FAISS
+in-memory index detects dim at construction.
+
+Heavier self-hosted models (BGE-M3, Qwen3-8B, NV-Embed) work too —
+the SbertBackend is generic — but they need GB of RAM/disk and
+defeat the point of free-tier deployment, so we don't promote them.
 """
 from __future__ import annotations
 
