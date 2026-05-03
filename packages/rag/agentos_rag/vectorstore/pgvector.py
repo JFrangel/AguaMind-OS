@@ -9,10 +9,12 @@ from .base import BaseVectorStore, SearchResult
 class PgVectorStore(BaseVectorStore):
     """pgvector-backed store with proper format handling.
 
-    The embedding column is `vector(384)` (matches SBERT all-MiniLM-L6-v2).
-    pgvector accepts the literal `[v1,v2,...]` string format on insert and
-    on the `<=>` distance operator. We pass embeddings as that string and
-    cast to `vector` on the SQL side.
+    The embedding column dimension is set by the migration in
+    `supabase/migrations/002_pgvector.sql`. Default is `vector(384)` to
+    match `all-MiniLM-L6-v2`; bump it (and re-run the migration) when
+    switching to a larger model (BGE-M3 → 1024, NV-Embed-v2 → 4096,
+    Qwen3-Embedding-8B → 7168). The Python side adapts automatically —
+    pgvector accepts the literal `[v1,v2,...]` string regardless of dim.
     """
 
     def __init__(self):

@@ -14,9 +14,13 @@ class FAISSStore(BaseVectorStore):
     document counts typical in dev.
     """
 
-    def __init__(self, dimension: int = 384):
-        self._dimension = dimension
-        self._index = faiss.IndexFlatIP(dimension)
+    def __init__(self, dimension: int | None = None):
+        # Default 384 matches the lightweight all-MiniLM-L6-v2; pass a
+        # different value when using a larger embedding model (e.g. 1024
+        # for BGE-M3, 4096 for NV-Embed-v2). The factory reads this from
+        # the live EmbeddingService so the index always matches.
+        self._dimension = dimension if dimension is not None else 384
+        self._index = faiss.IndexFlatIP(self._dimension)
         self._documents: list[dict] = []
         self._embeddings: list[list[float]] = []
 
