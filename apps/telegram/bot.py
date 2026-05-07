@@ -12,6 +12,10 @@ from handlers.water_commands import (
     demo_normal,
     demo_riego,
     kpis,
+    mitigaciones,
+    mitigar,
+    ranking,
+    reportar,
     reporte_agua,
     sensores,
     zonas,
@@ -47,6 +51,12 @@ def main() -> None:
     app.add_handler(CommandHandler("agente_start", agente_start))
     app.add_handler(CommandHandler("agente_stop", agente_stop))
     app.add_handler(CommandHandler("agente_status", agente_status))
+
+    # ── AguaMind OS — mitigación + gamificación ────────────────────────────
+    app.add_handler(CommandHandler("mitigar", mitigar))
+    app.add_handler(CommandHandler("mitigaciones", mitigaciones))
+    app.add_handler(CommandHandler("ranking", ranking))
+    app.add_handler(CommandHandler("reportar", reportar))
 
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ask))
 

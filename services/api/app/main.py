@@ -82,6 +82,7 @@ from .routers import (
     database,
     geo,
     health,
+    mitigation,
     ml,
     notify,
     profiles,
@@ -137,3 +138,4 @@ app.include_router(database.router, prefix="/database", tags=["database"])
 app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
 app.include_router(water.router,       prefix="/water", tags=["water"])
 app.include_router(agent_water.router, prefix="/water", tags=["water-agent"])
+app.include_router(mitigation.router,  prefix="/water", tags=["mitigation"])

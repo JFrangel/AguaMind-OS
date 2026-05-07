@@ -33,7 +33,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Importar SOLO los routers de AguaMind (sin LLM/RAG/etc)
-from app.routers import water
+from app.routers import water, mitigation
 
 
 app = FastAPI(
@@ -142,7 +142,8 @@ async def root():
 
 
 # ── Routers principales del simulador ────────────────────────────────────
-app.include_router(water.router, prefix="/water", tags=["water"])
+app.include_router(water.router,      prefix="/water", tags=["water"])
+app.include_router(mitigation.router, prefix="/water", tags=["mitigation"])
 
 
 # ── Endpoints del agente (versión stub para demo) ────────────────────────

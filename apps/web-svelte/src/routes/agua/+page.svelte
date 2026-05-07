@@ -33,7 +33,11 @@
   let lastRefresh = $state<Date | null>(null);
   let scenario = $state<"normal" | "leak" | "peak_irrigation" | "turbidity">("normal");
   let scenarioLoading = $state(false);
-  let tab = $state<"dashboard" | "history" | "industrial" | "agent">("dashboard");
+  let tab = $state<"dashboard" | "history" | "industrial" | "agent" | "mitigation">("dashboard");
+  let valves = $state<any>(null);
+  let mitigationHistory = $state<any[]>([]);
+  let impact = $state<any>(null);
+  let leaderboard = $state<any[]>([]);
   let liveMode = $state(true);
   let theme = $state<"dark" | "light">("dark");
 
@@ -98,6 +102,44 @@
     } catch {}
   }
 
+  async function fetchMitigation() {
+    try {
+      const [v, h, i, l] = await Promise.all([
+        fetch("/api/water?endpoint=mitigate/valves").then(r => r.json()),
+        fetch("/api/water?endpoint=mitigate/history&limit=10").then(r => r.json()),
+        fetch("/api/water?endpoint=mitigate/impact").then(r => r.json()),
+        fetch("/api/water?endpoint=leaderboard").then(r => r.json()),
+      ]);
+      if (v.data)  valves = v.data;
+      if (h.data)  mitigationHistory = h.data.actions ?? [];
+      if (i.data)  impact = i.data;
+      if (l.data)  leaderboard = l.data.buildings ?? [];
+    } catch {}
+  }
+
+  async function executeAutoMitigation(trigger: string) {
+    try {
+      await fetch("/api/water?endpoint=mitigate/auto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trigger, severity: "critical" }),
+      });
+      await fetchMitigation();
+    } catch {}
+  }
+
+  async function toggleValve(valveId: string, currentState: string) {
+    const action = currentState === "open" ? "close" : "open";
+    try {
+      await fetch(`/api/water?endpoint=mitigate/valve/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ valve_id: valveId, reason: "manual_dashboard" }),
+      });
+      await fetchMitigation();
+    } catch {}
+  }
+
   async function fetchAgent() {
     try {
       const res = await fetch("/api/water?endpoint=agent/status");
@@ -155,8 +197,9 @@
     await fetchReading();
     await fetchHistory();
     await fetchAgent();
+    await fetchMitigation();
     interval = setInterval(async () => {
-      if (liveMode) { await fetchReading(); await fetchAgent(); }
+      if (liveMode) { await fetchReading(); await fetchAgent(); await fetchMitigation(); }
     }, 10000);
   });
   onDestroy(() => clearInterval(interval));
@@ -245,6 +288,7 @@
         ["history",    "Historial"],
         ["industrial", "Industrial"],
         ["agent",      "Agente IA"],
+        ["mitigation", "Mitigación"],
       ] as [key, label]}
         <button
           onclick={() => { tab = key as typeof tab; if (key === "history") fetchHistory(); }}
@@ -713,6 +757,262 @@
               <div>├── ALERTING <span class="text-slate-600">→ Telegram push</span></div>
               <div>└── REPORTING <span class="text-slate-600">→ PDF + Telegram</span></div>
             </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 5: MITIGACIÓN -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    {:else if tab === "mitigation"}
+
+      <!-- Métricas de impacto -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {#each [
+          { label: "Litros ahorrados",   value: impact?.liters_saved_formatted ?? "0 L",     accent: "#10b981", code: "L" },
+          { label: "Dinero evitado",     value: impact?.cop_saved_formatted ?? "$0 COP",     accent: "#0ea5e9", code: "$" },
+          { label: "CO₂ evitado",        value: impact?.co2_kg_formatted ?? "0 kg",          accent: "#34d399", code: "C" },
+          { label: "Acciones tomadas",   value: String(impact?.actions_taken ?? 0),          accent: "#a78bfa", code: "A" },
+        ] as m}
+          <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-bold" style="background:{m.accent}1A;color:{m.accent}">{m.code}</span>
+              <span class="text-[10px] font-medium tracking-wider uppercase text-slate-500">{m.label}</span>
+            </div>
+            <div class="text-[20px] font-semibold tracking-tight text-white" style="font-family:'JetBrains Mono',monospace">{m.value}</div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-3">
+
+        <!-- Mapa SVG del campus (2 columnas) -->
+        <div class="lg:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Mapa del Campus · UNIAJC Sede Sur</div>
+              <div class="text-[10px] text-slate-600 mt-0.5">Localización en tiempo real de cada nodo · clic para abrir/cerrar válvula</div>
+            </div>
+            <div class="flex gap-2 text-[10px]">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>OK</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Alerta</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400"></span>Crítico</span>
+            </div>
+          </div>
+
+          <!-- SVG MAP -->
+          <svg viewBox="0 0 800 480" class="w-full h-auto rounded-lg" style="background:linear-gradient(135deg,rgba(14,165,233,0.06) 0%,rgba(99,102,241,0.04) 100%)">
+            <!-- Grid background -->
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(148,163,184,0.08)" stroke-width="1"/>
+              </pattern>
+              <radialGradient id="alertPulse">
+                <stop offset="0%" stop-color="#ef4444" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="800" height="480" fill="url(#grid)"/>
+
+            <!-- Río Pance al sur -->
+            <path d="M 0 440 Q 200 450 400 435 T 800 445 L 800 480 L 0 480 Z" fill="rgba(56,189,248,0.10)" stroke="rgba(56,189,248,0.4)" stroke-width="1"/>
+            <text x="700" y="460" fill="rgba(56,189,248,0.7)" font-size="10" font-family="JetBrains Mono">río Pance</text>
+
+            <!-- ALJIBES (sur del campus) -->
+            <g>
+              <circle cx="160" cy="380" r="18" fill="rgba(125,211,252,0.15)" stroke="#7dd3fc" stroke-width="2"/>
+              <text x="160" y="385" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="JetBrains Mono" font-weight="bold">A1</text>
+              <text x="160" y="412" text-anchor="middle" fill="rgba(125,211,252,0.7)" font-size="9">Aljibe 1</text>
+            </g>
+            <g>
+              <circle cx="240" cy="380" r="18" fill="rgba(125,211,252,0.15)" stroke="#7dd3fc" stroke-width="2"/>
+              <text x="240" y="385" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="JetBrains Mono" font-weight="bold">A2</text>
+              <text x="240" y="412" text-anchor="middle" fill="rgba(125,211,252,0.7)" font-size="9">Aljibe 2</text>
+            </g>
+
+            <!-- PTAP -->
+            <g>
+              <rect x="320" y="340" width="100" height="60" rx="6" fill="rgba(99,102,241,0.15)" stroke="#818cf8" stroke-width="2"/>
+              <text x="370" y="365" text-anchor="middle" fill="#818cf8" font-size="11" font-family="Inter" font-weight="bold">PTAP</text>
+              <text x="370" y="382" text-anchor="middle" fill="rgba(129,140,248,0.7)" font-size="9">3 filtros · 2011</text>
+              <text x="370" y="396" text-anchor="middle" fill="rgba(129,140,248,0.6)" font-size="8" font-family="JetBrains Mono">113.56 L/min</text>
+            </g>
+
+            <!-- Tanques -->
+            <g>
+              <rect x="480" y="320" width="70" height="80" rx="4" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="2"/>
+              <rect x="480" y="320" width="70" height="80" rx="4" fill="rgba(34,197,94,0.30)" style="clip-path: inset({100 - (reading?.tank_a_pct ?? 65)}% 0 0 0)"/>
+              <text x="515" y="355" text-anchor="middle" fill="#22c55e" font-size="11" font-family="Inter" font-weight="bold">Tank A</text>
+              <text x="515" y="372" text-anchor="middle" fill="white" font-size="14" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_a_pct, 0)}%</text>
+              <text x="515" y="390" text-anchor="middle" fill="rgba(34,197,94,0.7)" font-size="8">36k L</text>
+            </g>
+            <g>
+              <rect x="600" y="340" width="60" height="60" rx="4" fill="rgba(56,189,248,0.10)" stroke="#38bdf8" stroke-width="2"/>
+              <rect x="600" y="340" width="60" height="60" rx="4" fill="rgba(56,189,248,0.30)" style="clip-path: inset({100 - (reading?.tank_b_pct ?? 70)}% 0 0 0)"/>
+              <text x="630" y="370" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="Inter" font-weight="bold">Tank B</text>
+              <text x="630" y="387" text-anchor="middle" fill="white" font-size="13" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_b_pct, 0)}%</text>
+            </g>
+
+            <!-- Conexiones tuberías -->
+            <line x1="178" y1="380" x2="320" y2="370" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
+            <line x1="258" y1="380" x2="320" y2="380" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
+            <line x1="420" y1="370" x2="480" y2="360" stroke="#818cf8" stroke-width="2" opacity="0.6"/>
+            <line x1="550" y1="360" x2="600" y2="370" stroke="#22c55e" stroke-width="2" opacity="0.6"/>
+
+            <!-- Edificios del campus -->
+            <!-- Bloque A -->
+            <g class="cursor-pointer" onclick={() => executeAutoMitigation("leak")}>
+              <rect x="100" y="120" width="120" height="80" rx="6" fill="rgba(168,85,247,0.10)" stroke={reading?.vibration ? "#ef4444" : "#a855f7"} stroke-width="2"/>
+              {#if reading?.vibration}
+                <circle cx="160" cy="160" r="50" fill="url(#alertPulse)">
+                  <animate attributeName="r" from="20" to="60" dur="2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite"/>
+                </circle>
+              {/if}
+              <text x="160" y="155" text-anchor="middle" fill={reading?.vibration ? "#fca5a5" : "#a855f7"} font-size="13" font-family="Inter" font-weight="bold">Bloque A</text>
+              <text x="160" y="172" text-anchor="middle" fill="rgba(168,85,247,0.6)" font-size="9">Aulas + baños</text>
+              <circle cx="195" cy="135" r="4" fill={reading?.vibration ? "#ef4444" : "#10b981"}>
+                {#if reading?.vibration}<animate attributeName="opacity" from="1" to="0.3" dur="1s" repeatCount="indefinite"/>{/if}
+              </circle>
+            </g>
+
+            <!-- Alameda -->
+            <g>
+              <rect x="280" y="100" width="140" height="100" rx="6" fill="rgba(245,158,11,0.08)" stroke="#f59e0b" stroke-width="2"/>
+              <text x="350" y="145" text-anchor="middle" fill="#f59e0b" font-size="13" font-family="Inter" font-weight="bold">Alameda</text>
+              <text x="350" y="162" text-anchor="middle" fill="rgba(245,158,11,0.6)" font-size="9">Aulas + administración</text>
+              <circle cx="405" cy="115" r="4" fill="#10b981"/>
+            </g>
+
+            <!-- Cafetería -->
+            <g>
+              <rect x="480" y="120" width="80" height="60" rx="6" fill="rgba(249,115,22,0.10)" stroke="#f97316" stroke-width="2"/>
+              <text x="520" y="150" text-anchor="middle" fill="#f97316" font-size="11" font-family="Inter" font-weight="bold">Cafetería</text>
+              <text x="520" y="166" text-anchor="middle" fill="rgba(249,115,22,0.6)" font-size="8">240 L/día</text>
+              <circle cx="550" cy="135" r="3.5" fill="#10b981"/>
+            </g>
+
+            <!-- Laboratorios -->
+            <g>
+              <rect x="600" y="120" width="100" height="60" rx="6" fill="rgba(96,165,250,0.10)" stroke="#60a5fa" stroke-width="2"/>
+              <text x="650" y="150" text-anchor="middle" fill="#60a5fa" font-size="11" font-family="Inter" font-weight="bold">Laboratorios</text>
+              <text x="650" y="166" text-anchor="middle" fill="rgba(96,165,250,0.6)" font-size="8">64 L/día</text>
+              <circle cx="690" cy="135" r="3.5" fill="#10b981"/>
+            </g>
+
+            <!-- Cancha + Riego -->
+            <g class="cursor-pointer">
+              <rect x="100" y="240" width="240" height="60" rx="6" fill="rgba(34,197,94,0.08)" stroke="#22c55e" stroke-width="2" stroke-dasharray="6 3"/>
+              <text x="220" y="270" text-anchor="middle" fill="#22c55e" font-size="12" font-family="Inter" font-weight="bold">Cancha + Jardines</text>
+              <text x="220" y="287" text-anchor="middle" fill="rgba(34,197,94,0.6)" font-size="9">Riego ~4,000 L/día</text>
+              <circle cx="320" cy="255" r="3.5" fill={(reading?.zones?.["Riego/Cancha"] ?? 0) > 6 ? "#f59e0b" : "#10b981"}/>
+            </g>
+
+            <!-- Limpieza -->
+            <g>
+              <rect x="380" y="240" width="120" height="60" rx="6" fill="rgba(148,163,184,0.10)" stroke="#94a3b8" stroke-width="2"/>
+              <text x="440" y="270" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Inter" font-weight="bold">Limpieza</text>
+              <text x="440" y="287" text-anchor="middle" fill="rgba(148,163,184,0.6)" font-size="9">3,000 L/día</text>
+              <circle cx="485" cy="255" r="3.5" fill="#10b981"/>
+            </g>
+
+            <!-- Leyenda -->
+            <text x="20" y="30" fill="rgba(148,163,184,0.7)" font-size="10" font-family="Inter" font-weight="600">UNIAJC Sede Sur · 38,755 m²</text>
+            <text x="20" y="45" fill="rgba(148,163,184,0.5)" font-size="9" font-family="JetBrains Mono">8,234 usuarios · 219 disp. hidráulicos</text>
+          </svg>
+
+          <div class="mt-3 flex flex-wrap gap-1.5">
+            {#each ["leak", "peak_irrigation", "turbidity", "tank_overflow", "phreatic_low"] as trigger}
+              <button
+                onclick={() => executeAutoMitigation(trigger)}
+                class="px-2.5 py-1 rounded-md text-[10px] border border-white/10 bg-white/[0.04] hover:bg-amber-500/10 hover:border-amber-500/40 hover:text-amber-400 text-slate-300 transition-colors font-mono"
+              >▶ {trigger}</button>
+            {/each}
+          </div>
+        </div>
+
+        <!-- Electroválvulas -->
+        <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Electroválvulas</div>
+          <div class="space-y-1.5">
+            {#each Object.entries(valves?.valves ?? {}) as [vid, v]}
+              {@const valve = v as any}
+              <button
+                onclick={() => toggleValve(vid, valve.state)}
+                class="w-full flex items-center justify-between p-2 rounded-md border bg-white/[0.02] hover:bg-white/[0.04] transition-colors
+                  {valve.state === 'closed' ? 'border-red-500/30' : 'border-white/[0.06]'}"
+              >
+                <div class="text-left min-w-0 flex-1">
+                  <div class="text-[10px] font-mono font-bold text-slate-300">{vid}</div>
+                  <div class="text-[10px] text-slate-500 truncate">{valve.name}</div>
+                </div>
+                <span class="text-[9px] font-mono font-bold uppercase shrink-0 px-1.5 py-0.5 rounded
+                  {valve.state === 'closed' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}">
+                  {valve.state}
+                </span>
+              </button>
+            {/each}
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-white/[0.06]">
+            <div class="text-[10px] font-medium tracking-wider uppercase text-slate-500 mb-2">Bomba principal</div>
+            <div class="text-[11px] font-mono">
+              <div>Estado: <span class="{valves?.pump?.state === 'auto' ? 'text-emerald-400' : 'text-amber-400'}">{valves?.pump?.state ?? '—'}</span></div>
+              <div>Presión: <span class="text-white">{valves?.pump?.pressure_pct ?? 100}%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+        <!-- Historial de mitigaciones -->
+        <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Historial de Acciones</div>
+          {#if mitigationHistory.length === 0}
+            <div class="text-center py-6 text-[11px] text-slate-500">Sin acciones registradas — ejecuta una mitigación para ver historial</div>
+          {:else}
+            <div class="space-y-2">
+              {#each mitigationHistory.slice(0, 6) as h}
+                <div class="text-[11px] p-2 rounded-md border border-white/[0.04] bg-white/[0.02]">
+                  <div class="flex justify-between items-start mb-1">
+                    <span class="font-mono uppercase text-[10px] {h.type === 'auto' ? 'text-amber-400' : h.type === 'close' ? 'text-red-400' : 'text-sky-400'}">{h.type}</span>
+                    <span class="font-mono text-[9px] text-slate-500">{h.timestamp?.slice(11, 19)}</span>
+                  </div>
+                  <div class="text-slate-300 text-[11px]">{h.detail}</div>
+                  {#if h.impact}
+                    <div class="mt-1 text-[10px] text-emerald-400 font-mono">→ {h.impact.liters_saved?.toLocaleString()} L · ${h.impact.cop_saved?.toLocaleString()} COP</div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
+        <!-- Smart Water Ledger / Ranking -->
+        <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Smart Water Ledger</div>
+              <div class="text-[10px] text-slate-600 mt-0.5">Ranking mensual · Créditos hídricos por edificio</div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            {#each leaderboard as b, i}
+              {@const medals = ["1°", "2°", "3°", "4°", "5°"]}
+              <div class="flex items-center gap-3 p-2 rounded-md {i === 0 ? 'bg-amber-500/[0.06] border border-amber-500/20' : 'bg-white/[0.02] border border-white/[0.04]'}">
+                <span class="text-[12px] font-mono font-bold w-6 text-center {i === 0 ? 'text-amber-400' : 'text-slate-500'}">{medals[i] ?? `${i+1}°`}</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[12px] font-medium text-white truncate">{b.name}</div>
+                  <div class="text-[10px] text-slate-500 font-mono">{b.consumption_l_day?.toLocaleString()} L/día</div>
+                </div>
+                <span class="text-[14px] font-mono font-semibold {i === 0 ? 'text-amber-400' : 'text-sky-400'}">{b.credits}<span class="text-[9px] text-slate-500 ml-0.5 font-normal">cr</span></span>
+              </div>
+            {/each}
+          </div>
+          <div class="mt-3 pt-3 border-t border-white/[0.06] text-[10px] text-slate-500">
+            <div>1 Crédito Hídrico = 1 m³ ahorrado vs línea base</div>
+            <div class="mt-1">100 cr → mejora zona común · 500 cr → renovación · 1000 cr → proyecto</div>
           </div>
         </div>
       </div>

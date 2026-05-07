@@ -405,3 +405,165 @@ async def sensores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "_/agua · /kpis · /agente\\_start_",
     ]
     await msg.edit_text("\n".join(lines), parse_mode="Markdown")
+
+
+# ── Comandos de mitigación activa ────────────────────────────────────────────
+
+async def mitigar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Ejecuta mitigación automática para un trigger dado.
+    Uso: /mitigar [leak|peak_irrigation|turbidity|tank_overflow|phreatic_low]"""
+    args = context.args if hasattr(context, "args") else []
+    trigger = args[0] if args else "leak"
+    valid = {"leak", "peak_irrigation", "turbidity", "tank_overflow", "phreatic_low"}
+    if trigger not in valid:
+        await update.message.reply_text(
+            f"⚠️ Trigger inválido. Usa uno de: {', '.join(sorted(valid))}"
+        )
+        return
+
+    msg = await update.message.reply_text(f"🛡️ Ejecutando mitigación para `{trigger}`…", parse_mode="Markdown")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                f"{BACKEND_URL}/water/mitigate/auto",
+                json={"trigger": trigger, "severity": "critical"},
+            )
+            d = r.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    impact = d.get("impact", {})
+    actions = d.get("actions", [])
+    lines = [
+        f"🛡️ *Mitigación ejecutada · trigger: `{trigger}`*",
+        "",
+        f"📋 {d.get('detail', '—')}",
+        "",
+        "*Acciones realizadas:*",
+    ]
+    for a in actions:
+        lines.append(f"  ✓ {a.get('type', '')}: `{a.get('valve', '')}` — {a.get('name', '')}")
+
+    lines += [
+        "",
+        "*Impacto evitado:*",
+        f"  💧 `{impact.get('liters_saved', 0):,}` L",
+        f"  💰 `${impact.get('cop_saved', 0):,}` COP",
+        f"  🌱 `{impact.get('co2_kg_avoided', 0)}` kg CO₂",
+        "",
+        f"_OT-{d.get('id', '?')} generada · /mitigaciones para historial_",
+    ]
+    await msg.edit_text("\n".join(lines), parse_mode="Markdown")
+
+
+async def mitigaciones(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Historial de acciones de mitigación + impacto acumulado."""
+    msg = await update.message.reply_text("📜 Cargando historial…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            h = await client.get(f"{BACKEND_URL}/water/mitigate/history?limit=10")
+            i = await client.get(f"{BACKEND_URL}/water/mitigate/impact")
+            history = h.json()["data"]
+            impact = i.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    lines = [
+        "📜 *Historial de Mitigación*",
+        "",
+        f"Total acciones: `{impact['actions_taken']}`",
+        f"💧 Litros ahorrados: `{impact['liters_saved_formatted']}`",
+        f"💰 COP ahorrados:   `{impact['cop_saved_formatted']}`",
+        f"🌱 CO₂ evitado:     `{impact['co2_kg_formatted']}`",
+        "",
+        "*Últimas 10 acciones:*",
+    ]
+    for a in history.get("actions", [])[:10]:
+        lines.append(f"  • `{a['timestamp'][:19]}` — {a.get('type', '')} — _{a.get('detail', '')[:40]}_")
+    await msg.edit_text("\n".join(lines), parse_mode="Markdown")
+
+
+async def ranking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Ranking de edificios por créditos hídricos (gamificación)."""
+    msg = await update.message.reply_text("🏆 Cargando ranking…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get(f"{BACKEND_URL}/water/leaderboard")
+            d = r.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    lines = [
+        "🏆 *Smart Water Ledger · Ranking Mensual*",
+        "",
+        f"🥇 Líder: *{d['winner_this_month']['name']}* ({d['winner_this_month']['credits']} créditos)",
+        "",
+        "*Posiciones:*",
+    ]
+    medals = ["🥇", "🥈", "🥉", "4.", "5.", "6."]
+    for i, b in enumerate(d.get("buildings", [])):
+        m = medals[i] if i < len(medals) else f"{i+1}."
+        lines.append(f"  {m} *{b['name']}* — `{b['credits']}` créditos · `{b['consumption_l_day']:,} L/día`")
+
+    rules = d.get("rules", {})
+    lines += [
+        "",
+        f"_{rules.get('credit_definition', '')}_",
+        "",
+        "*Beneficios:*",
+        f"  100 créditos → mejora zona común",
+        f"  500 créditos → renovación cafetería",
+        f"  1000 créditos → proyecto propuesto por estudiantes",
+        "",
+        "_/reportar para sumar puntos · /mitigaciones_",
+    ]
+    await msg.edit_text("\n".join(lines), parse_mode="Markdown")
+
+
+async def reportar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Reporta una fuga/mal uso desde la comunidad.
+    Uso: /reportar [zona] descripción..."""
+    text = update.message.text or ""
+    parts = text.split(" ", 2)
+    if len(parts) < 3:
+        await update.message.reply_text(
+            "📝 *Reporte ciudadano*\n\n"
+            "Uso: `/reportar [zona] [descripción]`\n\n"
+            "Ejemplos:\n"
+            "  `/reportar bloque-A-baño-2 grifo goteando hace 30 min`\n"
+            "  `/reportar cafetería fuga visible en lavamanos`\n"
+            "  `/reportar cancha aspersor roto inundando jardín`\n\n"
+            "_+20 puntos si se valida · +5 por colaborar_",
+            parse_mode="Markdown",
+        )
+        return
+
+    location = parts[1]
+    description = parts[2]
+    user_id = str(update.effective_user.id if update.effective_user else "anonymous")
+
+    msg = await update.message.reply_text("📝 Validando reporte con SensorAgent…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                f"{BACKEND_URL}/water/report-issue",
+                json={"location": location, "description": description, "user_id": user_id},
+            )
+            d = r.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    icon = "✅" if d["status"] == "validated" else "🙏"
+    await msg.edit_text(
+        f"{icon} *Reporte registrado · ID `{d['id']}`*\n\n"
+        f"📍 Zona: `{d['location']}`\n"
+        f"📝 Descripción: _{d['description']}_\n\n"
+        f"🤖 *Análisis IA:*\n_{d['ai_validation']}_\n\n"
+        f"⭐ Puntos otorgados: `+{d['points_awarded']}`\n\n"
+        f"_Gracias por cuidar el agua del campus · /ranking_",
+        parse_mode="Markdown",
+    )
