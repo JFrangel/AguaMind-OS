@@ -36,6 +36,42 @@ TOTAL_USERS           = 8_234       # usuarios totales (+ docentes y staff)
 HYDRAULIC_DEVICES     = 219         # dispositivos hidráulicos inventariados
 CAMPUS_AREA_M2        = 38_755.88   # área del campus
 
+# ── Equipos PTAP UNIAJC (códigos oficiales · Gómez Mina 2022) ──────────────
+PTAP_EQUIPMENT = {
+    "CP-BS-01": {"name": "Bomba sumergible aljibe 1",  "marca": "Barnes 4SP 2526", "hp": 5.0, "lpm": 121.1, "v": 220},
+    "CP-BS-02": {"name": "Bomba sumergible aljibe 2",  "marca": "Barnes 4SP 2511", "hp": 2.0, "lpm": 121.1, "v": 220},
+    "SF-FT-01": {"name": "Filtro 1 (grava + arena)",   "marca": "OHS Ingenieros", "vol_l": 861.53, "lpm": 400},
+    "SF-FT-02": {"name": "Filtro 2 (+ antracita)",     "marca": "OHS Ingenieros", "vol_l": 861.53, "lpm": 400},
+    "SF-FT-03": {"name": "Filtro 3 (+ carbón)",        "marca": "OHS Ingenieros", "vol_l": 861.53, "lpm": 400},
+    "SD-TM-01": {"name": "Tanque cloración",           "marca": "Ajover Wave",   "vol_l": 250},
+    "SD-BD-01": {"name": "Bomba dosificadora cloro",   "marca": "LMI C111-362TI","v": 120, "psi": 150, "gph": 2.5, "w": 44},
+    "AL-TA-01": {"name": "Tanque almacenamiento A",    "vol_l": 36_000},
+    "AL-TA-02": {"name": "Tanque almacenamiento B",    "vol_l": 16_000},
+    "SB-TH-01": {"name": "Hidroneumático 1",           "marca": "Altamira PRO XLB", "vol_gal": 119, "psi_max": 125},
+    "SB-TH-02": {"name": "Hidroneumático 2",           "marca": "Altamira PRO XLB", "vol_gal": 119, "psi_max": 125},
+    "SB-BC-03": {"name": "Bomba centrífuga 1",         "marca": "Barmesa Pumps"},
+    "SB-BC-04": {"name": "Bomba centrífuga 2",         "marca": "Barmesa Pumps"},
+}
+
+# ── Cumplimiento normativo (parámetros límite) ────────────────────────────
+NORMATIVE_LIMITS = {
+    "turbidez_max_ntu":         2.0,    # Resolución 2115/2007 (potable)
+    "ph_min":                   6.5,
+    "ph_max":                   9.0,
+    "cloro_residual_min_ppm":   0.3,    # Decreto 1575/2007
+    "cloro_residual_max_ppm":   2.0,
+    "cloro_dosificacion_ppm":   3.0,    # objetivo PTAP UNIAJC
+    "irca_max":                 5.0,    # 0-5 sin riesgo (Res 2115)
+    "ptar_dbo5_max_mg_l":       90.0,   # Resolución 0631/2015
+    "ptar_sst_max_mg_l":        90.0,
+    "ptar_grasas_max_mg_l":     20.0,
+    "ptar_ph_min":              6.0,
+    "ptar_ph_max":              9.0,
+    "retrolavado_min_year":     2,      # RAS 2000 cap. C.17
+    "retrolavado_actual_year":  24,     # actual UNIAJC (excede norma)
+    "lavado_tanques_min_year":  2,      # Decreto 1575/2007 art. 9
+}
+
 # ── Zonas de consumo (L/día exactos — Arias Montoya et al., 2024) ──────────
 ZONE_DAILY_BASE = {
     "Aseo Personal":     31_700,    # 69.73% — 7,045 usos × 4.5 L
@@ -549,6 +585,104 @@ async def daily_report():
 async def get_thresholds():
     """Retorna los umbrales configurados por sensor."""
     return {"data": THRESHOLDS, "error": None}
+
+
+@router.get("/equipment")
+async def get_equipment():
+    """Inventario de equipos PTAP con códigos UNIAJC oficiales (Gómez Mina 2022)."""
+    return {"data": {"equipment": PTAP_EQUIPMENT, "total_units": len(PTAP_EQUIPMENT)}, "error": None}
+
+
+@router.get("/compliance")
+async def get_compliance():
+    """Estado de cumplimiento normativo en tiempo real."""
+    r = _simulate_sensors()
+    kpis = _calc_kpis(r)
+    items = [
+        {
+            "norma":      "Resolución 2115/2007",
+            "parametro":  "Turbidez (potable)",
+            "limite":     f"≤ {NORMATIVE_LIMITS['turbidez_max_ntu']} NTU",
+            "actual":     f"{r['turbidity_ntu']:.1f} NTU",
+            "estado":     "OK" if r["turbidity_ntu"] <= NORMATIVE_LIMITS["turbidez_max_ntu"] else "INCUMPLE",
+            "autoridad":  "Min. Salud / INVIMA",
+            "sancion_max_smmlv": 1000,
+        },
+        {
+            "norma":      "Decreto 1076/2015",
+            "parametro":  "Nivel freático monitoreado",
+            "limite":     "Reporte trimestral CVC",
+            "actual":     f"{r['phreatic_m']:.1f} m",
+            "estado":     "OK" if r["phreatic_m"] >= 4.0 else "ALERTA",
+            "autoridad":  "CVC",
+            "sancion_max_smmlv": 5000,
+        },
+        {
+            "norma":      "Decreto 3930/2010",
+            "parametro":  "Eficiencia hídrica (TPP)",
+            "limite":     "TPP < 25% recomendado",
+            "actual":     f"TPP {kpis['TPP']['value']:.1f}%",
+            "estado":     "OK" if kpis["TPP"]["value"] <= 15 else "ALERTA",
+            "autoridad":  "Min. Ambiente / CVC",
+            "sancion_max_smmlv": 1000,
+        },
+        {
+            "norma":      "RAS 2000 Cap. C.17",
+            "parametro":  "Retrolavado de filtros",
+            "limite":     f"≥ {NORMATIVE_LIMITS['retrolavado_min_year']} veces/año",
+            "actual":     f"{NORMATIVE_LIMITS['retrolavado_actual_year']} veces/año",
+            "estado":     "EXCEDE BIEN",
+            "autoridad":  "Min. Vivienda",
+            "sancion_max_smmlv": 0,
+        },
+        {
+            "norma":      "Decreto 1575/2007 art. 9",
+            "parametro":  "Lavado tanques",
+            "limite":     f"≥ {NORMATIVE_LIMITS['lavado_tanques_min_year']} veces/año",
+            "actual":     "2 veces/año (validado)",
+            "estado":     "OK",
+            "autoridad":  "Min. Salud",
+            "sancion_max_smmlv": 500,
+        },
+        {
+            "norma":      "Resolución 0631/2015",
+            "parametro":  "Vertimiento PTAR (DBO5)",
+            "limite":     f"≤ {NORMATIVE_LIMITS['ptar_dbo5_max_mg_l']} mg/L",
+            "actual":     "Pendiente sensorización (Fase 3)",
+            "estado":     "PENDIENTE",
+            "autoridad":  "CVC / Min. Ambiente",
+            "sancion_max_smmlv": 5000,
+        },
+        {
+            "norma":      "Ley 1581/2012",
+            "parametro":  "Protección datos personales",
+            "limite":     "Tratamiento responsable",
+            "actual":     "Solo chat_id Telegram con consentimiento",
+            "estado":     "OK",
+            "autoridad":  "SIC",
+            "sancion_max_smmlv": 2000,
+        },
+        {
+            "norma":      "Ley 1712/2014 (Transparencia)",
+            "parametro":  "Datos abiertos",
+            "limite":     "Publicación obligatoria",
+            "actual":     "Dashboard público + API REST",
+            "estado":     "OK",
+            "autoridad":  "Procuraduría",
+            "sancion_max_smmlv": 100,
+        },
+    ]
+    in_compliance = sum(1 for i in items if i["estado"] in ("OK", "EXCEDE BIEN"))
+    return {
+        "data": {
+            "items":         items,
+            "score":         f"{in_compliance}/{len(items)}",
+            "score_pct":     round(in_compliance / len(items) * 100, 1),
+            "exposure_smmlv": sum(i["sancion_max_smmlv"] for i in items if i["estado"] not in ("OK", "EXCEDE BIEN")),
+            "exposure_cop":  sum(i["sancion_max_smmlv"] for i in items if i["estado"] not in ("OK", "EXCEDE BIEN")) * 1_300_000,
+        },
+        "error": None,
+    }
 
 
 @router.get("/constants")
