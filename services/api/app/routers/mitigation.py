@@ -363,3 +363,227 @@ async def leaderboard():
         },
         "error": None,
     }
+
+
+# ── GAMIFICACIÓN — Smart Water Ledger ──────────────────────────────────────
+
+# Logros desbloqueables (badges)
+_BADGES = [
+    {"id": "first_report",    "icon": "🔍", "name": "Detective del Agua",        "desc": "Reportar tu primera fuga",                    "points": 50,  "unlocked": True,  "progress": 1, "target": 1},
+    {"id": "valid_5",         "icon": "✅", "name": "Reporte Confiable",         "desc": "5 reportes validados por IA",                 "points": 100, "unlocked": False, "progress": 3, "target": 5},
+    {"id": "savings_100",     "icon": "💧", "name": "Guardián Centenario",       "desc": "Ahorrar 100 L acumulados (~30 días)",         "points": 150, "unlocked": True,  "progress": 100, "target": 100},
+    {"id": "savings_1000",    "icon": "🌊", "name": "Maestro del Caudal",        "desc": "Ahorrar 1,000 L acumulados",                  "points": 500, "unlocked": False, "progress": 743, "target": 1000},
+    {"id": "co2_kg",          "icon": "🌱", "name": "Eco-Embajador",             "desc": "Evitar 1 kg de CO₂",                          "points": 200, "unlocked": True,  "progress": 1, "target": 1},
+    {"id": "weekly_streak",   "icon": "🔥", "name": "Racha Semanal",             "desc": "Reportar al menos 1 vez por semana × 4 semanas", "points": 300, "unlocked": False, "progress": 2, "target": 4},
+    {"id": "team_winner",     "icon": "🏆", "name": "Campeón del Edificio",      "desc": "Tu edificio en top 1 del mes",                "points": 1000,"unlocked": False, "progress": 0, "target": 1},
+    {"id": "ods_advocate",    "icon": "🌍", "name": "Defensor ODS",              "desc": "Completar 4 retos de sostenibilidad",         "points": 400, "unlocked": False, "progress": 1, "target": 4},
+]
+
+# Retos activos (challenges)
+_CHALLENGES = [
+    {
+        "id": "no_leak_week",
+        "title": "Semana sin fugas",
+        "description": "Mantener TPP < 10% durante 7 días consecutivos",
+        "icon": "🚰",
+        "reward_credits": 50,
+        "reward_points": 200,
+        "category": "operativo",
+        "progress_pct": 35,
+        "deadline_days": 5,
+        "participants": 145,
+        "status": "active",
+    },
+    {
+        "id": "night_zero",
+        "title": "Cero gota nocturna",
+        "description": "Consumo <2 L/min entre 22:00 y 05:00 por 3 noches",
+        "icon": "🌙",
+        "reward_credits": 30,
+        "reward_points": 100,
+        "category": "comportamiento",
+        "progress_pct": 67,
+        "deadline_days": 2,
+        "participants": 89,
+        "status": "active",
+    },
+    {
+        "id": "report_5",
+        "title": "Cazador de fugas",
+        "description": "Reportar 5 anomalías validadas por la IA",
+        "icon": "🔎",
+        "reward_credits": 25,
+        "reward_points": 150,
+        "category": "comunitario",
+        "progress_pct": 60,
+        "deadline_days": 12,
+        "participants": 234,
+        "status": "active",
+    },
+    {
+        "id": "irrigation_smart",
+        "title": "Riego inteligente",
+        "description": "Reducir 20% consumo de riego durante el mes",
+        "icon": "💦",
+        "reward_credits": 40,
+        "reward_points": 180,
+        "category": "operativo",
+        "progress_pct": 22,
+        "deadline_days": 18,
+        "participants": 67,
+        "status": "active",
+    },
+    {
+        "id": "irca_perfect",
+        "title": "Calidad perfecta",
+        "description": "IRCA = 0 (riesgo NULO) durante todo el mes",
+        "icon": "🏅",
+        "reward_credits": 100,
+        "reward_points": 500,
+        "category": "sanitario",
+        "progress_pct": 80,
+        "deadline_days": 8,
+        "participants": 312,
+        "status": "active",
+    },
+]
+
+# Recompensas canjeables
+_REWARDS_CATALOG = [
+    {"id": "rwd_coffee",  "name": "Café gratis cafetería",       "points": 50,   "icon": "☕", "stock": 25, "type": "individual"},
+    {"id": "rwd_lunch",   "name": "Almuerzo subsidiado 50%",     "points": 200,  "icon": "🍽️", "stock": 10, "type": "individual"},
+    {"id": "rwd_book",    "name": "Bono $50K librería UNIAJC",   "points": 350,  "icon": "📚", "stock": 5,  "type": "individual"},
+    {"id": "rwd_zone",    "name": "Mejora zona común edificio",  "points": 1000, "icon": "🛋️", "stock": 1,  "type": "edificio"},
+    {"id": "rwd_cafe",    "name": "Renovación cafetería",        "points": 5000, "icon": "🏗️", "stock": 1,  "type": "edificio"},
+    {"id": "rwd_project", "name": "Proyecto estudiantil $3.5M",  "points": 10000,"icon": "💡", "stock": 1,  "type": "facultad"},
+]
+
+_USER_PROFILE = {
+    "name":           "Estudiante UNIAJC",
+    "building":       "Bloque A",
+    "level":          7,
+    "level_name":     "Eco-Vigilante",
+    "points":         1_240,
+    "credits":        12,
+    "next_level_pts": 1_500,
+    "rank_global":    23,
+    "rank_building":  4,
+    "joined_days":    45,
+    "reports_made":   8,
+    "reports_valid":  6,
+    "liters_saved":   743,
+    "co2_kg_saved":   1.2,
+}
+
+LEVELS = [
+    (0,     "Novato"),
+    (100,   "Aprendiz"),
+    (300,   "Observador"),
+    (600,   "Eco-Aliado"),
+    (1000,  "Eco-Vigilante"),
+    (1500,  "Guardián del Agua"),
+    (2500,  "Centinela Hídrico"),
+    (4000,  "Maestro del Caudal"),
+    (6000,  "Líder Eco-Campus"),
+    (10000, "Leyenda AguaMind"),
+]
+
+
+@router.get("/gamification/dashboard")
+async def gamification_dashboard():
+    """Resumen completo de gamificación: perfil + ranking + retos + logros."""
+    sorted_b = sorted(_BUILDINGS, key=lambda x: -x["credits"])
+    for i, b in enumerate(sorted_b, 1):
+        b["rank"] = i
+
+    # Estadísticas globales
+    total_credits = sum(b["credits"] for b in _BUILDINGS)
+    total_users = 8_234
+    active_users = 2_340
+    total_reports = len(_REPORTS) + 47  # base histórica
+    valid_reports = sum(1 for r in _REPORTS if r.get("status") == "validated") + 32
+
+    return {
+        "data": {
+            "user":     _USER_PROFILE,
+            "podium":   sorted_b[:3],
+            "ranking":  sorted_b,
+            "badges":   _BADGES,
+            "challenges": _CHALLENGES,
+            "rewards":  _REWARDS_CATALOG,
+            "stats": {
+                "total_credits_campus":   total_credits,
+                "active_users":           active_users,
+                "active_pct":             round(active_users / total_users * 100, 1),
+                "total_reports":          total_reports,
+                "valid_reports":          valid_reports,
+                "validation_rate":        round(valid_reports / max(total_reports, 1) * 100, 1),
+                "liters_saved_community": 18_245,
+                "co2_kg_avoided":         8.4,
+                "trees_equivalent":       round(8.4 / 21.7, 2),  # 1 árbol = 21.7 kg CO₂/año
+            },
+            "season": {
+                "name":         "Mayo 2026 · Cuidemos el agua",
+                "ends_in_days": 24,
+                "theme":        "Mes de la sostenibilidad hídrica",
+            },
+        },
+        "error": None,
+    }
+
+
+@router.get("/gamification/badges")
+async def gamification_badges():
+    return {"data": {"badges": _BADGES, "unlocked": sum(1 for b in _BADGES if b["unlocked"])}, "error": None}
+
+
+@router.get("/gamification/challenges")
+async def gamification_challenges():
+    return {"data": {"challenges": _CHALLENGES, "active": len(_CHALLENGES)}, "error": None}
+
+
+class RedeemRequest(BaseModel):
+    reward_id: str
+    user_id: str = "anonymous"
+
+
+@router.post("/gamification/redeem")
+async def gamification_redeem(body: RedeemRequest):
+    """Canjear puntos por una recompensa del catálogo."""
+    reward = next((r for r in _REWARDS_CATALOG if r["id"] == body.reward_id), None)
+    if not reward:
+        raise HTTPException(404, f"Recompensa {body.reward_id} no encontrada")
+    if _USER_PROFILE["points"] < reward["points"]:
+        return {"data": {"redeemed": False, "reason": f"Necesitas {reward['points'] - _USER_PROFILE['points']} puntos más"}, "error": None}
+    if reward["stock"] <= 0:
+        return {"data": {"redeemed": False, "reason": "Sin stock disponible"}, "error": None}
+
+    _USER_PROFILE["points"] -= reward["points"]
+    reward["stock"] -= 1
+
+    return {
+        "data": {
+            "redeemed":     True,
+            "reward":       reward,
+            "code":         f"AGUA-{body.reward_id.upper()}-{datetime.now().strftime('%Y%m%d%H%M')}",
+            "user_points":  _USER_PROFILE["points"],
+            "message":      f"¡Canjeaste «{reward['name']}»! Presenta el código en el punto de canje.",
+        },
+        "error": None,
+    }
+
+
+class JoinChallengeRequest(BaseModel):
+    challenge_id: str
+    user_id: str = "anonymous"
+
+
+@router.post("/gamification/challenges/join")
+async def join_challenge(body: JoinChallengeRequest):
+    """Unirse a un reto activo."""
+    challenge = next((c for c in _CHALLENGES if c["id"] == body.challenge_id), None)
+    if not challenge:
+        raise HTTPException(404, "Reto no encontrado")
+    challenge["participants"] += 1
+    return {"data": {"joined": True, "challenge": challenge,
+                     "message": f"Te uniste al reto «{challenge['title']}». ¡Buena suerte!"}, "error": None}

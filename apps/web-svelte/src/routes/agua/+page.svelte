@@ -33,7 +33,9 @@
   let lastRefresh = $state<Date | null>(null);
   let scenario = $state<"normal" | "leak" | "peak_irrigation" | "turbidity">("normal");
   let scenarioLoading = $state(false);
-  let tab = $state<"dashboard" | "history" | "industrial" | "agent" | "mitigation">("dashboard");
+  let tab = $state<"dashboard" | "history" | "industrial" | "agent" | "mitigation" | "community">("dashboard");
+  let gamification = $state<any>(null);
+  let redeemMessage = $state<string | null>(null);
   let valves = $state<any>(null);
   let mitigationHistory = $state<any[]>([]);
   let impact = $state<any>(null);
@@ -80,6 +82,43 @@
       const res = await fetch("/api/water?endpoint=agent/insights");
       const json = await res.json();
       if (json.data?.insights) aiInsights = json.data.insights;
+    } catch {}
+  }
+
+  async function fetchGamification() {
+    try {
+      const res = await fetch("/api/water?endpoint=gamification/dashboard");
+      const json = await res.json();
+      if (json.data) gamification = json.data;
+    } catch {}
+  }
+
+  async function redeem(rewardId: string) {
+    try {
+      const res = await fetch("/api/water?endpoint=gamification/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reward_id: rewardId, user_id: "demo-user" }),
+      });
+      const json = await res.json();
+      if (json.data?.redeemed) {
+        redeemMessage = `✓ ${json.data.message} · Código: ${json.data.code}`;
+      } else {
+        redeemMessage = `⚠ ${json.data?.reason ?? "No se pudo canjear"}`;
+      }
+      await fetchGamification();
+      setTimeout(() => redeemMessage = null, 5000);
+    } catch {}
+  }
+
+  async function joinChallenge(challengeId: string) {
+    try {
+      await fetch("/api/water?endpoint=gamification/challenges/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challenge_id: challengeId }),
+      });
+      await fetchGamification();
     } catch {}
   }
 
@@ -345,9 +384,10 @@
         ["industrial", "Gestión Industrial","03"],
         ["agent",      "Inteligencia",      "04"],
         ["mitigation", "Mapa del Campus",   "05"],
+        ["community",  "Comunidad",         "06"],
       ] as [key, label, num]}
         <button
-          onclick={() => { tab = key as typeof tab; if (key === "history") fetchHistory(); }}
+          onclick={() => { tab = key as typeof tab; if (key === "history") fetchHistory(); if (key === "community") fetchGamification(); }}
           class="group relative px-4 py-3 text-[12px] font-medium tracking-tight border-b-2 transition-all -mb-px flex items-center gap-2
             {tab === key ? 'border-sky-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/10'}"
         >
@@ -1309,6 +1349,310 @@
           </div>
         </div>
       </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 6: COMUNIDAD (Gamificación) -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    {:else if tab === "community"}
+
+      {#if !gamification}
+        <div class="text-center py-12 text-[12px] text-slate-500">
+          Cargando datos de la comunidad...
+          <button onclick={fetchGamification} class="ml-2 text-sky-400 hover:text-sky-300">refrescar</button>
+        </div>
+      {:else}
+
+        <!-- Mensaje de canje -->
+        {#if redeemMessage}
+          <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-300 mb-5">
+            {redeemMessage}
+          </div>
+        {/if}
+
+        <!-- Hero: temporada actual + perfil -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-5">
+
+          <!-- Temporada -->
+          <div class="lg:col-span-2 relative overflow-hidden rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/[0.08] via-cyan-500/[0.04] to-transparent p-6">
+            <div class="absolute top-0 right-0 w-64 h-64 rounded-full bg-sky-500/10 blur-3xl -mr-32 -mt-32"></div>
+            <div class="relative">
+              <div class="text-[10px] font-mono tracking-[0.2em] uppercase text-sky-400 mb-2">Temporada Activa</div>
+              <h2 class="text-[22px] font-semibold text-white tracking-tight mb-1">{gamification.season.name}</h2>
+              <p class="text-[12px] text-slate-400 mb-4">{gamification.season.theme}</p>
+
+              <div class="grid grid-cols-3 gap-4 mt-6">
+                <div>
+                  <div class="text-[26px] font-mono font-semibold text-white">{gamification.stats.active_users.toLocaleString()}</div>
+                  <div class="text-[10px] text-slate-500 mt-0.5">Participantes activos</div>
+                  <div class="text-[10px] text-emerald-400 mt-0.5">{gamification.stats.active_pct}% del campus</div>
+                </div>
+                <div>
+                  <div class="text-[26px] font-mono font-semibold text-white">{(gamification.stats.liters_saved_community/1000).toFixed(1)}k</div>
+                  <div class="text-[10px] text-slate-500 mt-0.5">Litros ahorrados</div>
+                  <div class="text-[10px] text-emerald-400 mt-0.5">colectivamente</div>
+                </div>
+                <div>
+                  <div class="text-[26px] font-mono font-semibold text-white">{gamification.stats.co2_kg_avoided}</div>
+                  <div class="text-[10px] text-slate-500 mt-0.5">kg CO₂ evitado</div>
+                  <div class="text-[10px] text-emerald-400 mt-0.5">≈ {gamification.stats.trees_equivalent} árboles/año</div>
+                </div>
+              </div>
+
+              <div class="mt-5 pt-4 border-t border-sky-500/20 flex items-center justify-between">
+                <div class="text-[11px] text-slate-400">⏱ Termina en <span class="text-white font-medium">{gamification.season.ends_in_days} días</span></div>
+                <div class="text-[11px] text-slate-400">{gamification.stats.total_reports} reportes · {gamification.stats.validation_rate}% válidos</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Perfil del usuario -->
+          <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="relative w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[14px]">
+                {gamification.user.level}
+                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 ring-2 ring-[#0a0e14] flex items-center justify-center text-[8px] text-white">★</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-[12px] font-semibold text-white truncate">{gamification.user.name}</div>
+                <div class="text-[10px] text-amber-400">{gamification.user.level_name}</div>
+                <div class="text-[10px] text-slate-500">{gamification.user.building}</div>
+              </div>
+            </div>
+
+            <!-- Barra de progreso al siguiente nivel -->
+            <div class="mb-4">
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-slate-500">Progreso nivel {gamification.user.level + 1}</span>
+                <span class="text-white font-mono">{gamification.user.points} / {gamification.user.next_level_pts}</span>
+              </div>
+              <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all" style="width:{(gamification.user.points/gamification.user.next_level_pts)*100}%"></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="rounded-lg bg-white/[0.03] p-2">
+                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Créditos</div>
+                <div class="text-[16px] font-mono font-semibold text-sky-400">{gamification.user.credits}</div>
+              </div>
+              <div class="rounded-lg bg-white/[0.03] p-2">
+                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Litros</div>
+                <div class="text-[16px] font-mono font-semibold text-emerald-400">{gamification.user.liters_saved}</div>
+              </div>
+              <div class="rounded-lg bg-white/[0.03] p-2">
+                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Reportes</div>
+                <div class="text-[16px] font-mono font-semibold text-white">{gamification.user.reports_valid}/{gamification.user.reports_made}</div>
+              </div>
+              <div class="rounded-lg bg-white/[0.03] p-2">
+                <div class="text-[9px] text-slate-500 uppercase tracking-wider">Ranking</div>
+                <div class="text-[16px] font-mono font-semibold text-white">#{gamification.user.rank_global}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Podium top 3 edificios -->
+        <div class="mb-3">
+          <div class="flex items-baseline justify-between mb-3">
+            <div>
+              <h2 class="text-[13px] font-semibold text-white tracking-tight">Ranking de Edificios</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5">Eco-competencia mensual · {gamification.podium.length} líderes</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          {#each gamification.podium as b, i}
+            {@const colors = [
+              {bg: "from-amber-500/20 to-amber-700/5",  border: "border-amber-500/30",  ring: "from-amber-400 to-amber-600",  medal: "🥇", label: "1° lugar"},
+              {bg: "from-slate-400/15 to-slate-600/5",  border: "border-slate-400/30",  ring: "from-slate-300 to-slate-500",  medal: "🥈", label: "2° lugar"},
+              {bg: "from-orange-700/15 to-orange-900/5",border: "border-orange-700/30", ring: "from-orange-500 to-orange-700",medal: "🥉", label: "3° lugar"},
+            ]}
+            {@const c = colors[i]}
+            <div class="relative overflow-hidden rounded-2xl border bg-gradient-to-br {c.bg} {c.border} p-5 {i === 0 ? 'lg:scale-105' : ''}">
+              <div class="text-3xl mb-2">{c.medal}</div>
+              <div class="text-[9px] font-mono uppercase tracking-wider text-slate-400 mb-1">{c.label}</div>
+              <div class="text-[14px] font-semibold text-white mb-1">{b.name}</div>
+              <div class="text-[26px] font-mono font-bold bg-gradient-to-r {c.ring} bg-clip-text text-transparent mb-2">{b.credits}</div>
+              <div class="text-[10px] text-slate-500">créditos hídricos</div>
+              <div class="text-[10px] text-slate-600 mt-1 font-mono">{b.consumption_l_day.toLocaleString()} L/día</div>
+            </div>
+          {/each}
+        </div>
+
+        <!-- Resto del ranking -->
+        {#if gamification.ranking.length > 3}
+          <div class="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 mb-5">
+            <div class="text-[10px] font-mono tracking-[0.15em] uppercase text-slate-500 mb-3">Resto de la liga</div>
+            <div class="space-y-1.5">
+              {#each gamification.ranking.slice(3) as b}
+                <div class="flex items-center gap-3 p-2 rounded-md bg-white/[0.02]">
+                  <span class="w-6 text-center text-[11px] font-mono text-slate-500">#{b.rank}</span>
+                  <span class="flex-1 text-[12px] text-slate-200">{b.name}</span>
+                  <span class="text-[10px] text-slate-500 font-mono">{b.consumption_l_day.toLocaleString()} L/día</span>
+                  <span class="text-[14px] font-mono font-semibold text-sky-400 w-12 text-right">{b.credits}</span>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/if}
+
+        <!-- Retos activos -->
+        <div class="mb-3 mt-6">
+          <div class="flex items-baseline justify-between mb-3">
+            <div>
+              <h2 class="text-[13px] font-semibold text-white tracking-tight">Retos Activos</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5">Desafíos para ganar créditos y puntos</p>
+            </div>
+            <span class="text-[10px] font-mono text-slate-600">{gamification.challenges.length} disponibles</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-5">
+          {#each gamification.challenges as c}
+            {@const catColor = c.category === 'operativo' ? '#0ea5e9' : c.category === 'comportamiento' ? '#a78bfa' : c.category === 'comunitario' ? '#10b981' : c.category === 'sanitario' ? '#f59e0b' : '#94a3b8'}
+            <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5 transition-all hover:border-white/[0.1]">
+              <div class="flex items-start gap-3 mb-3">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0" style="background:{catColor}15;border:1px solid {catColor}30">{c.icon}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="text-[13px] font-semibold text-white">{c.title}</h3>
+                    <span class="text-[9px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded" style="background:{catColor}1A;color:{catColor}">{c.category}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-relaxed">{c.description}</p>
+                </div>
+              </div>
+
+              <!-- Progreso -->
+              <div class="mb-3">
+                <div class="flex justify-between text-[10px] mb-1">
+                  <span class="text-slate-500">Progreso comunitario</span>
+                  <span class="text-white font-mono">{c.progress_pct}%</span>
+                </div>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div class="h-full transition-all" style="width:{c.progress_pct}%;background:{catColor}"></div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between text-[10px]">
+                <div class="flex gap-3">
+                  <span class="text-emerald-400">+{c.reward_credits} cr</span>
+                  <span class="text-amber-400">+{c.reward_points} pts</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-500">
+                  <span>{c.participants} participantes</span>
+                  <span>·</span>
+                  <span>{c.deadline_days}d restantes</span>
+                </div>
+              </div>
+
+              <button
+                onclick={() => joinChallenge(c.id)}
+                class="w-full mt-3 py-1.5 text-[11px] rounded-lg border font-medium transition-colors"
+                style="border-color:{catColor}40;color:{catColor};background:{catColor}0A">
+                Unirme al reto
+              </button>
+            </div>
+          {/each}
+        </div>
+
+        <!-- Logros desbloqueables (badges) -->
+        <div class="mb-3 mt-6">
+          <div class="flex items-baseline justify-between mb-3">
+            <div>
+              <h2 class="text-[13px] font-semibold text-white tracking-tight">Logros</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5">{gamification.badges.filter(b => b.unlocked).length} de {gamification.badges.length} desbloqueados</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          {#each gamification.badges as b}
+            <div class="relative rounded-2xl border p-4 transition-all
+              {b.unlocked ? 'border-amber-500/30 bg-gradient-to-br from-amber-500/[0.05] to-transparent' : 'border-white/[0.04] bg-white/[0.02] opacity-50'}">
+              {#if b.unlocked}
+                <div class="absolute top-2 right-2 text-[9px] font-mono text-amber-400">✓</div>
+              {/if}
+              <div class="text-3xl mb-2 {!b.unlocked ? 'grayscale' : ''}">{b.icon}</div>
+              <div class="text-[12px] font-semibold text-white mb-1">{b.name}</div>
+              <div class="text-[10px] text-slate-500 leading-snug mb-2">{b.desc}</div>
+              {#if !b.unlocked}
+                <div class="mt-2">
+                  <div class="flex justify-between text-[9px] mb-0.5">
+                    <span class="text-slate-600">Progreso</span>
+                    <span class="text-white font-mono">{b.progress}/{b.target}</span>
+                  </div>
+                  <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-amber-500/60 transition-all" style="width:{(b.progress/b.target)*100}%"></div>
+                  </div>
+                </div>
+              {:else}
+                <div class="text-[10px] text-amber-400 font-mono">+{b.points} pts</div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+
+        <!-- Catálogo de recompensas -->
+        <div class="mb-3 mt-6">
+          <div class="flex items-baseline justify-between mb-3">
+            <div>
+              <h2 class="text-[13px] font-semibold text-white tracking-tight">Canjea tus Puntos</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5">Beneficios reales conectados con Bienestar Universitario</p>
+            </div>
+            <div class="text-[11px] text-amber-400 font-mono">{gamification.user.points} pts disponibles</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {#each gamification.rewards as rwd}
+            {@const can = gamification.user.points >= rwd.points && rwd.stock > 0}
+            {@const typeColor = rwd.type === 'individual' ? '#10b981' : rwd.type === 'edificio' ? '#0ea5e9' : '#a78bfa'}
+            <div class="rounded-2xl border bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-4 transition-colors
+              {can ? 'border-white/[0.08] hover:border-white/20' : 'border-white/[0.04] opacity-60'}">
+              <div class="flex items-start gap-3 mb-3">
+                <div class="text-3xl">{rwd.icon}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[12px] font-semibold text-white">{rwd.name}</div>
+                  <div class="text-[9px] uppercase font-mono tracking-wider mt-0.5" style="color:{typeColor}">{rwd.type}</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-[11px] font-mono text-amber-400">{rwd.points.toLocaleString()} pts</div>
+                <div class="text-[10px] text-slate-500">stock: {rwd.stock}</div>
+              </div>
+              <button
+                onclick={() => redeem(rwd.id)}
+                disabled={!can}
+                class="w-full py-1.5 text-[11px] rounded-lg border font-medium transition-colors
+                  {can ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'border-white/10 text-slate-600 cursor-not-allowed'}">
+                {can ? 'Canjear' : (rwd.stock <= 0 ? 'Sin stock' : `Faltan ${(rwd.points - gamification.user.points).toLocaleString()} pts`)}
+              </button>
+            </div>
+          {/each}
+        </div>
+
+        <!-- Cómo ganar puntos -->
+        <div class="rounded-2xl border border-sky-500/20 bg-sky-500/[0.04] p-5 mt-6">
+          <div class="text-[10px] font-mono tracking-[0.15em] uppercase text-sky-400 mb-3">¿Cómo gano puntos?</div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
+            {#each [
+              {emoji: "📷", title: "Reportar fugas", pts: "+20 pts", desc: "Si la IA valida tu reporte"},
+              {emoji: "🤝", title: "Colaborar", pts: "+5 pts", desc: "Por cada reporte aunque no se valide"},
+              {emoji: "🎯", title: "Completar retos", pts: "+100-500 pts", desc: "Según dificultad del reto"},
+              {emoji: "💧", title: "Ahorrar agua", pts: "+1 cr/m³", desc: "Crédito hídrico por m³ ahorrado"},
+            ] as a}
+              <div>
+                <div class="text-2xl mb-1">{a.emoji}</div>
+                <div class="text-[12px] text-white font-medium">{a.title}</div>
+                <div class="text-[10px] text-amber-400 font-mono mt-0.5">{a.pts}</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">{a.desc}</div>
+              </div>
+            {/each}
+          </div>
+        </div>
+
+      {/if}
     {/if}
 
   </main>
