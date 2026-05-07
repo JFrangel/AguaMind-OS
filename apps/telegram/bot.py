@@ -4,12 +4,16 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 
 from handlers.commands import ask, report, research, start, status
 from handlers.water_commands import (
+    agente_start,
+    agente_status,
+    agente_stop,
     agua_status,
     demo_alerta,
     demo_normal,
     demo_riego,
     kpis,
     reporte_agua,
+    sensores,
     zonas,
 )
 
@@ -33,10 +37,16 @@ def main() -> None:
     app.add_handler(CommandHandler("estado", agua_status))
     app.add_handler(CommandHandler("zonas", zonas))
     app.add_handler(CommandHandler("kpis", kpis))
+    app.add_handler(CommandHandler("sensores", sensores))
     app.add_handler(CommandHandler("reporte_agua", reporte_agua))
     app.add_handler(CommandHandler("alerta", demo_alerta))
     app.add_handler(CommandHandler("riego", demo_riego))
     app.add_handler(CommandHandler("normal", demo_normal))
+
+    # ── AguaMind OS — agente IA autónomo ───────────────────────────────────
+    app.add_handler(CommandHandler("agente_start", agente_start))
+    app.add_handler(CommandHandler("agente_stop", agente_stop))
+    app.add_handler(CommandHandler("agente_status", agente_status))
 
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ask))
 

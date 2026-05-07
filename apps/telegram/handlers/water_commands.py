@@ -50,37 +50,59 @@ async def agua_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     kpis = d["kpis"]
     alerts = d.get("alerts", [])
-    critical = d["alerts_count"]["critical"]
-    warnings_count = d["alerts_count"]["warnings"]
+    counts = d.get("alerts_count", {})
+    critical = counts.get("critical", 0)
+    warnings_count = counts.get("warning", counts.get("warnings", 0))
+
+    # Schema nuevo (6 sensores): total_flow_lmin, pressure_kpa, phreatic_m, etc
+    flow_total = d.get("total_flow_lmin", d.get("inflow_l_min", 0))
+    pressure   = d.get("pressure_kpa")
+    phreatic   = d.get("phreatic_m")
+    turbidity  = d.get("turbidity_ntu")
+    vibration  = d.get("vibration", False)
+    pump_active = d.get("pump_active", False)
 
     lines = [
         "💧 *AguaMind OS — UNIAJC Sede Sur*",
         f"🕐 `{d['timestamp'][:19]}`",
         "",
-        "📊 *Caudales en tiempo real*",
-        f"  Entrada aljibe:  `{d['inflow_l_min']} L/min`",
-        f"  Demanda total:   `{d['total_demand_l_min']} L/min`",
-        f"  Pérdidas:        `{d['losses_l_min']} L/min`",
+        "📊 *Caudales y red*",
+        f"  Caudal total:    `{flow_total} L/min`",
+    ]
+    if pressure is not None:
+        lines.append(f"  Presión red:     `{pressure} kPa`")
+    if phreatic is not None:
+        lines.append(f"  Nivel freático:  `{phreatic} m`")
+    if turbidity is not None:
+        lines.append(f"  Turbidez:        `{turbidity} NTU`")
+
+    lines += [
         "",
         "🗄️ *Niveles de tanques*",
         f"  Tanque A (36k L):  {_bar(d['tank_a_pct'])} `{d['tank_a_pct']}%`",
         f"  Tanque B (16k L):  {_bar(d['tank_b_pct'])} `{d['tank_b_pct']}%`",
+        f"  Bomba: {'🟢 Activa' if pump_active else '⚪ OFF'}  ·  Vibración: {'🔴 Anomalía' if vibration else '🟢 Estable'}",
         "",
         "📈 *KPIs*",
         f"  {_status_emoji(kpis['IEH']['status'])} IEH: `{kpis['IEH']['value']}%` (meta >90%)",
         f"  {_status_emoji(kpis['TPP']['status'])} TPP: `{kpis['TPP']['value']}%` (meta <10%)",
         f"  {_status_emoji(kpis['CPE']['status'])} CPE: `{kpis['CPE']['value']} L/est/día` (ref 14.04)",
-        "",
     ]
+    if "ICA" in kpis:
+        lines.append(f"  {_status_emoji(kpis['ICA']['status'])} ICA: `{kpis['ICA']['value']} pts` (calidad agua)")
+    lines.append("")
 
     if critical > 0 or warnings_count > 0:
         lines.append(f"🔔 *Alertas: {critical} críticas · {warnings_count} advertencias*")
         for a in alerts[:3]:
+            sensor = a.get("sensor", "")
             lines.append(f"  {_level_emoji(a['level'])} [{a['zone']}] {a['message']}")
+            if sensor:
+                lines.append(f"     _{sensor}_")
     else:
         lines.append("✅ Sistema operando sin alertas activas")
 
-    lines += ["", "_/zonas · /kpis · /reporte\\_agua_"]
+    lines += ["", "_/zonas · /kpis · /reporte\\_agua · /agente\\_start_"]
     await msg.edit_text("\n".join(lines), parse_mode="Markdown")
 
 
@@ -239,13 +261,147 @@ async def demo_normal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             r = await client.post(f"{BACKEND_URL}/water/simulate", json={"scenario": "normal"})
             d = r.json()["data"]
         reading = d["reading"]
+        flow = reading.get("total_flow_lmin", reading.get("inflow_l_min", 0))
         await msg.edit_text(
             f"✅ *Sistema en operación normal*\n\n"
-            f"  Caudal entrada: `{reading['inflow_l_min']} L/min`\n"
-            f"  Demanda: `{reading['total_demand_l_min']} L/min`\n"
-            f"  Pérdidas: `{reading['losses_l_min']} L/min`\n\n"
+            f"  Caudal total:   `{flow} L/min`\n"
+            f"  Tanque A:       `{reading['tank_a_pct']}%`\n"
+            f"  Tanque B:       `{reading['tank_b_pct']}%`\n"
+            f"  Pérdidas:       `{reading.get('losses_l_min', 0)} L/min`\n\n"
             f"_/agua para ver estado completo_",
             parse_mode="Markdown",
         )
     except Exception as e:
         await msg.edit_text(f"❌ Backend no disponible: {e}")
+
+
+# ── Comandos del Agente IA ───────────────────────────────────────────────────
+
+async def agente_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Start the autonomous WaterMonitorAgent."""
+    msg = await update.message.reply_text("🤖 Iniciando WaterMonitorAgent…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(f"{BACKEND_URL}/water/agent/start")
+            d = r.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    if d.get("started"):
+        await msg.edit_text(
+            f"🤖 *WaterMonitorAgent iniciado*\n\n"
+            f"⏱ Intervalo: `{d.get('interval_s', 30)}s`\n"
+            f"🧠 4 agentes especializados activos:\n"
+            f"  • *Orchestrator* — coordinación + reportes\n"
+            f"  • *SystemsAgent* — KPIs + IsolationForest\n"
+            f"  • *SensorAgent* — calidad de los 6 sensores\n"
+            f"  • *IndustrialAgent* — Lean + costos + ODS\n\n"
+            f"_Recibirás push automático en alertas críticas._\n"
+            f"_/agente\\_status · /agente\\_stop_",
+            parse_mode="Markdown",
+        )
+    else:
+        await msg.edit_text(f"ℹ️ {d.get('message', 'Ya estaba corriendo')}", parse_mode="Markdown")
+
+
+async def agente_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Stop the autonomous agent."""
+    msg = await update.message.reply_text("🛑 Deteniendo agente…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(f"{BACKEND_URL}/water/agent/stop")
+            d = r.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    last_cycle = d.get("last_cycle", "?")
+    await msg.edit_text(
+        f"🛑 *Agente detenido*\n\nÚltimo ciclo ejecutado: `#{last_cycle}`\n\n_/agente\\_start para reiniciar_",
+        parse_mode="Markdown",
+    )
+
+
+async def agente_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show current agent status."""
+    msg = await update.message.reply_text("🔍 Consultando estado del agente…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get(f"{BACKEND_URL}/water/agent/status")
+            d = r.json()["data"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    status_icon = "🟢" if d.get("running") else "⚪"
+    decision = d.get("last_decision", "—").upper()
+    decision_icon = {"OK": "✅", "WARNING": "⚠️", "ALERT": "⚠️", "CRITICAL": "🚨"}.get(decision, "•")
+
+    agents = d.get("agents", {})
+    issues = d.get("last_issues", [])
+
+    lines = [
+        f"🤖 *WaterMonitorAgent — Estado*",
+        "",
+        f"{status_icon} Estado: *{'EN MONITOREO' if d.get('running') else 'DETENIDO'}*",
+        f"🔄 Ciclo: `#{d.get('cycle', 0)}`",
+        f"{decision_icon} Última decisión: `{decision}`",
+        f"⏱ Intervalo: `{d.get('interval_s', 30)}s`",
+        "",
+        "*4 Agentes especializados:*",
+        f"  • Systems:    `{agents.get('systems', '—')}`",
+        f"  • Sensor:     `{agents.get('sensor', '—')}`",
+        f"  • Industrial: `{agents.get('industrial', '—')}`",
+    ]
+
+    if issues:
+        lines += ["", "*Últimos hallazgos:*"]
+        for issue in issues[:3]:
+            lines.append(f"  • _{issue}_")
+
+    lines += ["", "_/agente\\_stop · /agua_"]
+    await msg.edit_text("\n".join(lines), parse_mode="Markdown")
+
+
+async def sensores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show all 6 sensors with current readings."""
+    msg = await update.message.reply_text("📡 Leyendo los 6 sensores…")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get(f"{BACKEND_URL}/water/reading")
+            d = r.json()["data"]["reading"]
+    except Exception as e:
+        await msg.edit_text(f"❌ Backend no disponible: {e}")
+        return
+
+    flow_total = d.get("total_flow_lmin", 0)
+    flow1 = d.get("flow1_lmin", 0)
+    flow2 = d.get("flow2_lmin", 0)
+
+    lines = [
+        "📡 *Los 6 Sensores — AguaMind Node*",
+        "",
+        "*1. Caudal* (YF-S201 ×2)",
+        f"   Aljibe 1: `{flow1} L/min` · Aljibe 2: `{flow2} L/min`",
+        f"   Total: `{flow_total} L/min`",
+        "",
+        f"*2. Presión red* (MPX5700AP)",
+        f"   `{d.get('pressure_kpa', 0)} kPa` (rango 0-700)",
+        "",
+        f"*3. Nivel tanques* (JSN-SR04T)",
+        f"   Tanque A: {_bar(d['tank_a_pct'])} `{d['tank_a_pct']}%`",
+        f"   Tanque B: {_bar(d['tank_b_pct'])} `{d['tank_b_pct']}%`",
+        "",
+        f"*4. Vibración tuberías* (SW-420)",
+        f"   {'🔴 *ANOMALÍA DETECTADA*' if d.get('vibration') else '🟢 Estable'}",
+        "",
+        f"*5. Nivel freático* (4-20mA)",
+        f"   `{d.get('phreatic_m', 0)} m` (rango 0-15m)",
+        "",
+        f"*6. Turbidez* (TSD-10)",
+        f"   `{d.get('turbidity_ntu', 0)} NTU` (límite 4 NTU)",
+        "",
+        "_/agua · /kpis · /agente\\_start_",
+    ]
+    await msg.edit_text("\n".join(lines), parse_mode="Markdown")
