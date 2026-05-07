@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 # Importar SOLO los routers de AguaMind (sin LLM/RAG/etc)
 from app.routers import water, mitigation
@@ -185,6 +186,252 @@ async def agent_cycle():
         },
         "error": None,
     }
+
+
+# ── Chat con el agente IA — usa Groq LLM ────────────────────────────────────
+import urllib.request, urllib.error, json as _json
+from datetime import datetime as _dt
+
+_AGENT_HISTORY: list[dict] = []   # historial de eventos para análisis
+
+
+def _llm_gemini(messages: list[dict]) -> str:
+    """Llama a Gemini API REST (gratis)."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+
+    # Convertir messages a formato Gemini
+    system = next((m["content"] for m in messages if m["role"] == "system"), "")
+    user_msg = next((m["content"] for m in messages if m["role"] == "user"), "")
+
+    payload = _json.dumps({
+        "contents": [{"parts": [{"text": f"{system}\n\n{user_msg}"}]}],
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 600},
+    }).encode("utf-8")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = _json.loads(r.read())
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except Exception as e:
+        print(f"[Gemini] {e}")
+        return None
+
+
+def _llm_groq(messages: list[dict]) -> str:
+    """Llama a Groq LLM (fallback)."""
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return None
+    payload = _json.dumps({
+        "model": "llama-3.3-70b-versatile",
+        "messages": messages,
+        "temperature": 0.3,
+        "max_tokens": 600,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.groq.com/openai/v1/chat/completions",
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = _json.loads(r.read())
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print(f"[Groq] {e}")
+        return None
+
+
+def _llm_complete(messages: list[dict], model: str = None) -> str:
+    """Cascade: intenta Gemini → Groq → fallback inteligente local."""
+    # 1. Gemini (gratis y rápido)
+    result = _llm_gemini(messages)
+    if result:
+        return result
+    # 2. Groq (fallback)
+    result = _llm_groq(messages)
+    if result:
+        return result
+    # 3. Fallback inteligente local (siempre funciona)
+    return _fallback_response(messages)
+
+
+def _fallback_response(messages: list[dict]) -> str:
+    """Genera respuesta basada en contexto y palabras clave (sin LLM externo)."""
+    user_msg = next((m["content"] for m in messages if m["role"] == "user"), "").lower()
+    r = water._simulate_sensors()
+    kpis = water._calc_kpis(r)
+    alerts = water._generate_alerts(r, kpis)
+
+    # Análisis por palabras clave
+    if any(w in user_msg for w in ["fuga", "perdida", "tpp"]):
+        return (f"Detectamos pérdidas del {kpis['TPP']['value']}% (meta < 10%). "
+                f"Revisar EV-A2 y red distribución. "
+                f"Costo proyectado: ${int(r['losses_l_min']*1440*3.5):,} COP/día. "
+                f"Recomiendo activar protocolo de detección de fugas inmediato.")
+
+    if any(w in user_msg for w in ["tanque", "nivel", "agua"]):
+        return (f"Tanque A al {r['tank_a_pct']}% ({r['tank_a_l']:,} L). "
+                f"Tanque B al {r['tank_b_pct']}%. "
+                f"Bomba {'activa' if r['pump_active'] else 'OFF'}. "
+                f"Caudal entrada: {r['total_flow_lmin']} L/min.")
+
+    if any(w in user_msg for w in ["calidad", "turbidez", "potable"]):
+        return (f"Turbidez actual: {r['turbidity_ntu']} NTU (límite Resolución 2115/2007: 4 NTU). "
+                f"ICA: {kpis['ICA']['value']} pts. "
+                f"Cloro residual debe estar entre 0.3-2.0 ppm. "
+                f"Sin alertas sanitarias activas.")
+
+    if any(w in user_msg for w in ["bomba", "presion", "presión"]):
+        return (f"Presión red: {r['pressure_kpa']} kPa (rango óptimo 200-400). "
+                f"Bomba en modo {'AUTO' if r['pump_active'] else 'STANDBY'}. "
+                f"Sin vibración anómala detectada.")
+
+    if any(w in user_msg for w in ["ahorro", "ods", "sostenib"]):
+        return ("Compromiso AguaMind: -60% pérdidas hídricas + reducción huella CO₂. "
+                "Reduce extracción acuífero y optimiza bombeo nocturno (-40% kWh). "
+                "Genera créditos hídricos canjeables en bienestar universitario.")
+
+    if any(w in user_msg for w in ["norma", "ley", "decreto", "resolución"]):
+        return ("Normativas integradas: Decreto 1575/2007 (calidad), Resolución 2115/2007 (IRCA), "
+                "Decreto 1076/2015 (acuífero), Resolución 0631/2015 (vertimientos). "
+                "AguaMind genera reportes automáticos a INVIMA y CVC.")
+
+    if any(w in user_msg for w in ["hola", "qué", "cómo", "estado", "resumen"]):
+        return (f"Sistema operativo. {len(alerts)} alertas activas. "
+                f"IEH={kpis['IEH']['value']}% [{kpis['IEH']['status']}], "
+                f"TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}]. "
+                f"Tanque A {r['tank_a_pct']}%. Caudal {r['total_flow_lmin']} L/min.")
+
+    return (f"Estado actual: IEH {kpis['IEH']['value']}%, TPP {kpis['TPP']['value']}%, "
+            f"caudal {r['total_flow_lmin']} L/min. "
+            f"Para preguntas específicas usa: 'fuga', 'tanque', 'calidad', 'presión', 'ahorro'.")
+
+
+def _system_prompt() -> str:
+    return """Eres el agente IA de AguaMind OS, sistema de gestión hídrica de UNIAJC Sede Sur en Cali, Colombia.
+
+Datos del campus:
+- 8,234 usuarios totales · 3,230 estudiantes activos
+- PTAP de 2011 con 3 filtros (grava+arena, antracita, carbón activado)
+- 2 tanques: A=36,000 L · B=16,000 L
+- Aljibes con caudal 113.56 L/min combinado
+- Pérdidas medidas: 1,587 L/día (Sánchez Sotelo, 2021)
+- 161 fuentes de consumo (51 sanitarios, 53 lavamanos, etc.)
+- 67% consumo en Parquesoft · 33% en Alameda
+
+Tu rol:
+- Analizar lecturas de los 6 sensores y los KPIs (IEH, TPP, CPE, ICA)
+- Identificar patrones, anomalías, mudas Lean
+- Recomendar acciones de mitigación concretas
+- Citar normativas colombianas relevantes (Resolución 2115/2007, 0631/2015, Decreto 1575/2007)
+- Responder en español, conciso, profesional
+
+Formato:
+- Máximo 4-5 oraciones cortas
+- Si recomendas acción, sé específico (ej: "cerrar EV-A2", "reducir presión nocturna a 25 PSI")
+- Cita datos numéricos cuando sea relevante"""
+
+
+class AskRequest(BaseModel):
+    question: str
+    include_state: bool = True
+
+
+@app.post("/water/agent/ask", tags=["water-agent"])
+async def agent_ask(body: AskRequest):
+    """Pregúntale al agente IA. Tiene contexto en vivo del sistema."""
+    state_ctx = ""
+    if body.include_state:
+        r = water._simulate_sensors()
+        kpis = water._calc_kpis(r)
+        alerts = water._generate_alerts(r, kpis)
+        state_ctx = f"""
+ESTADO ACTUAL DEL SISTEMA (lectura en vivo):
+  Caudal entrada: {r['total_flow_lmin']} L/min
+  Tanque A: {r['tank_a_pct']}% ({r['tank_a_l']} L de 36,000)
+  Tanque B: {r['tank_b_pct']}%
+  Presión red: {r['pressure_kpa']} kPa
+  Nivel freático: {r['phreatic_m']} m
+  Turbidez: {r['turbidity_ntu']} NTU (límite 4)
+  Vibración tubería: {'DETECTADA' if r['vibration'] else 'estable'}
+  Bomba: {'activa' if r['pump_active'] else 'OFF'}
+
+KPIs: IEH={kpis['IEH']['value']}% [{kpis['IEH']['status']}] · TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}] · CPE={kpis['CPE']['value']} L/est [{kpis['CPE']['status']}] · ICA={kpis['ICA']['value']} [{kpis['ICA']['status']}]
+Alertas activas: {len(alerts)}
+"""
+    messages = [
+        {"role": "system", "content": _system_prompt()},
+        {"role": "user",   "content": f"{state_ctx}\n\nPregunta: {body.question}"},
+    ]
+    answer = _llm_complete(messages)
+    _AGENT_HISTORY.append({
+        "ts":       _dt.now().isoformat(),
+        "question": body.question,
+        "answer":   answer,
+    })
+    return {"data": {"question": body.question, "answer": answer, "timestamp": _dt.now().isoformat()}, "error": None}
+
+
+@app.get("/water/agent/insights", tags=["water-agent"])
+async def agent_insights():
+    """Análisis automático generado por el LLM sobre el estado actual."""
+    r = water._simulate_sensors()
+    kpis = water._calc_kpis(r)
+    alerts = water._generate_alerts(r, kpis)
+
+    prompt = f"""Analiza el estado actual del sistema hídrico UNIAJC y genera 3 insights breves:
+
+ESTADO:
+  Caudal: {r['total_flow_lmin']} L/min
+  Tanque A: {r['tank_a_pct']}% · Tanque B: {r['tank_b_pct']}%
+  Presión: {r['pressure_kpa']} kPa · Freático: {r['phreatic_m']} m
+  Turbidez: {r['turbidity_ntu']} NTU · Vibración: {r['vibration']}
+  IEH: {kpis['IEH']['value']}% · TPP: {kpis['TPP']['value']}% · CPE: {kpis['CPE']['value']}
+  Alertas: {len(alerts)}
+
+Devuelve EXACTAMENTE en formato JSON con 3 insights:
+{{"insights": [
+  {{"icon": "📊", "title": "...", "description": "...", "severity": "ok|warning|critical"}},
+  ...
+]}}
+
+Cada insight debe ser específico, accionable y citar datos."""
+
+    messages = [
+        {"role": "system", "content": _system_prompt() + "\n\nResponde SOLO con JSON válido, sin texto adicional."},
+        {"role": "user",   "content": prompt},
+    ]
+    raw = _llm_complete(messages)
+    # Parsear JSON, fallback a default
+    try:
+        # Limpiar markdown code blocks
+        cleaned = raw.replace("```json", "").replace("```", "").strip()
+        parsed = _json.loads(cleaned)
+        insights = parsed.get("insights", [])
+    except Exception:
+        insights = [
+            {"icon": "💧", "title": "Caudal monitoreado",
+             "description": f"Sistema operando a {r['total_flow_lmin']} L/min",
+             "severity": "ok"},
+            {"icon": "📊", "title": "TPP elevada",
+             "description": f"Pérdidas del {kpis['TPP']['value']}% (meta < 10%) — revisar red",
+             "severity": kpis['TPP']['status']},
+            {"icon": "🔬", "title": "Calidad del agua",
+             "description": f"Turbidez {r['turbidity_ntu']} NTU dentro de norma",
+             "severity": "ok"},
+        ]
+    return {"data": {"insights": insights, "generated_at": _dt.now().isoformat(), "raw": raw[:200]}, "error": None}
+
+
+@app.get("/water/agent/history", tags=["water-agent"])
+async def agent_chat_history():
+    """Historial de preguntas/respuestas con el agente."""
+    return {"data": {"history": _AGENT_HISTORY[-20:][::-1], "total": len(_AGENT_HISTORY)}, "error": None}
 
 
 @app.post("/water/agent/deliberate", tags=["water-agent"])

@@ -38,6 +38,58 @@
   let mitigationHistory = $state<any[]>([]);
   let impact = $state<any>(null);
   let leaderboard = $state<any[]>([]);
+
+  // Chat con el agente IA
+  let chatMessages = $state<{role:"user"|"agent"; text:string; ts:string}[]>([]);
+  let chatInput = $state("");
+  let chatLoading = $state(false);
+  let aiInsights = $state<any[]>([]);
+
+  async function askAgent(question: string) {
+    if (!question.trim()) return;
+    const ts = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+    chatMessages = [...chatMessages, { role: "user", text: question, ts }];
+    chatInput = "";
+    chatLoading = true;
+    try {
+      const res = await fetch("/api/water?endpoint=agent/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, include_state: true }),
+      });
+      const json = await res.json();
+      const answer = json.data?.answer ?? "Sin respuesta del agente.";
+      chatMessages = [...chatMessages, {
+        role: "agent",
+        text: answer,
+        ts: new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })
+      }];
+    } catch (e) {
+      chatMessages = [...chatMessages, {
+        role: "agent",
+        text: "Error: backend no disponible.",
+        ts: new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })
+      }];
+    } finally {
+      chatLoading = false;
+    }
+  }
+
+  async function fetchInsights() {
+    try {
+      const res = await fetch("/api/water?endpoint=agent/insights");
+      const json = await res.json();
+      if (json.data?.insights) aiInsights = json.data.insights;
+    } catch {}
+  }
+
+  const SUGGESTED_QUESTIONS = [
+    "¿Cuál es el problema más crítico ahora?",
+    "¿Cómo está la calidad del agua?",
+    "¿Hay alguna fuga detectada?",
+    "Resumen del estado del sistema",
+    "¿Qué normativa estamos incumpliendo?",
+  ];
   let liveMode = $state(true);
   let theme = $state<"dark" | "light">("dark");
 
@@ -198,6 +250,7 @@
     await fetchHistory();
     await fetchAgent();
     await fetchMitigation();
+    await fetchInsights();
     interval = setInterval(async () => {
       if (liveMode) { await fetchReading(); await fetchAgent(); await fetchMitigation(); }
     }, 10000);
@@ -830,6 +883,127 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- ═══ ANÁLISIS DEL AGENTE (insights automáticos) ═══ -->
+      <div class="mb-3 mt-6">
+        <div class="flex items-baseline justify-between mb-3">
+          <div>
+            <h2 class="text-[13px] font-semibold text-white tracking-tight">Análisis del Agente</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Insights generados por IA sobre el estado actual</p>
+          </div>
+          <button onclick={fetchInsights} class="text-[10px] text-sky-400 hover:text-sky-300 font-mono">refresh</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
+        {#if aiInsights.length === 0}
+          <div class="lg:col-span-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-center">
+            <div class="text-[12px] text-slate-500 mb-2">Generando análisis...</div>
+            <button onclick={fetchInsights} class="text-[11px] text-sky-400 hover:text-sky-300">Generar ahora</button>
+          </div>
+        {:else}
+          {#each aiInsights as ins}
+            {@const sev = ins.severity ?? 'ok'}
+            {@const color = sev === 'critical' ? '#ef4444' : sev === 'warning' ? '#f59e0b' : '#10b981'}
+            <div class="rounded-2xl border bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-4 transition-colors" style="border-color:{color}30">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">{ins.icon ?? '💡'}</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[12px] font-semibold text-white">{ins.title ?? '—'}</span>
+                    <span class="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded" style="color:{color};background:{color}1A">{sev}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-relaxed">{ins.description ?? '—'}</p>
+                </div>
+              </div>
+            </div>
+          {/each}
+        {/if}
+      </div>
+
+      <!-- ═══ CHAT CON EL AGENTE ═══ -->
+      <div class="mb-3 mt-6">
+        <div class="flex items-baseline justify-between mb-3">
+          <div>
+            <h2 class="text-[13px] font-semibold text-white tracking-tight">Pregúntale al Agente</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Conversación con la IA · contexto en tiempo real</p>
+          </div>
+          {#if chatMessages.length > 0}
+            <button onclick={() => chatMessages = []} class="text-[10px] text-slate-500 hover:text-slate-300 font-mono">limpiar</button>
+          {/if}
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5 mb-3">
+        <!-- Conversación -->
+        <div class="space-y-3 mb-4 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+          {#if chatMessages.length === 0}
+            <div class="text-center py-8">
+              <div class="text-3xl mb-2">💬</div>
+              <p class="text-[12px] text-slate-400 mb-1">Hazle preguntas al agente sobre el sistema</p>
+              <p class="text-[10px] text-slate-500">El agente conoce los datos en vivo + datos históricos</p>
+            </div>
+          {:else}
+            {#each chatMessages as msg}
+              <div class="flex gap-2 {msg.role === 'user' ? 'justify-end' : 'justify-start'}">
+                {#if msg.role === 'agent'}
+                  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">AI</div>
+                {/if}
+                <div class="max-w-[80%] rounded-2xl px-3 py-2 text-[12px]
+                  {msg.role === 'user'
+                    ? 'bg-sky-500/15 border border-sky-500/30 text-sky-100'
+                    : 'bg-white/[0.04] border border-white/[0.06] text-slate-200'}">
+                  <p class="leading-relaxed">{msg.text}</p>
+                  <div class="text-[9px] text-slate-500 font-mono mt-1">{msg.ts}</div>
+                </div>
+                {#if msg.role === 'user'}
+                  <div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center shrink-0 text-slate-300 text-[11px] font-bold">Tú</div>
+                {/if}
+              </div>
+            {/each}
+            {#if chatLoading}
+              <div class="flex gap-2 justify-start">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">AI</div>
+                <div class="max-w-[80%] rounded-2xl px-3 py-2 bg-white/[0.04] border border-white/[0.06]">
+                  <div class="flex gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style="animation-delay:0s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style="animation-delay:0.15s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style="animation-delay:0.3s"></span>
+                  </div>
+                </div>
+              </div>
+            {/if}
+          {/if}
+        </div>
+
+        <!-- Sugerencias -->
+        {#if chatMessages.length === 0}
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            {#each SUGGESTED_QUESTIONS as q}
+              <button onclick={() => askAgent(q)}
+                class="text-[10px] px-2.5 py-1 rounded-full border border-white/10 bg-white/[0.03] hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-300 text-slate-400 transition-colors">{q}</button>
+            {/each}
+          </div>
+        {/if}
+
+        <!-- Input -->
+        <form
+          onsubmit={(e) => { e.preventDefault(); askAgent(chatInput); }}
+          class="flex gap-2 items-center">
+          <input
+            bind:value={chatInput}
+            placeholder="Pregunta al agente: ¿hay fugas? ¿cómo está la calidad?..."
+            disabled={chatLoading}
+            class="flex-1 text-[12px] bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-slate-200 placeholder-slate-500 outline-none focus:border-sky-500/40 focus:bg-white/[0.06] transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={chatLoading || !chatInput.trim()}
+            class="text-[11px] px-3 py-2 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-400 hover:bg-sky-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-medium">
+            {chatLoading ? '...' : 'Enviar'}
+          </button>
+        </form>
       </div>
 
     <!-- ════════════════════════════════════════════════════════════════════ -->
