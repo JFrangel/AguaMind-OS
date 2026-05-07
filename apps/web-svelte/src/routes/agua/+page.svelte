@@ -655,11 +655,19 @@
               </div>
             {/each}
           </div>
-          <div class="mt-4 p-3 rounded-lg bg-sky-500/[0.05] border border-sky-500/20">
-            <div class="text-[10px] font-medium tracking-wider uppercase text-sky-400 mb-1.5">Objetivos de Desarrollo Sostenible</div>
-            <div class="flex flex-wrap gap-1">
-              {#each ["ODS 6 · Agua", "ODS 9 · Industria", "ODS 11 · Ciudades", "ODS 13 · Clima", "ODS 4 · Educación"] as ods}
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 font-medium">{ods}</span>
+          <div class="mt-4 p-4 rounded-lg bg-sky-500/[0.05] border border-sky-500/20">
+            <div class="text-[10px] font-medium tracking-wider uppercase text-sky-400 mb-2.5">Compromiso de Sostenibilidad</div>
+            <div class="grid grid-cols-2 gap-2">
+              {#each [
+                {label: "Agua limpia y saneamiento",         desc: "Reducción 60% de pérdidas hídricas"},
+                {label: "Industria e innovación",            desc: "IoT + IA en infraestructura existente"},
+                {label: "Ciudades y comunidades sostenibles", desc: "Modelo Smart Campus replicable"},
+                {label: "Producción y consumo responsables",  desc: "Lean Manufacturing · 7 mudas atacadas"},
+              ] as o}
+                <div class="text-[10px]">
+                  <div class="text-sky-300 font-medium">{o.label}</div>
+                  <div class="text-slate-500 mt-0.5">{o.desc}</div>
+                </div>
               {/each}
             </div>
           </div>
