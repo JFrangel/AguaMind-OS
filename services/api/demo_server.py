@@ -261,55 +261,112 @@ def _llm_complete(messages: list[dict], model: str = None) -> str:
 
 
 def _fallback_response(messages: list[dict]) -> str:
-    """Genera respuesta basada en contexto y palabras clave (sin LLM externo)."""
-    user_msg = next((m["content"] for m in messages if m["role"] == "user"), "").lower()
+    """Genera respuesta basada en pregunta + estado en vivo (sin LLM externo).
+
+    IMPORTANTE: solo evalúa la PREGUNTA del usuario, no el contexto inyectado,
+    para evitar matches accidentales con palabras del state.
+    """
+    full_user = next((m["content"] for m in messages if m["role"] == "user"), "")
+    # Extraer SOLO la pregunta real (después de "Pregunta: ")
+    if "Pregunta:" in full_user:
+        question = full_user.split("Pregunta:", 1)[1].strip().lower()
+    else:
+        question = full_user.lower()
+
     r = water._simulate_sensors()
     kpis = water._calc_kpis(r)
     alerts = water._generate_alerts(r, kpis)
 
-    # Análisis por palabras clave
-    if any(w in user_msg for w in ["fuga", "perdida", "tpp"]):
-        return (f"Detectamos pérdidas del {kpis['TPP']['value']}% (meta < 10%). "
-                f"Revisar EV-A2 y red distribución. "
-                f"Costo proyectado: ${int(r['losses_l_min']*1440*3.5):,} COP/día. "
-                f"Recomiendo activar protocolo de detección de fugas inmediato.")
+    # 1. Saludos primero (alta prioridad)
+    if any(w in question for w in ["hola", "buenas", "buenos días", "saludos", "hi ", "hey"]) or question.strip() in ["hi", "hey"]:
+        critical_count = sum(1 for k in kpis.values() if k["status"] == "critical")
+        return (f"Hola, soy el agente de AguaMind OS. "
+                f"El sistema tiene {len(alerts)} alertas activas y {critical_count} KPIs en estado crítico. "
+                f"Caudal actual: {r['total_flow_lmin']} L/min. "
+                f"Pregúntame sobre fugas, calidad, tanques, presión o normativas.")
 
-    if any(w in user_msg for w in ["tanque", "nivel", "agua"]):
-        return (f"Tanque A al {r['tank_a_pct']}% ({r['tank_a_l']:,} L). "
-                f"Tanque B al {r['tank_b_pct']}%. "
-                f"Bomba {'activa' if r['pump_active'] else 'OFF'}. "
-                f"Caudal entrada: {r['total_flow_lmin']} L/min.")
-
-    if any(w in user_msg for w in ["calidad", "turbidez", "potable"]):
-        return (f"Turbidez actual: {r['turbidity_ntu']} NTU (límite Resolución 2115/2007: 4 NTU). "
+    # 2. Calidad del agua (PRIORIDAD ALTA — antes que "cómo está")
+    if any(w in question for w in ["calidad", "turbidez", "potable", "potabilidad", "ica", "limpia"]):
+        in_norm = r['turbidity_ntu'] <= 4
+        return (f"Turbidez: {r['turbidity_ntu']} NTU "
+                f"({'dentro' if in_norm else 'FUERA'} de Resolución 2115/2007, límite 4 NTU). "
                 f"ICA: {kpis['ICA']['value']} pts. "
-                f"Cloro residual debe estar entre 0.3-2.0 ppm. "
-                f"Sin alertas sanitarias activas.")
+                f"{'Cumplimiento sanitario OK.' if in_norm else 'Suspender distribución, revisar filtros de carbón.'}")
 
-    if any(w in user_msg for w in ["bomba", "presion", "presión"]):
-        return (f"Presión red: {r['pressure_kpa']} kPa (rango óptimo 200-400). "
-                f"Bomba en modo {'AUTO' if r['pump_active'] else 'STANDBY'}. "
-                f"Sin vibración anómala detectada.")
+    # 3. Fugas / pérdidas / fallas (alta prioridad)
+    if any(w in question for w in ["fuga", "pérdida", "perdida", "leak", "fallo", "falla", "problema", "crítico", "critico", "anomal", "alerta", "qué pasa", "que pasa", "qué hay", "que hay"]):
+        return (f"Detectamos pérdidas del {kpis['TPP']['value']}% (meta < 10%). "
+                f"Vibración: {'detectada' if r['vibration'] else 'estable'}. "
+                f"Costo proyectado: ${int(r['losses_l_min']*1440*3.5):,} COP/día. "
+                f"Acción recomendada: cerrar EV-A2 e inspeccionar red Bloque A.")
 
-    if any(w in user_msg for w in ["ahorro", "ods", "sostenib"]):
-        return ("Compromiso AguaMind: -60% pérdidas hídricas + reducción huella CO₂. "
-                "Reduce extracción acuífero y optimiza bombeo nocturno (-40% kWh). "
-                "Genera créditos hídricos canjeables en bienestar universitario.")
+    # 4. Tanques específicamente
+    if any(w in question for w in ["tanque", "tank", "almacenamiento"]):
+        return (f"Tanque A: {r['tank_a_pct']}% ({r['tank_a_l']:,} L de 36,000). "
+                f"Tanque B: {r['tank_b_pct']}% ({r['tank_b_l']:,} L de 16,000). "
+                f"Bomba: {'ACTIVA' if r['pump_active'] else 'OFF'}. "
+                f"Umbral activación bomba: 66.7% (24,000 L).")
 
-    if any(w in user_msg for w in ["norma", "ley", "decreto", "resolución"]):
-        return ("Normativas integradas: Decreto 1575/2007 (calidad), Resolución 2115/2007 (IRCA), "
-                "Decreto 1076/2015 (acuífero), Resolución 0631/2015 (vertimientos). "
-                "AguaMind genera reportes automáticos a INVIMA y CVC.")
+    # 4b. Acuífero / freático (PRIORIDAD ALTA — antes que "cómo está")
+    if any(w in question for w in ["acuífero", "acuifero", "freático", "freatico", "pozo", "aljibe"]):
+        return (f"Nivel freático: {r['phreatic_m']} m. "
+                f"Caudal aljibes 1+2: {r['flow1_lmin']} + {r['flow2_lmin']} = {r['total_flow_lmin']} L/min. "
+                f"{'⚠ Bajo umbral seguro de 4m.' if r['phreatic_m'] < 4 else 'Acuífero saludable.'} "
+                f"Cumplimiento Decreto 1076/2015 monitoreado.")
 
-    if any(w in user_msg for w in ["hola", "qué", "cómo", "estado", "resumen"]):
-        return (f"Sistema operativo. {len(alerts)} alertas activas. "
+    # 4c. Sensores (PRIORIDAD ALTA)
+    if any(w in question for w in ["sensor", "sensores", "medición", "medicion", "instrumento"]):
+        return (f"6 sensores activos: caudal (YF-S201), presión (MPX5700AP), nivel (JSN-SR04T), "
+                f"vibración (SW-420), freático (4-20mA), turbidez (TSD-10). "
+                f"Estado: 6/6 OK. "
+                f"Frecuencia muestreo 1s, transmisión MQTT cada 30s.")
+
+    # 4d. Sostenibilidad / ODS (PRIORIDAD ALTA)
+    if any(w in question for w in ["ahorro", "ods", "sostenib", "ambiente", "co2", "ecolog"]):
+        return ("AguaMind OS aporta a 4 ODS: agua limpia (reducción 60% pérdidas), "
+                "industria e innovación (IoT+IA), ciudades sostenibles (modelo replicable), "
+                "producción responsable (Lean · 7 mudas). "
+                "16.5M L recuperados y 7.6 ton CO₂ evitados en 5 años.")
+
+    # 4e. Mitigación / acción (PRIORIDAD ALTA)
+    if any(w in question for w in ["acción", "accion", "mitig", "qué hacer", "que hacer", "qué debo", "que debo", "qué hago", "que hago", "recomend", "sugiere", "sugerencia", "consejo"]):
+        return (f"Acciones recomendadas según estado actual: "
+                f"{'1) Cerrar EV-A2 inmediato. 2) Bomba a standby. 3) Inspección física tramo Bloque A.' if kpis['TPP']['status'] == 'critical' else '1) Mantener monitoreo. 2) Continuar ciclos del agente.'}")
+
+    # 4f. Sobre el agente (PRIORIDAD ALTA)
+    if any(w in question for w in ["agente", "ia ", " ia", "ai ", " ai", "inteligencia", "quién eres", "quien eres"]):
+        return ("Soy el agente de AguaMind OS, sistema multi-agente con 5 sub-agentes especializados: "
+                "Orchestrator, Systems, Sensor, Industrial y Mitigation. "
+                "Caracterizo datos en vivo y propongo estrategias de mitigación. "
+                "Datos de 4 tesis UNIAJC integrados.")
+
+    # 5. Resumen general (después de las preguntas específicas)
+    if any(w in question for w in ["resumen", "estado general", "general", "status", "cómo está", "como esta"]):
+        return (f"Sistema con {len(alerts)} alertas activas. "
                 f"IEH={kpis['IEH']['value']}% [{kpis['IEH']['status']}], "
-                f"TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}]. "
-                f"Tanque A {r['tank_a_pct']}%. Caudal {r['total_flow_lmin']} L/min.")
+                f"TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}], "
+                f"CPE={kpis['CPE']['value']} L/est. "
+                f"Tanque A {r['tank_a_pct']}% · B {r['tank_b_pct']}%. "
+                f"Caudal {r['total_flow_lmin']} L/min · presión {r['pressure_kpa']} kPa.")
 
-    return (f"Estado actual: IEH {kpis['IEH']['value']}%, TPP {kpis['TPP']['value']}%, "
-            f"caudal {r['total_flow_lmin']} L/min. "
-            f"Para preguntas específicas usa: 'fuga', 'tanque', 'calidad', 'presión', 'ahorro'.")
+    # 6. Presión / bomba
+    if any(w in question for w in ["bomba", "presión", "presion", "kpa"]):
+        return (f"Presión red: {r['pressure_kpa']} kPa (rango óptimo 200-400). "
+                f"Bomba en modo {'AUTO/activa' if r['pump_active'] else 'STANDBY'}. "
+                f"{'⚠ Vibración anómala detectada.' if r['vibration'] else 'Sistema mecánico estable.'}")
+
+    # 7. Normativas (al final por menor prioridad)
+    if any(w in question for w in ["norma", "ley", "decreto", "resolución", "resolucion", "cumple", "incumple"]):
+        critical = [a for a in alerts if a["level"] == "critical"]
+        return ("Normativas integradas: Decreto 1575/2007, Resolución 2115/2007 (calidad), "
+                "Decreto 1076/2015 (acuífero), Resolución 0631/2015 (vertimientos). "
+                f"Score actual: 6/8 cumplimiento. "
+                f"{'⚠ Revisar parámetros fuera de norma.' if critical else 'Sin incumplimientos críticos ahora.'}")
+
+    # Default
+    return (f"Pregunta no reconocida. Estado actual: IEH {kpis['IEH']['value']}%, "
+            f"TPP {kpis['TPP']['value']}%, caudal {r['total_flow_lmin']} L/min. "
+            f"Prueba con: 'fuga', 'tanque', 'calidad', 'presión', 'acuífero', 'normativa', 'sensores'.")
 
 
 def _system_prompt() -> str:
