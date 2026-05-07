@@ -221,14 +221,17 @@
 
       <!-- Logo + título -->
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
+        <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
           <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white" stroke="currentColor" stroke-width="2.2">
             <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
           </svg>
+          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0a0e14] animate-pulse"></span>
         </div>
         <div class="leading-tight">
-          <h1 class="text-[14px] font-semibold tracking-tight text-white">AguaMind OS</h1>
-          <p class="text-[11px] text-slate-500 mt-0.5">UNIAJC Sede Sur · Gestión Hídrica Inteligente</p>
+          <h1 class="text-[15px] font-semibold tracking-tight text-white flex items-center gap-1.5">
+            AguaMind <span class="text-sky-400 font-light">OS</span>
+          </h1>
+          <p class="text-[11px] text-slate-500 mt-0.5 tracking-wide">UNIAJC Sede Sur · Gestión Hídrica Inteligente</p>
         </div>
       </div>
 
@@ -282,19 +285,22 @@
     </div>
 
     <!-- Tabs -->
-    <div class="mx-auto max-w-7xl px-6 flex gap-0">
+    <div class="mx-auto max-w-7xl px-6 flex gap-1">
       {#each [
-        ["dashboard",  "Dashboard"],
-        ["history",    "Historial"],
-        ["industrial", "Industrial"],
-        ["agent",      "Agente IA"],
-        ["mitigation", "Mitigación"],
-      ] as [key, label]}
+        ["dashboard",  "Operación",         "01"],
+        ["history",    "Tendencias",        "02"],
+        ["industrial", "Gestión Industrial","03"],
+        ["agent",      "Inteligencia",      "04"],
+        ["mitigation", "Mapa del Campus",   "05"],
+      ] as [key, label, num]}
         <button
           onclick={() => { tab = key as typeof tab; if (key === "history") fetchHistory(); }}
-          class="px-4 py-2.5 text-[12px] font-medium tracking-tight border-b-2 transition-all -mb-px
-            {tab === key ? 'border-sky-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}"
-        >{label}</button>
+          class="group relative px-4 py-3 text-[12px] font-medium tracking-tight border-b-2 transition-all -mb-px flex items-center gap-2
+            {tab === key ? 'border-sky-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/10'}"
+        >
+          <span class="text-[9px] font-mono opacity-60">{num}</span>
+          <span>{label}</span>
+        </button>
       {/each}
     </div>
   </header>
@@ -318,22 +324,57 @@
     <!-- ════════════════════════════════════════════════════════════════════ -->
     {:else if tab === "dashboard" && reading}
 
-      <!-- Hero KPI strip -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {#each Object.entries(kpis) as [name, kpi]}
-          <div class="group relative overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors p-4">
-            <div class="absolute top-0 left-0 right-0 h-0.5" style="background:{statusHex(kpi.status)}"></div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[10px] font-mono font-medium uppercase tracking-widest text-slate-500">{name}</span>
-              <span class="text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider"
-                    style="color:{statusHex(kpi.status)};background:{statusHex(kpi.status)}1A">{kpi.status}</span>
-            </div>
-            <div class="text-[28px] font-semibold tracking-tight text-white" style="font-family:'JetBrains Mono','SF Mono',monospace">
-              {fmt(kpi.value, name === "CPE" ? 2 : 1)}<span class="text-sm text-slate-500 ml-1 font-normal">{kpi.unit ?? ""}</span>
-            </div>
-            <div class="text-[10px] text-slate-500 mt-0.5">{kpi.target ?? ""}</div>
+      <!-- Sección Indicadores de Desempeño -->
+      <div class="mb-5">
+        <div class="flex items-baseline justify-between mb-3">
+          <div>
+            <h2 class="text-[13px] font-semibold text-white tracking-tight">Indicadores de Desempeño</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">KPIs en tiempo real · actualización cada 10 segundos</p>
           </div>
-        {/each}
+          <span class="text-[10px] font-mono text-slate-600">live</span>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {#each Object.entries(kpis) as [name, kpi]}
+            {@const labels = {IEH: "Eficiencia Hídrica", TPP: "Pérdidas Proceso", CPE: "Consumo Estudiante", ICA: "Calidad Agua"}}
+            <div class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] hover:from-white/[0.04] hover:to-white/[0.01] transition-all duration-300 p-5">
+              <!-- Barra superior gradiente -->
+              <div class="absolute top-0 left-0 right-0 h-[2px]" style="background:linear-gradient(90deg, transparent, {statusHex(kpi.status)}, transparent)"></div>
+
+              <!-- Pulso de fondo si crítico -->
+              {#if kpi.status === 'critical'}
+                <div class="absolute inset-0 opacity-[0.04]" style="background:radial-gradient(circle at 50% 0%, {statusHex(kpi.status)}, transparent 70%)"></div>
+              {/if}
+
+              <div class="relative">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <div class="text-[10px] font-mono font-bold tracking-[0.15em] text-slate-400">{name}</div>
+                    <div class="text-[10px] text-slate-600 mt-0.5">{labels[name as keyof typeof labels] ?? ""}</div>
+                  </div>
+                  <span class="text-[9px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider border"
+                        style="color:{statusHex(kpi.status)};background:{statusHex(kpi.status)}10;border-color:{statusHex(kpi.status)}30">{kpi.status === 'ok' ? 'óptimo' : kpi.status === 'warning' ? 'alerta' : 'crítico'}</span>
+                </div>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-[32px] font-semibold tracking-tighter leading-none text-white" style="font-family:'JetBrains Mono','SF Mono',monospace">
+                    {fmt(kpi.value, name === "CPE" ? 2 : 1)}
+                  </span>
+                  <span class="text-[12px] text-slate-500 font-normal">{kpi.unit ?? ""}</span>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-2 font-mono">meta {kpi.target ?? ""}</div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Sección Almacenamiento + Sensores -->
+      <div class="mb-3">
+        <div class="flex items-baseline justify-between mb-3">
+          <div>
+            <h2 class="text-[13px] font-semibold text-white tracking-tight">Almacenamiento y Sensores</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Tanques principales · Variables monitoreadas</p>
+          </div>
+        </div>
       </div>
 
       <!-- Main grid: 2 tanques + sensores -->
@@ -417,10 +458,21 @@
         </div>
       </div>
 
+      <!-- Sección Consumo por Zona -->
+      <div class="mb-3 mt-6">
+        <div class="flex items-baseline justify-between mb-3">
+          <div>
+            <h2 class="text-[13px] font-semibold text-white tracking-tight">Distribución del Consumo</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Caudal por zona del campus · {Object.keys(reading.zones ?? {}).length} zonas activas</p>
+          </div>
+          <span class="text-[10px] font-mono text-slate-600">L/min</span>
+        </div>
+      </div>
+
       <!-- Consumo por zonas -->
-      <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 mb-5">
+      <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5 mb-5">
         <div class="flex items-center justify-between mb-4">
-          <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Consumo por zona</div>
+          <div class="text-[10px] font-mono tracking-[0.15em] uppercase text-slate-500">Mapa térmico</div>
           <div class="text-[10px] text-slate-600 font-mono">{Object.keys(reading.zones ?? {}).length} zonas</div>
         </div>
         <div class="space-y-2">
@@ -441,11 +493,21 @@
         </div>
       </div>
 
+      <!-- Sección Eventos y Alertas -->
+      <div class="mb-3 mt-6">
+        <div class="flex items-baseline justify-between mb-3">
+          <div>
+            <h2 class="text-[13px] font-semibold text-white tracking-tight">Eventos y Alertas</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Notificaciones del sistema · Última hora</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Alertas -->
       {#if alerts.length > 0}
-        <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+        <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5">
           <div class="flex items-center justify-between mb-4">
-            <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Alertas activas</div>
+            <div class="text-[10px] font-mono tracking-[0.15em] uppercase text-slate-500">Activas ahora</div>
             <div class="flex items-center gap-2 text-[10px]">
               {#if alerts.filter(a => a.level === "critical").length}
                 <span class="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-mono">{alerts.filter(a => a.level === "critical").length} críticas</span>
@@ -692,14 +754,15 @@
             </div>
           </div>
 
-          <!-- 4 agentes -->
-          <div class="text-[10px] font-medium tracking-wider uppercase text-slate-500 mb-2">4 Agentes Especializados</div>
+          <!-- 5 agentes -->
+          <div class="text-[10px] font-medium tracking-wider uppercase text-slate-500 mb-2">5 Agentes Especializados</div>
           <div class="space-y-1.5 mb-4">
             {#each [
-              { code: "ORC", name: "Orchestrator",     desc: "Coordinación + reportes",         status: agent?.last_decision ?? "—" },
-              { code: "SYS", name: "SystemsAgent",     desc: "KPIs + anomalías IsolationForest", status: agent?.agents?.systems    ?? "—" },
-              { code: "SEN", name: "SensorAgent",      desc: "Calidad señales · 6 sensores",    status: agent?.agents?.sensor     ?? "—" },
-              { code: "IND", name: "IndustrialAgent",  desc: "Lean + costos + ODS",             status: agent?.agents?.industrial ?? "—" },
+              { code: "ORC", name: "Orchestrator",     desc: "Coordinador general · consolida",     status: agent?.last_decision ?? "—" },
+              { code: "SYS", name: "SystemsAgent",     desc: "KPIs IEH/TPP/CPE · IsolationForest",  status: agent?.agents?.systems    ?? "—" },
+              { code: "SEN", name: "SensorAgent",      desc: "Validación 6 sensores · calidad señal", status: agent?.agents?.sensor   ?? "—" },
+              { code: "IND", name: "IndustrialAgent",  desc: "Lean (7 mudas) · ODS · costos",       status: agent?.agents?.industrial ?? "—" },
+              { code: "MIT", name: "MitigationAgent",  desc: "Acción autónoma · electroválvulas",   status: (agent?.last_decision && agent.last_decision !== "ok") ? "execute" : "idle" },
             ] as a}
               <div class="flex items-center gap-3 p-2 rounded-md bg-white/[0.02] border border-white/[0.04]">
                 <span class="w-7 h-7 rounded flex items-center justify-center text-[10px] font-mono font-bold bg-sky-500/10 text-sky-400 shrink-0">{a.code}</span>
@@ -1069,13 +1132,43 @@
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-white/[0.04] mt-8">
-    <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between text-[10px] text-slate-600">
-      <div>AguaMind OS · Hackathon UNIAJC 2026</div>
-      <div class="flex items-center gap-3">
-        <span>Datos: Aristizábal &amp; Largacha (2025)</span>
-        <span class="text-slate-700">·</span>
-        <span>Arias Montoya et al. (2024)</span>
+  <footer class="border-t border-white/[0.04] mt-12">
+    <div class="mx-auto max-w-7xl px-6 py-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-6 h-6 rounded-md bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5 text-white" stroke="currentColor" stroke-width="2.2">
+                <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="text-[12px] font-semibold text-white">AguaMind OS</span>
+            <span class="text-[10px] text-slate-500 ml-1">v1.0</span>
+          </div>
+          <p class="text-[10px] text-slate-500 max-w-md leading-relaxed">
+            Sistema inteligente de gestión hídrica · Caracterización + Estrategias de mitigación · Open source MIT
+          </p>
+        </div>
+        <div class="text-right text-[10px] text-slate-500 space-y-1">
+          <div class="text-slate-400 font-medium">Hackathon UNIAJC 2026</div>
+          <div>Tecnología con Propósito · Inteligencia con Conciencia</div>
+        </div>
+      </div>
+      <div class="border-t border-white/[0.04] pt-4 flex flex-wrap items-center justify-between gap-3 text-[10px] text-slate-600">
+        <div class="flex items-center gap-3 flex-wrap">
+          <span>Fuentes:</span>
+          <span class="text-slate-500">Caycedo &amp; Jaramillo (2021)</span>
+          <span class="text-slate-700">·</span>
+          <span class="text-slate-500">Sánchez Sotelo (2021)</span>
+          <span class="text-slate-700">·</span>
+          <span class="text-slate-500">Gómez Mina (2022)</span>
+          <span class="text-slate-700">·</span>
+          <span class="text-slate-500">Aristizábal &amp; Largacha (2025)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">Res. 2115/2007</span>
+          <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">Res. 0631/2015</span>
+        </div>
       </div>
     </div>
   </footer>
