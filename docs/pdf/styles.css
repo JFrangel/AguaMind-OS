@@ -1,0 +1,250 @@
+/* AguaMind OS — PDF Entregable Hackathon UNIAJC 2026
+   Estilos profesionales para WeasyPrint */
+
+@page {
+  size: A4;
+  margin: 2cm 1.8cm 2cm 1.8cm;
+
+  @bottom-center {
+    content: "AguaMind OS · Hackathon UNIAJC 2026 · Página " counter(page) " de " counter(pages);
+    font-size: 9pt;
+    color: #64748b;
+    border-top: 0.5pt solid #cbd5e1;
+    padding-top: 6pt;
+  }
+
+  @top-right {
+    content: "AguaMind OS";
+    font-size: 8pt;
+    color: #64748b;
+    font-weight: 600;
+  }
+}
+
+@page:first {
+  margin: 0;
+  @bottom-center { content: none; }
+  @top-right { content: none; }
+}
+
+/* ── Tipografía base ─────────────────────────────────────────────────── */
+body {
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", Inter, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  color: #0f172a;
+}
+
+h1 { font-size: 22pt; color: #0369a1; margin: 0 0 6pt 0; font-weight: 700; }
+h2 { font-size: 16pt; color: #0369a1; margin: 22pt 0 8pt 0; font-weight: 700;
+     border-bottom: 1.5pt solid #0ea5e9; padding-bottom: 4pt; page-break-after: avoid; }
+h3 { font-size: 13pt; color: #075985; margin: 14pt 0 6pt 0; font-weight: 600; page-break-after: avoid; }
+h4 { font-size: 11pt; color: #0c4a6e; margin: 10pt 0 4pt 0; font-weight: 600; }
+
+p  { margin: 0 0 8pt 0; text-align: justify; }
+ul, ol { margin: 4pt 0 8pt 0; padding-left: 18pt; }
+li { margin-bottom: 3pt; }
+
+strong { color: #0c4a6e; font-weight: 600; }
+em     { font-style: italic; color: #475569; }
+
+/* ── Portada ─────────────────────────────────────────────────────────── */
+.cover {
+  page: first;
+  height: 27.7cm;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  color: white;
+  padding: 4cm 2cm;
+  text-align: center;
+  page-break-after: always;
+}
+.cover .logo {
+  font-size: 80pt;
+  margin-bottom: 0.5cm;
+}
+.cover h1 {
+  color: white;
+  font-size: 36pt;
+  margin-bottom: 0.4cm;
+  letter-spacing: -1pt;
+}
+.cover .subtitle {
+  font-size: 16pt;
+  opacity: 0.95;
+  margin-bottom: 2cm;
+  font-weight: 300;
+}
+.cover .meta {
+  font-size: 11pt;
+  opacity: 0.85;
+  border-top: 1pt solid rgba(255,255,255,0.4);
+  border-bottom: 1pt solid rgba(255,255,255,0.4);
+  padding: 1cm 0;
+  margin: 1cm 0;
+}
+.cover .footer {
+  position: absolute;
+  bottom: 2cm;
+  left: 2cm;
+  right: 2cm;
+  font-size: 9.5pt;
+  opacity: 0.85;
+}
+
+/* ── Tablas profesionales ────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8pt 0 14pt 0;
+  font-size: 9.5pt;
+}
+th {
+  background: #0369a1;
+  color: white;
+  padding: 6pt 8pt;
+  text-align: left;
+  font-weight: 600;
+  border: 0.5pt solid #075985;
+}
+td {
+  padding: 5pt 8pt;
+  border: 0.5pt solid #cbd5e1;
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: #f8fafc; }
+
+/* ── Bloques especiales ──────────────────────────────────────────────── */
+.callout {
+  background: #f0f9ff;
+  border-left: 3pt solid #0ea5e9;
+  padding: 10pt 14pt;
+  margin: 10pt 0 14pt 0;
+  border-radius: 3pt;
+  page-break-inside: avoid;
+}
+.callout strong { color: #0369a1; }
+
+.warning {
+  background: #fef3c7;
+  border-left: 3pt solid #f59e0b;
+  padding: 10pt 14pt;
+  margin: 10pt 0;
+  border-radius: 3pt;
+}
+
+.success {
+  background: #ecfdf5;
+  border-left: 3pt solid #10b981;
+  padding: 10pt 14pt;
+  margin: 10pt 0;
+  border-radius: 3pt;
+}
+
+/* ── KPI cards grid ──────────────────────────────────────────────────── */
+.kpi-grid {
+  display: flex;
+  gap: 8pt;
+  margin: 10pt 0 14pt 0;
+}
+.kpi-card {
+  flex: 1;
+  border: 1pt solid #cbd5e1;
+  border-radius: 4pt;
+  padding: 10pt;
+  background: #f8fafc;
+  page-break-inside: avoid;
+}
+.kpi-card .name {
+  font-size: 8pt;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+  margin-bottom: 3pt;
+}
+.kpi-card .value {
+  font-size: 22pt;
+  font-weight: 700;
+  color: #0369a1;
+  margin: 2pt 0;
+}
+.kpi-card .desc { font-size: 8pt; color: #475569; }
+
+/* ── Diagrama ASCII / código ─────────────────────────────────────────── */
+pre, .ascii-diagram {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  font-family: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  font-size: 8.5pt;
+  line-height: 1.35;
+  margin: 8pt 0 14pt 0;
+  page-break-inside: avoid;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+code {
+  background: #f1f5f9;
+  color: #0369a1;
+  padding: 1pt 4pt;
+  border-radius: 2pt;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9pt;
+}
+
+/* ── Fórmulas ────────────────────────────────────────────────────────── */
+.formula {
+  background: #f0f9ff;
+  border: 0.5pt solid #7dd3fc;
+  padding: 8pt 14pt;
+  border-radius: 3pt;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10pt;
+  text-align: center;
+  margin: 8pt 0 12pt 0;
+}
+
+/* ── Sección con número ──────────────────────────────────────────────── */
+.section-number {
+  display: inline-block;
+  width: 28pt;
+  height: 28pt;
+  line-height: 28pt;
+  background: #0ea5e9;
+  color: white;
+  border-radius: 14pt;
+  font-weight: 700;
+  text-align: center;
+  margin-right: 8pt;
+  font-size: 12pt;
+}
+
+/* ── Page breaks ─────────────────────────────────────────────────────── */
+.page-break { page-break-before: always; }
+.no-break { page-break-inside: avoid; }
+h2 { page-break-before: auto; }
+
+/* ── Badges ──────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2pt 7pt;
+  border-radius: 9pt;
+  font-size: 8pt;
+  font-weight: 600;
+  margin-right: 3pt;
+}
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+
+/* ── Footer firma ────────────────────────────────────────────────────── */
+.footer-signature {
+  margin-top: 30pt;
+  padding-top: 14pt;
+  border-top: 0.5pt solid #cbd5e1;
+  font-size: 8.5pt;
+  color: #64748b;
+  text-align: center;
+}

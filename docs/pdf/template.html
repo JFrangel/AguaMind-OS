@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>AguaMind OS — Hackathon UNIAJC 2026</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══ PORTADA ═════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="logo">💧</div>
+  <h1>AguaMind OS</h1>
+  <div class="subtitle">Sistema Inteligente de Gestión Hídrica<br>UNIAJC Sede Sur</div>
+
+  <div class="meta">
+    <strong>Hackathon UNIAJC 2026</strong><br>
+    Facultad de Ingeniería · Cali, Colombia<br>
+    7-8 de mayo de 2026<br><br>
+    <em>Tecnologías con Propósito · Inteligencia con Conciencia</em>
+  </div>
+
+  <div class="footer">
+    Equipo: Ingeniería de Sistemas + Electrónica + Industrial<br>
+    Repositorio: github.com/JFrangel/AguaMind-OS
+  </div>
+</div>
+
+<!-- ══ RESUMEN EJECUTIVO ═══════════════════════════════════════════════ -->
+<h2>1. Resumen Ejecutivo</h2>
+
+<p><strong>AguaMind OS</strong> es un sistema inteligente que mide, analiza y optimiza el consumo de agua del campus UNIAJC Sede Sur en tiempo real. Combina <strong>6 sensores IoT</strong>, <strong>4 agentes de inteligencia artificial autónomos</strong>, un <strong>dashboard web moderno</strong> y un <strong>bot de Telegram</strong>.</p>
+
+<div class="callout">
+<strong>Problema:</strong> La PTAP instalada en 2011 funciona sin medición → entre 20% y 30% de pérdidas invisibles equivalentes a <strong>$19,3 millones COP/año</strong> desperdiciados.<br><br>
+<strong>Solución:</strong> AguaMind OS detecta fugas en menos de 5 minutos, alerta automáticamente y toma decisiones autónomas. Inversión: <strong>$1,043,000 COP</strong>. Recuperación: <strong>~21 días</strong>. TIR: <strong>&gt; 1,000%</strong>.
+</div>
+
+<h3>1.1 Datos del campus (fuentes UNIAJC 2024-2025)</h3>
+<table>
+  <tr><th>Variable</th><th>Valor</th><th>Unidad</th></tr>
+  <tr><td>Consumo diario total</td><td>45,367</td><td>L/día</td></tr>
+  <tr><td>Caudal de entrada (2 aljibes)</td><td>113.56</td><td>L/min</td></tr>
+  <tr><td>Estudiantes activos</td><td>3,230</td><td>personas/día</td></tr>
+  <tr><td>Usuarios totales (con staff)</td><td>8,234</td><td>personas</td></tr>
+  <tr><td>Consumo per estudiante</td><td>14.04</td><td>L/est/día</td></tr>
+  <tr><td>Capacidad Tanque A + B</td><td>52,000</td><td>L</td></tr>
+  <tr><td>Pérdidas estimadas</td><td>20-30%</td><td>%</td></tr>
+  <tr><td>Dispositivos hidráulicos</td><td>219</td><td>unidades</td></tr>
+  <tr><td>Área del campus</td><td>38,755.88</td><td>m²</td></tr>
+</table>
+
+<!-- ══ RETO SISTEMAS ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2><span class="section-number">2</span>Reto Sistemas (30 puntos)</h2>
+
+<h3>2.1 Arquitectura UML de Componentes</h3>
+<p>El sistema está estructurado en 8 módulos independientes que se comunican vía protocolos estándar (HTTP, MQTT, SSE):</p>
+
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                     AguaMind OS — Arquitectura                   │
+│                                                                   │
+│  ┌──────────┐   ┌──────────────┐   ┌────────────────────┐       │
+│  │  ESP32   │──▶│   FastAPI    │──▶│  Multi-Agente IA   │       │
+│  │ 6 sensors│   │  /water/*    │   │   LangGraph        │       │
+│  └──────────┘   └──────┬───────┘   └─────────┬──────────┘       │
+│                        │                     │                   │
+│  ┌──────────┐   ┌──────▼───────┐   ┌─────────▼──────────┐       │
+│  │SvelteKit │◀──│   Supabase   │◀──│  Telegram Bot      │       │
+│  │Dashboard │   │  PostgreSQL  │   │  Push Alerts       │       │
+│  └──────────┘   └──────────────┘   └────────────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+
+<h3>2.2 Sistema Multi-Agente (innovación principal)</h3>
+<p>El núcleo de AguaMind OS es un sistema de <strong>4 agentes especializados</strong> coordinados por un orquestador, todos implementados en LangGraph:</p>
+
+<table>
+<tr><th>Agente</th><th>Responsabilidad</th><th>Decide sobre</th></tr>
+<tr><td><strong>Orchestrator</strong></td><td>Coordinador general</td><td>Cuándo alertar, cuándo reportar</td></tr>
+<tr><td><strong>SystemsAgent</strong></td><td>Especialista software</td><td>KPIs, anomalías estadísticas (IsolationForest)</td></tr>
+<tr><td><strong>SensorAgent</strong></td><td>Especialista electrónico</td><td>Calidad señales, sensores fuera de rango</td></tr>
+<tr><td><strong>IndustrialAgent</strong></td><td>Especialista de procesos</td><td>Mudas Lean, costos, ODS impactados</td></tr>
+</table>
+
+<h3>2.3 Diagrama UML de Estados del Agente Autónomo</h3>
+<pre>
+   [IDLE] ──30s──▶ [MONITORING] ──▶ [ANALYZING] ──▶ [DECIDING]
+                                                          │
+       ┌─── ok ────┬──── alert ────┬───── critical ──────┘
+       ▼           ▼               ▼
+    [IDLE]    [ALERTING]      [REPORTING + ALERTING]
+                  │                    │
+                  ▼                    ▼
+              Telegram           PDF + Telegram
+                  │                    │
+                  └────────┬───────────┘
+                           ▼
+                        [IDLE]
+</pre>
+
+<h3>2.4 Endpoints FastAPI</h3>
+<table>
+<tr><th>Método</th><th>Endpoint</th><th>Función</th></tr>
+<tr><td>GET</td><td>/water/reading</td><td>Lectura simulada de los 6 sensores</td></tr>
+<tr><td>POST</td><td>/water/ingest</td><td>Recibe datos reales del ESP32</td></tr>
+<tr><td>GET</td><td>/water/status</td><td>Resumen para Telegram /estado</td></tr>
+<tr><td>GET</td><td>/water/history</td><td>Histórico horario (últimas N horas)</td></tr>
+<tr><td>GET</td><td>/water/report/daily</td><td>Reporte diario completo</td></tr>
+<tr><td>POST</td><td>/water/simulate</td><td>Inyecta escenario demo (fuga, pico, turbidez)</td></tr>
+<tr><td>POST</td><td>/water/agent/start</td><td>Inicia agente autónomo</td></tr>
+<tr><td>POST</td><td>/water/agent/stop</td><td>Detiene agente</td></tr>
+<tr><td>GET</td><td>/water/agent/status</td><td>Estado actual del agente</td></tr>
+<tr><td>GET</td><td>/water/agent/stream</td><td>SSE en tiempo real</td></tr>
+</table>
+
+<h3>2.5 Interfaces con Diseño Centrado en Usuario (UCD)</h3>
+<p>Tanto el dashboard web como el bot de Telegram aplican 5 principios UCD:</p>
+<ul>
+  <li><strong>Visibilidad del estado:</strong> KPIs siempre visibles arriba.</li>
+  <li><strong>Feedback inmediato:</strong> alertas en rojo/amarillo cuando hay anomalías.</li>
+  <li><strong>Prevención de errores:</strong> confirmación antes de cambiar escenarios.</li>
+  <li><strong>Accesibilidad:</strong> colores semafóricos + texto explicativo.</li>
+  <li><strong>Consistencia:</strong> mismo lenguaje en Telegram y dashboard.</li>
+</ul>
+
+<!-- ══ RETO ELECTRÓNICA ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2><span class="section-number">3</span>Reto Electrónica (30 puntos)</h2>
+
+<h3>3.1 Los 6 Sensores del Sistema</h3>
+<table>
+<tr><th>#</th><th>Sensor</th><th>Modelo</th><th>Ubicación</th><th>Rango</th><th>Señal</th></tr>
+<tr><td>1</td><td>Caudal</td><td>YF-S201 ×2</td><td>Salida aljibes 1 y 2</td><td>1–30 L/min</td><td>Pulsos Hall</td></tr>
+<tr><td>2</td><td>Presión</td><td>MPX5700AP</td><td>Red distribución</td><td>0–700 kPa</td><td>0–5V analógica</td></tr>
+<tr><td>3</td><td>Nivel tanque</td><td>JSN-SR04T ×2</td><td>Tapa tanques A y B</td><td>0–450 cm</td><td>PWM digital</td></tr>
+<tr><td>4</td><td>Vibración tuberías</td><td>SW-420</td><td>Codos y uniones</td><td>Digital</td><td>ON/OFF TTL</td></tr>
+<tr><td>5</td><td>Nivel freático</td><td>Transductor 4-20mA</td><td>Fondo aljibes</td><td>0–10 m WC</td><td>4–20mA</td></tr>
+<tr><td>6</td><td>Turbidez</td><td>TSD-10</td><td>Salida filtro carbón</td><td>0–10 NTU</td><td>0–4.5V analógica</td></tr>
+</table>
+
+<h3>3.2 Circuito de Acondicionamiento de Señal</h3>
+<pre>
+SENSOR              ACONDICIONAMIENTO                  ESP32
+──────              ─────────────────                  ─────
+YF-S201 (5V)  ──▶ Divisor R: 10kΩ + 20kΩ ──▶ 3.3V GPIO 34/35 (INT)
+JSN-SR04T     ──▶ TRIG directo ──▶ GPIO 25/27
+              ──▶ ECHO: divisor 1kΩ + 2kΩ ──▶ GPIO 26/14
+MPX5700AP     ──▶ LM358 amplificador ──▶ ADS1115 Ch0 (I2C)
+4-20mA        ──▶ Resistencia shunt 150Ω ──▶ ADS1115 Ch1
+TSD-10        ──▶ Divisor 4.5→3.3V ──▶ ADS1115 Ch2
+SW-420        ──▶ Pull-up interno ──▶ GPIO 33
+LED RGB       ◀── GPIO 32/4/2 (R/G/B)
+Buzzer PWM    ◀── GPIO 5
+OLED SSD1306  ◀── I2C bus (SDA=21, SCL=22)
+</pre>
+
+<h3>3.3 Arquitectura Embebida — 4 Módulos</h3>
+<pre>
+┌──────────────────────────────────────────────────────────────────┐
+│              AguaMind Node v1 — ESP32-WROOM-32                    │
+│                                                                    │
+│  ┌─────────────────┐    ┌──────────────────────────────────────┐  │
+│  │    SENSADO      │    │         PROCESAMIENTO                 │  │
+│  │  6 sensores +   │───▶│  Core 0: lectura cada 1s              │  │
+│  │  ADS1115 ADC    │    │  Core 1: agregación + comms cada 30s  │  │
+│  └─────────────────┘    └──────────────┬───────────────────────┘  │
+│  ┌─────────────────┐                   │                           │
+│  │  ALIMENTACIÓN   │    ┌──────────────▼───────────────────────┐  │
+│  │  220V→5V (HLK)  │    │       COMUNICACIÓN                    │  │
+│  │  + Bat 18650    │    │  LOCAL: OLED + LED RGB + Buzzer       │  │
+│  └─────────────────┘    │  REMOTA: WiFi → MQTT → FastAPI        │  │
+│                         │  BACKUP: Flash NVS si sin internet    │  │
+│                         └──────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────┘
+</pre>
+
+<h3>3.4 Diagrama de Flujo del Firmware</h3>
+<pre>
+[INICIO / RESET]
+       │
+       ├── init_gpio + init_i2c + init_oled
+       ├── wifi_connect (retry 10x cada 3s)
+       └── mqtt_connect (HiveMQ Cloud)
+       │
+[TASK 0 — SENSADO cada 1s · Core 0]
+       ├── read_yfs201 (caudal)
+       ├── read_jsn_sr04t (nivel)
+       ├── read_ads1115 (presión, freático, turbidez)
+       ├── read_sw420 (vibración)
+       └── push a buffer_circular[30]
+       │
+[TASK 1 — PROCESAMIENTO cada 30s · Core 1]
+       ├── promedio buffer
+       ├── evaluar umbrales locales
+       ├── salida local: OLED + LED RGB + buzzer
+       └── publicar MQTT (o HTTP fallback si MQTT cae)
+</pre>
+
+<!-- ══ RETO INDUSTRIAL ═════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2><span class="section-number">4</span>Reto Industrial (30 puntos)</h2>
+
+<h3>4.1 Diagrama de Proceso PTAP (Entradas → Procesos → Salidas)</h3>
+<pre>
+ENTRADAS:                  PROCESO:                       SALIDAS:
+─────────                  ────────                        ───────
+Acuífero 5M L ──▶ Aljibe1 ──▶ Filtro Arena                Aseo Personal
+                            ──▶ Filtro Carbón ──▶ Tank A ──▶ 31,700 L/día
+                            ──▶ Filtro Pulido ──▶ Tank B ──▶ Cafetería 240
+                                                          ──▶ Labs 64
+              Aljibe2 ──────────────────────────────────────▶ Riego ~4,000
+              (sin tratar)                                ──▶ Limpieza 3,000
+</pre>
+
+<h3>4.2 Variables Clave del Sistema</h3>
+<ul>
+  <li><strong>Caudal entrada:</strong> 113.56 L/min (Q<sub>in</sub>)</li>
+  <li><strong>Demanda total:</strong> 45,367 L/día (Q<sub>demand</sub>)</li>
+  <li><strong>Pérdidas estimadas:</strong> 9,073–13,610 L/día (20-30%)</li>
+  <li><strong>Nivel crítico Tanque A:</strong> &lt; 24,000 L → activa bomba (66.7%)</li>
+  <li><strong>Capacidad bomba:</strong> 7,268 L/h (121.1 L/min)</li>
+</ul>
+
+<h3>4.3 Los 3 KPIs Principales</h3>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="name">IEH — Eficiencia Hídrica</div>
+    <div class="value">75%</div>
+    <div class="desc">Meta: &gt; 90%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="name">TPP — Pérdidas</div>
+    <div class="value">25%</div>
+    <div class="desc">Meta: &lt; 10%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="name">CPE — Consumo/Est</div>
+    <div class="value">14.04</div>
+    <div class="desc">L/est/día · Meta: ≤ 12</div>
+  </div>
+</div>
+
+<h4>KPI 1 — IEH: Índice de Eficiencia Hídrica</h4>
+<div class="formula">IEH (%) = [(Q<sub>entrada</sub> − Q<sub>pérdidas</sub>) / Q<sub>entrada</sub>] × 100</div>
+<p><strong>Propósito:</strong> mide qué porción del agua captada llega efectivamente a los usuarios finales. Permite cuantificar la efectividad del sistema PTAP.</p>
+
+<h4>KPI 2 — TPP: Tasa de Pérdidas del Proceso</h4>
+<div class="formula">TPP (%) = [Agua no contabilizada / Q<sub>entrada</sub>] × 100</div>
+<p><strong>Propósito:</strong> cuantifica las ineficiencias de distribución y fugas para priorizar intervenciones de mantenimiento.</p>
+
+<h4>KPI 3 — CPE: Consumo Per Estudiante</h4>
+<div class="formula">CPE (L/est/día) = Consumo<sub>diario</sub> / Estudiantes<sub>activos</sub></div>
+<p><strong>Propósito:</strong> benchmark de eficiencia hídrica por usuario; permite evaluar el impacto de campañas de concientización.</p>
+
+<h3>4.4 Identificación de Ineficiencias — Lean Manufacturing</h3>
+
+<table>
+<tr><th>#</th><th>Muda (Tipo)</th><th>Manifestación en UNIAJC</th><th>Impacto estimado</th></tr>
+<tr><td>1</td><td>Defectos</td><td>Fugas no detectadas (sin caudalímetros)</td><td>20–30% caudal perdido</td></tr>
+<tr><td>2</td><td>Sobreproducción</td><td>Bombeo sin demanda real (tanque lleno)</td><td>Desgaste bomba + energía</td></tr>
+<tr><td>3</td><td>Espera</td><td>Tiempo entre detección y reparación</td><td>Días/semanas de pérdida</td></tr>
+<tr><td>4</td><td>Inventario</td><td>Tanques sobrellenos → presión excesiva</td><td>Efecto cascada de fugas</td></tr>
+<tr><td>5</td><td>Movimiento</td><td>Personal revisa niveles físicamente</td><td>Tiempo improductivo</td></tr>
+<tr><td>6</td><td>Transporte</td><td>Agua tratada usada para riego</td><td>Costo tratamiento innecesario</td></tr>
+<tr><td>7</td><td>Talento</td><td>Datos sin usar para decisiones</td><td>Oportunidad perdida</td></tr>
+</table>
+
+<h3>4.5 Diagrama Causa-Efecto Ishikawa</h3>
+<pre>
+                    PÉRDIDAS HÍDRICAS 20-30%
+                              │
+        ┌─────────────────────┼──────────────────────┐
+        │                     │                      │
+   MEDICIÓN              GESTIÓN               INFRAESTRUCTURA
+   ────────              ───────               ───────────────
+   Sin caudalímetros     Sin KPIs              PTAP 2011 sin medición
+   Sin sensores nivel    Sin responsable       Tuberías &gt;10 años
+   Sin SCADA             Sin protocolo         Sin válvulas control
+        │                     │                      │
+   PERSONAS              PROCESOS              TECNOLOGÍA
+   ────────              ────────              ──────────
+   Sin cultura ahorro    Riego sin horario     Sin automatización
+   Sin concientización   Limpieza sin control  Sin software gestión
+</pre>
+
+<h3>4.6 Propuestas de Mejora Operativa</h3>
+
+<div class="callout">
+<strong>Acción 1 — Instrumentación IoT con AguaMind Node</strong><br>
+<em>Inversión:</em> $1,043,000 COP · <em>ROI:</em> ~21 días<br>
+6 sensores + ESP32 + dashboard + agente IA. Reduce TPP de 25% a 10%, detecta fugas en &lt; 5 min. Elimina mudas de Defectos y Espera.
+</div>
+
+<div class="callout">
+<strong>Acción 2 — Automatización del riego con válvulas solenoides</strong><br>
+<em>Inversión:</em> $2,800,000 COP · <em>Ahorro:</em> 803,000 L/año<br>
+Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000 a 2,200 L/día. Elimina mudas de Sobreproducción y Transporte.
+</div>
+
+<!-- ══ COSTO-BENEFICIO ═════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2><span class="section-number">5</span>Análisis Costo-Beneficio</h2>
+
+<h3>5.1 Pérdidas Económicas Actuales</h3>
+<table>
+<tr><th>Concepto</th><th>Valor</th></tr>
+<tr><td>Pérdida diaria (25%)</td><td>15,122 L/día</td></tr>
+<tr><td>Costo agua EMCALI industrial</td><td>$3,500 COP/m³</td></tr>
+<tr><td><strong>Pérdida económica diaria</strong></td><td><strong>$52,920 COP</strong></td></tr>
+<tr><td><strong>Pérdida económica anual</strong></td><td><strong>$19,315,800 COP</strong></td></tr>
+<tr><td>Pérdida en 5 años (sin acción)</td><td>$96,579,000 COP</td></tr>
+</table>
+
+<h3>5.2 Inversión AguaMind OS</h3>
+<table>
+<tr><th>Concepto</th><th>Valor</th></tr>
+<tr><td>Hardware (ESP32 + 6 sensores)</td><td>$693,000 COP</td></tr>
+<tr><td>Instalación + puesta en marcha</td><td>$350,000 COP</td></tr>
+<tr><td>Software (open source)</td><td>$0 COP</td></tr>
+<tr><td><strong>TOTAL INVERSIÓN</strong></td><td><strong>$1,043,000 COP (~$250 USD)</strong></td></tr>
+</table>
+
+<h3>5.3 Ahorros Proyectados Anuales</h3>
+<table>
+<tr><th>Fuente de ahorro</th><th>Ahorro/año</th></tr>
+<tr><td>Reducción pérdidas físicas (25%→10%)</td><td>$11,586,925 COP</td></tr>
+<tr><td>Optimización riego automatizado (-45%)</td><td>$2,299,500 COP</td></tr>
+<tr><td>Mantenimiento preventivo vs. correctivo</td><td>$4,250,000 COP</td></tr>
+<tr><td><strong>TOTAL AHORRO ANUAL</strong></td><td><strong>$18,136,425 COP</strong></td></tr>
+</table>
+
+<h3>5.4 Indicadores Financieros</h3>
+<table>
+<tr><th>Indicador</th><th>Valor</th><th>Interpretación</th></tr>
+<tr><td>Período de recuperación</td><td>~21 días</td><td>Excelente (&lt; 6 meses)</td></tr>
+<tr><td>VPN a 5 años (tasa 12%)</td><td>$65,369,000 COP</td><td>Muy positivo</td></tr>
+<tr><td>TIR</td><td>&gt; 1,000% anual</td><td>Extraordinario</td></tr>
+<tr><td>Ratio B/C</td><td>17.4</td><td>Cada $1 invertido devuelve $17.40</td></tr>
+<tr><td>Agua recuperada en 5 años</td><td>16,558,625 L</td><td>Equivalente a 8 piscinas olímpicas</td></tr>
+<tr><td>CO₂ evitado</td><td>~2.3 ton/año</td><td>Por menor bombeo</td></tr>
+</table>
+
+<div class="success">
+<strong>Conclusión financiera:</strong> AguaMind OS se paga solo en menos de un mes y genera un retorno acumulado de más de $90 millones COP en 5 años, sin contar beneficios ambientales y reputacionales.
+</div>
+
+<!-- ══ ODS Y CIERRE ════════════════════════════════════════════════════ -->
+<h2><span class="section-number">6</span>Alineación con ODS y Cierre</h2>
+
+<h3>6.1 Objetivos de Desarrollo Sostenible Impactados</h3>
+<table>
+<tr><th>ODS</th><th>Aporte de AguaMind OS</th></tr>
+<tr><td><strong>ODS 6 — Agua limpia</strong></td><td>Reduce pérdidas 25%→10%, monitorea calidad (turbidez)</td></tr>
+<tr><td><strong>ODS 4 — Educación de calidad</strong></td><td>Modelo educativo de sostenibilidad para ingeniería</td></tr>
+<tr><td><strong>ODS 9 — Industria e innovación</strong></td><td>IoT + IA aplicado con inversión mínima</td></tr>
+<tr><td><strong>ODS 11 — Ciudades sostenibles</strong></td><td>Modelo replicable a otras universidades</td></tr>
+<tr><td><strong>ODS 13 — Acción climática</strong></td><td>Reduce huella de carbono (~2.3 ton CO₂/año)</td></tr>
+</table>
+
+<h3>6.2 Por qué AguaMind OS gana el hackathon</h3>
+
+<div class="callout">
+<strong>Novedad (30%):</strong> primer sistema multi-agente IA + IoT + Telegram para gestión hídrica universitaria en Colombia.<br><br>
+<strong>Aplicación Industrial (30%):</strong> viable, escalable, replicable. Inversión $1M COP, ROI 21 días, código open source.<br><br>
+<strong>Actividad Inventiva (20%):</strong> integración Sistemas + Electrónica + Industrial con LangGraph + ESP32 + WeasyPrint + Lean.<br><br>
+<strong>Impacto (20%):</strong> 5 ODS impactados, 16M L recuperados en 5 años, 2.3 ton CO₂ evitadas/año, modelo replicable a toda LATAM.
+</div>
+
+<h3>6.3 Próximos Pasos (Roadmap Post-Hackathon)</h3>
+<ol>
+  <li><strong>Mes 1:</strong> Piloto AguaMind Node en la PTAP (1 nodo)</li>
+  <li><strong>Mes 2-3:</strong> Expansión a 5 nodos (zonas críticas)</li>
+  <li><strong>Mes 4-6:</strong> Replicación en otras sedes UNIAJC</li>
+  <li><strong>Mes 7+:</strong> Publicación open source + acompañamiento universidades de la región</li>
+</ol>
+
+<!-- ══ REFERENCIAS ════════════════════════════════════════════════════ -->
+<h2><span class="section-number">7</span>Referencias Bibliográficas</h2>
+
+<ol>
+  <li><strong>Aristizábal Torres, H. W., &amp; Largacha Perdomo, S. (2025).</strong> <em>Desarrollo de un modelo de dinámica de sistemas para simular la demanda y el suministro de agua en la Institución Universitaria Antonio José Camacho, Sede Sur.</em> Repositorio UNIAJC: handle/uniajc/3000</li>
+
+  <li><strong>Arias Montoya, Y. D., Montiel Angel, R. E., &amp; Osorio Hernández, C. A. (2024).</strong> <em>Diseño de un sistema de ahorro para el mejoramiento de la eficiencia del servicio suministrado por la planta de tratamiento de agua potable (PTAP) en la Institución Universitaria Antonio José Camacho Sede Sur.</em> Repositorio UNIAJC: handle/uniajc/2576</li>
+
+  <li><strong>Mosquera Zapata, L. L., &amp; Lozano Beltrán, S. (2024).</strong> <em>Modelo de dinámica de sistemas para brindar información a la comunidad académica del impacto sobre la PTAR y el ecosistema, UNIAJC sede sur.</em> Repositorio UNIAJC: handle/uniajc/2757</li>
+
+  <li><strong>Ministerio de Ambiente y Desarrollo Sostenible (2015).</strong> <em>Resolución 0631 — Valores límite máximos permisibles para descargas a cuerpos de agua superficiales.</em></li>
+
+  <li><strong>Aguas de Barrancabermeja (2017).</strong> <em>Reporte anual de pérdidas de agua no contabilizada en sistemas sin medición.</em></li>
+</ol>
+
+<div class="footer-signature">
+AguaMind OS · Sistema Inteligente de Gestión Hídrica<br>
+Hackathon UNIAJC 2026 · Facultad de Ingeniería · Cali, Colombia<br>
+Equipo: Ingeniería de Sistemas + Electrónica + Industrial<br>
+Repositorio: github.com/JFrangel/AguaMind-OS<br>
+Documento generado: 7 de mayo de 2026
+</div>
+
+</body>
+</html>
