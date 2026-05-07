@@ -54,11 +54,18 @@
           A
         </div>
         <div>
-          <h1 class="font-display text-sm font-semibold text-text-primary">AgentOS</h1>
-          <p class="text-[11px] text-text-secondary">Multi-agente · streaming</p>
+          <h1 class="font-display text-sm font-semibold text-text-primary">AguaMind OS</h1>
+          <p class="text-[11px] text-text-secondary">UNIAJC Sede Sur · Gestión hídrica IA</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <a
+          href="/agua"
+          class="rounded-md border border-blue-500/40 bg-blue-500/10 px-3 py-1 font-mono text-[11px] text-blue-400 transition-colors hover:border-blue-400 hover:text-blue-300"
+          title="Dashboard de gestión hídrica"
+        >
+          💧 Dashboard
+        </a>
         <a
           href="/preview"
           class="rounded-md border border-bg-elevated px-2 py-1 font-mono text-[11px] text-text-secondary transition-colors hover:border-accent-blue hover:text-accent-blue"

@@ -11,12 +11,23 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "AgentOS Bot\n\n"
-        "/ask <question> — chat with the agents\n"
-        "/research <topic> — full research pipeline\n"
-        "/report <topic> — generate a PDF report\n"
-        "/status — provider health\n\n"
-        "Or just send a message and I'll respond."
+        "💧 AguaMind OS — UNIAJC Sede Sur\n"
+        "Sistema inteligente de gestión hídrica\n\n"
+        "── Agua ──\n"
+        "/agua · /estado — estado del sistema en tiempo real\n"
+        "/zonas — consumo por zona del campus\n"
+        "/kpis — indicadores de desempeño (IEH · TPP · CPE)\n"
+        "/reporte_agua — reporte diario completo\n\n"
+        "── Demo (escenarios) ──\n"
+        "/alerta — simular fuga detectada\n"
+        "/riego — simular pico de riego\n"
+        "/normal — volver a operación normal\n\n"
+        "── IA General ──\n"
+        "/ask <pregunta> — chat con los agentes\n"
+        "/research <tema> — pipeline de investigación\n"
+        "/report <tema> — generar reporte PDF\n"
+        "/status — estado de proveedores LLM\n\n"
+        "O simplemente escribe tu pregunta."
     )
 
 

@@ -86,6 +86,7 @@ from .routers import (
     profiles,
     rag,
     reports,
+    water,
 )
 
 
@@ -116,6 +117,7 @@ async def root() -> dict:
             "notify": "POST /notify/send · GET /notify/channels",
             "database": "GET /database/schema · POST /database/query · POST /database/nl-query",
             "profiles": "GET /profiles · GET /profiles/{slug}",
+            "water": "GET /water/reading · GET /water/status · GET /water/history · GET /water/report/daily · POST /water/simulate",
         },
     }
 
@@ -131,3 +133,4 @@ app.include_router(reports.router, prefix="/reports", tags=["reports"])
 app.include_router(notify.router, prefix="/notify", tags=["notifications"])
 app.include_router(database.router, prefix="/database", tags=["database"])
 app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
+app.include_router(water.router, prefix="/water", tags=["water"])
