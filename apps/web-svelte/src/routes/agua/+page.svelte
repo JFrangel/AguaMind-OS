@@ -814,21 +814,21 @@
             </defs>
             <rect width="800" height="480" fill="url(#grid)"/>
 
-            <!-- Río Pance al sur -->
+            <!-- Río Pance / Cauca al sur (recibe efluente PTAR) -->
             <path d="M 0 440 Q 200 450 400 435 T 800 445 L 800 480 L 0 480 Z" fill="rgba(56,189,248,0.10)" stroke="rgba(56,189,248,0.4)" stroke-width="1"/>
-            <text x="700" y="460" fill="rgba(56,189,248,0.7)" font-size="10" font-family="JetBrains Mono">río Pance</text>
+            <text x="20" y="460" fill="rgba(56,189,248,0.7)" font-size="10" font-family="JetBrains Mono">río Pance / Cauca</text>
+            <text x="20" y="473" fill="rgba(56,189,248,0.5)" font-size="8" font-family="JetBrains Mono">Resolución 0631/2015 · DBO ≤ 90 mg/L</text>
 
-            <!-- ALJIBES (sur del campus) -->
+            <!-- ALJIBES (centro-sur del campus) -->
             <g>
-              <circle cx="160" cy="380" r="18" fill="rgba(125,211,252,0.15)" stroke="#7dd3fc" stroke-width="2"/>
-              <text x="160" y="385" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="JetBrains Mono" font-weight="bold">A1</text>
-              <text x="160" y="412" text-anchor="middle" fill="rgba(125,211,252,0.7)" font-size="9">Aljibe 1</text>
+              <circle cx="320" cy="385" r="14" fill="rgba(125,211,252,0.15)" stroke="#7dd3fc" stroke-width="2"/>
+              <text x="320" y="389" text-anchor="middle" fill="#7dd3fc" font-size="10" font-family="JetBrains Mono" font-weight="bold">A1</text>
             </g>
             <g>
-              <circle cx="240" cy="380" r="18" fill="rgba(125,211,252,0.15)" stroke="#7dd3fc" stroke-width="2"/>
-              <text x="240" y="385" text-anchor="middle" fill="#7dd3fc" font-size="11" font-family="JetBrains Mono" font-weight="bold">A2</text>
-              <text x="240" y="412" text-anchor="middle" fill="rgba(125,211,252,0.7)" font-size="9">Aljibe 2</text>
+              <circle cx="380" cy="385" r="14" fill="rgba(125,211,252,0.15)" stroke="#7dd3fc" stroke-width="2"/>
+              <text x="380" y="389" text-anchor="middle" fill="#7dd3fc" font-size="10" font-family="JetBrains Mono" font-weight="bold">A2</text>
             </g>
+            <text x="350" y="375" text-anchor="middle" fill="rgba(125,211,252,0.6)" font-size="9" font-family="JetBrains Mono">aljibes</text>
 
             <!-- PTAP -->
             <g>
@@ -853,9 +853,9 @@
               <text x="630" y="387" text-anchor="middle" fill="white" font-size="13" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_b_pct, 0)}%</text>
             </g>
 
-            <!-- Conexiones tuberías -->
-            <line x1="178" y1="380" x2="320" y2="370" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
-            <line x1="258" y1="380" x2="320" y2="380" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
+            <!-- Conexiones tuberías agua potable -->
+            <line x1="332" y1="380" x2="320" y2="370" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
+            <line x1="380" y1="370" x2="370" y2="370" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
             <line x1="420" y1="370" x2="480" y2="360" stroke="#818cf8" stroke-width="2" opacity="0.6"/>
             <line x1="550" y1="360" x2="600" y2="370" stroke="#22c55e" stroke-width="2" opacity="0.6"/>
 
@@ -916,9 +916,57 @@
               <circle cx="485" cy="255" r="3.5" fill="#10b981"/>
             </g>
 
+            <!-- ═══ PTAR ALAMEDA + ENTRADA ═══ -->
+            <!-- Bajantes residuales desde edificios → colector → PTARs -->
+            <line x1="160" y1="200" x2="160" y2="320" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+            <line x1="350" y1="200" x2="350" y2="320" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+            <line x1="520" y1="180" x2="520" y2="320" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+            <line x1="650" y1="180" x2="650" y2="320" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+
+            <!-- Colector residuales horizontal -->
+            <line x1="80" y1="320" x2="700" y2="320" stroke="#f59e0b" stroke-width="2.5" opacity="0.5" stroke-dasharray="5 3"/>
+            <text x="80" y="315" fill="rgba(245,158,11,0.7)" font-size="8" font-family="JetBrains Mono">colector aguas residuales</text>
+
+            <!-- PTAR Alameda (oeste) -->
+            <g class="cursor-pointer">
+              <rect x="80" y="400" width="120" height="36" rx="6" fill="rgba(245,158,11,0.10)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 2"/>
+              <text x="140" y="416" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="Inter" font-weight="bold">PTAR Alameda</text>
+              <text x="140" y="429" text-anchor="middle" fill="rgba(245,158,11,0.6)" font-size="8">cap. 1,000 est · módulo 1</text>
+              <circle cx="190" cy="408" r="3.5" fill="#f59e0b"/>
+              <!-- Conexión desde colector -->
+              <line x1="140" y1="320" x2="140" y2="400" stroke="#f59e0b" stroke-width="2" opacity="0.6" stroke-dasharray="4 2"/>
+            </g>
+
+            <!-- PTAR Entrada (este) -->
+            <g class="cursor-pointer">
+              <rect x="580" y="400" width="120" height="36" rx="6" fill="rgba(245,158,11,0.10)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 2"/>
+              <text x="640" y="416" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="Inter" font-weight="bold">PTAR Entrada</text>
+              <text x="640" y="429" text-anchor="middle" fill="rgba(245,158,11,0.6)" font-size="8">cap. 1,000 est · módulo 2</text>
+              <circle cx="690" cy="408" r="3.5" fill="#f59e0b"/>
+              <!-- Conexión desde colector -->
+              <line x1="640" y1="320" x2="640" y2="400" stroke="#f59e0b" stroke-width="2" opacity="0.6" stroke-dasharray="4 2"/>
+            </g>
+
+            <!-- Vertimiento de PTAR al río -->
+            <line x1="140" y1="436" x2="140" y2="460" stroke="#fbbf24" stroke-width="2" opacity="0.5"/>
+            <line x1="640" y1="436" x2="640" y2="460" stroke="#fbbf24" stroke-width="2" opacity="0.5"/>
+
+            <!-- Etiqueta capacidad -->
+            <text x="320" y="375" fill="rgba(245,158,11,0.6)" font-size="9" font-family="JetBrains Mono">⚠ capacidad PTAR: 2,000 est · campus: 8,234 usuarios</text>
+
             <!-- Leyenda -->
             <text x="20" y="30" fill="rgba(148,163,184,0.7)" font-size="10" font-family="Inter" font-weight="600">UNIAJC Sede Sur · 38,755 m²</text>
             <text x="20" y="45" fill="rgba(148,163,184,0.5)" font-size="9" font-family="JetBrains Mono">8,234 usuarios · 219 disp. hidráulicos</text>
+
+            <!-- Leyenda flujos -->
+            <g transform="translate(540, 25)">
+              <line x1="0" y1="0" x2="20" y2="0" stroke="#7dd3fc" stroke-width="2"/>
+              <text x="24" y="3" fill="rgba(148,163,184,0.7)" font-size="8" font-family="JetBrains Mono">potable</text>
+              <line x1="80" y1="0" x2="100" y2="0" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 2"/>
+              <text x="104" y="3" fill="rgba(148,163,184,0.7)" font-size="8" font-family="JetBrains Mono">residual</text>
+              <line x1="160" y1="0" x2="180" y2="0" stroke="#22c55e" stroke-width="2" stroke-dasharray="6 3"/>
+              <text x="184" y="3" fill="rgba(148,163,184,0.7)" font-size="8" font-family="JetBrains Mono">riego</text>
+            </g>
           </svg>
 
           <div class="mt-3 flex flex-wrap gap-1.5">
