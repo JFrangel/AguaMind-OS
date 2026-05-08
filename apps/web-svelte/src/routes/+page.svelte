@@ -1,22 +1,44 @@
 <script lang="ts">
   // HidroTech — Landing de arquitectura
+
+  let theme = $state<"dark" | "light">("dark");
+
+  // Inicializar desde localStorage / preferencia del sistema · sincronizar con <html>
+  $effect(() => {
+    if (typeof document === "undefined") return;
+    // Si el dashboard ya marcó la clase "light" en <html>, respetarla
+    if (document.documentElement.classList.contains("light") && theme !== "light") {
+      theme = "light";
+    } else if (typeof localStorage !== "undefined") {
+      const saved = localStorage.getItem("hidrotech-theme");
+      if (saved === "light" && theme !== "light") theme = "light";
+    }
+  });
+
+  $effect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("light", theme === "light");
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("hidrotech-theme", theme);
+    }
+  });
 </script>
 
 <svelte:head>
   <title>HidroTech · Sistema multi-agente de gestión hídrica</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#0a0e14] text-slate-100" style="font-family: 'Inter', -apple-system, system-ui, sans-serif;">
+<div class="min-h-screen am-landing" style="font-family: 'Inter', -apple-system, system-ui, sans-serif;">
 
   <!-- Header -->
-  <header class="border-b border-white/[0.06] bg-[#0a0e14]/90 backdrop-blur-xl sticky top-0 z-30">
+  <header class="border-b border-white/[0.06] backdrop-blur-xl sticky top-0 z-30 am-header">
     <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+        <div class="am-keep relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
           <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white" stroke="currentColor" stroke-width="2.2">
             <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
           </svg>
-          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0a0e14] animate-pulse"></span>
+          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 am-ring animate-pulse"></span>
         </div>
         <div class="leading-tight">
           <h1 class="text-[15px] font-semibold tracking-tight text-white flex items-center gap-1.5">
@@ -25,10 +47,32 @@
           <p class="text-[11px] text-slate-500 mt-0.5 tracking-wide">UNIAJC Sede Sur · Hackathon 2026</p>
         </div>
       </div>
-      <a href="/agua" class="px-4 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[12px] font-medium transition-colors flex items-center gap-2">
-        Abrir Dashboard
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-      </a>
+
+      <div class="flex items-center gap-2">
+        <a href="/agua" class="px-4 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-[12px] font-medium transition-colors flex items-center gap-2">
+          Abrir Dashboard
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+
+        <!-- Theme toggle -->
+        <button
+          onclick={() => theme = theme === "dark" ? "light" : "dark"}
+          class="flex items-center justify-center w-8 h-8 rounded-md border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.07] text-slate-400 transition-colors"
+          title="Cambiar tema"
+          aria-label="Cambiar tema"
+        >
+          {#if theme === "dark"}
+            <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+          {:else}
+            <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+          {/if}
+        </button>
+      </div>
     </div>
   </header>
 
@@ -48,7 +92,7 @@
         Caracteriza · delibera · actúa. 5 agentes IA especializados con LangGraph deciden en 5 segundos lo que un humano tardaría 2 horas en analizar.
       </p>
       <div class="flex items-center justify-center gap-3 flex-wrap">
-        <a href="/agua" class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[13px] font-medium hover:from-sky-400 hover:to-cyan-400 transition-all shadow-lg shadow-sky-500/20">
+        <a href="/agua" class="am-keep px-5 py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[13px] font-medium hover:from-sky-400 hover:to-cyan-400 transition-all shadow-lg shadow-sky-500/20">
           Abrir Dashboard →
         </a>
         <a href="https://github.com/JFrangel/AguaMind-OS" target="_blank" class="px-5 py-2.5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/[0.03] text-slate-300 text-[13px] font-medium transition-colors">
@@ -67,11 +111,11 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
         {#each [
-          { code: "ORC", name: "Orchestrator",     role: "Coordinador",     desc: "Reparte tarea a los 4 agentes y consolida votos en 3.2s",                color: "#7dd3fc", framework: "LangGraph" },
-          { code: "SYS", name: "SystemsAgent",     role: "Datos + KPIs",    desc: "Calcula IEH, TPP. Detecta anomalías con IsolationForest",                color: "#a855f7", framework: "scikit-learn" },
-          { code: "SEN", name: "SensorAgent",      role: "Validación",      desc: "Verifica los 5 sensores (Q·R·P·N·H) en rango físico válido",            color: "#10b981", framework: "Pydantic" },
-          { code: "IND", name: "IndustrialAgent",  role: "Lean + costos",   desc: "Mapea anomalías a las 7 mudas Lean y calcula impacto en kWh",            color: "#f59e0b", framework: "Reglas" },
-          { code: "MIT", name: "MitigationAgent",  role: "Acción física",   desc: "Cierra EV, controla bomba, genera OT y push Telegram automático",        color: "#ef4444", framework: "FastAPI" },
+          { code: "ORC", name: "Orquestador", role: "Coordinador",     desc: "Reparte tarea a los 4 agentes y consolida votos en 3.2s",                color: "#7dd3fc", framework: "LangGraph" },
+          { code: "ANL", name: "Analista",    role: "Datos + KPIs",    desc: "Calcula IEH, TPP. Detecta anomalías con IsolationForest",                color: "#a855f7", framework: "scikit-learn" },
+          { code: "TEC", name: "Técnico",     role: "Validación",      desc: "Verifica los 5 sensores (Q·R·P·N·H) en rango físico válido",            color: "#10b981", framework: "Pydantic" },
+          { code: "AUD", name: "Auditor",     role: "Impacto + muda",  desc: "Traduce a estudiantes·día equivalentes y clasifica la muda Lean",        color: "#f59e0b", framework: "Reglas" },
+          { code: "MIT", name: "Mitigador",   role: "Acción física",   desc: "Cierra EV, controla bomba, genera OT y push Telegram automático",        color: "#ef4444", framework: "FastAPI" },
         ] as a}
           <div class="rounded-2xl border bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5 transition-all hover:from-white/[0.04] hover:to-white/[0.01]" style="border-color:{a.color}30">
             <div class="flex items-start gap-3 mb-3">
@@ -186,13 +230,13 @@
       <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-6">
         <div class="grid grid-cols-1 md:grid-cols-7 gap-3 items-stretch">
           {#each [
-            { t: "T+0.0s",  who: "Sensor",       msg: "MQTT publica vibración + caída presión 28%",      color: "#7dd3fc" },
-            { t: "T+0.5s",  who: "Orchestrator", msg: "Reparte tarea a 4 agentes en paralelo",           color: "#a855f7" },
-            { t: "T+1.5s",  who: "SystemsAgent", msg: "Crítico (88%) · IsolationForest 0.78",            color: "#a855f7" },
-            { t: "T+1.7s",  who: "SensorAgent",  msg: "OK (95%) · 5/5 sensores en rango",                color: "#10b981" },
-            { t: "T+2.0s",  who: "Industrial",   msg: "Crítico (85%) · muda Defectos · $2150/min",        color: "#f59e0b" },
-            { t: "T+3.0s",  who: "Mitigation",   msg: "EJECUTA · cierra EV-A2 + bomba standby",           color: "#ef4444" },
-            { t: "T+5.0s",  who: "Resultado",    msg: "OT generada · Telegram enviado · 14,500 L salvados", color: "#10b981" },
+            { t: "T+0.0s",  who: "Sensor",       msg: "MQTT publica caída presión 28% + TPP crítica",      color: "#7dd3fc" },
+            { t: "T+0.5s",  who: "Orquestador", msg: "Reparte tarea a 4 agentes en paralelo",              color: "#a855f7" },
+            { t: "T+1.5s",  who: "Analista",    msg: "Crítico (88%) · IsolationForest 0.78",               color: "#a855f7" },
+            { t: "T+1.7s",  who: "Técnico",     msg: "OK (95%) · 5/5 sensores en rango",                   color: "#10b981" },
+            { t: "T+2.0s",  who: "Auditor",     msg: "Crítico · muda Defectos · ≈1,033 estudiantes·día",   color: "#f59e0b" },
+            { t: "T+3.0s",  who: "Mitigador",   msg: "EJECUTA · cierra EV-A2 + bomba standby",             color: "#ef4444" },
+            { t: "T+5.0s",  who: "Resultado",   msg: "OT generada · Telegram enviado · 14,500 L salvados", color: "#10b981" },
           ] as step}
             <div class="rounded-xl border bg-white/[0.02] p-3 flex flex-col" style="border-color:{step.color}25">
               <div class="text-[9px] font-mono text-slate-500 mb-1">{step.t}</div>
@@ -210,7 +254,7 @@
       <p class="text-[14px] text-slate-400 mb-6 max-w-xl mx-auto">
         El dashboard te muestra todo en vivo: KPIs, los 5 sensores, deliberación de agentes, mapa del campus, gamificación con la comunidad.
       </p>
-      <a href="/agua" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[14px] font-medium hover:from-sky-400 hover:to-cyan-400 transition-all shadow-lg shadow-sky-500/30">
+      <a href="/agua" class="am-keep inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-[14px] font-medium hover:from-sky-400 hover:to-cyan-400 transition-all shadow-lg shadow-sky-500/30">
         Entrar al Dashboard
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </a>
@@ -230,9 +274,53 @@
 </div>
 
 <style>
+  /* Tema oscuro (default) */
   :global(html), :global(body) {
-    background: #0a0e14;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  :global(html) { background: #0a0e14; }
+  :global(body) { background: #0a0e14; }
+  .am-landing { background: #0a0e14; color: #e2e8f0; }
+  .am-landing .am-header { background: rgba(10, 14, 20, 0.9); }
+  .am-landing .am-ring { --tw-ring-color: #0a0e14; }
+
+  /* Tema claro */
+  :global(html.light) { background: #f8fafc; }
+  :global(html.light body) { background: #f8fafc; }
+  :global(html.light) .am-landing { background: #f8fafc; color: #0f172a; }
+  :global(html.light) .am-landing .am-header { background: rgba(248, 250, 252, 0.92); border-color: rgba(15, 23, 42, 0.08); }
+  :global(html.light) .am-landing .am-ring { --tw-ring-color: #f8fafc; }
+
+  /* Bordes y fondos translúcidos en modo claro */
+  :global(html.light) .am-landing .border-white\/\[0\.06\] { border-color: rgba(15, 23, 42, 0.08); }
+  :global(html.light) .am-landing .border-white\/\[0\.04\] { border-color: rgba(15, 23, 42, 0.05); }
+  :global(html.light) .am-landing .border-white\/10  { border-color: rgba(15, 23, 42, 0.10); }
+  :global(html.light) .am-landing .border-white\/20  { border-color: rgba(15, 23, 42, 0.18); }
+  :global(html.light) .am-landing .bg-white\/\[0\.02\]  { background: rgba(15, 23, 42, 0.02); }
+  :global(html.light) .am-landing .bg-white\/\[0\.03\]  { background: rgba(15, 23, 42, 0.03); }
+  :global(html.light) .am-landing .bg-white\/\[0\.04\]  { background: rgba(15, 23, 42, 0.04); }
+  :global(html.light) .am-landing .bg-white\/\[0\.07\]  { background: rgba(15, 23, 42, 0.07); }
+  :global(html.light) .am-landing .bg-white\/5  { background: rgba(15, 23, 42, 0.04); }
+  :global(html.light) .am-landing .hover\:bg-white\/\[0\.04\]:hover { background: rgba(15, 23, 42, 0.05); }
+
+  /* Texto invertido para modo claro */
+  :global(html.light) .am-landing .text-white     { color: #0f172a; }
+  :global(html.light) .am-landing .text-slate-100 { color: #1e293b; }
+  :global(html.light) .am-landing .text-slate-200 { color: #334155; }
+  :global(html.light) .am-landing .text-slate-300 { color: #334155; }
+  :global(html.light) .am-landing .text-slate-400 { color: #475569; }
+  :global(html.light) .am-landing .text-slate-500 { color: #475569; }
+  :global(html.light) .am-landing .text-slate-600 { color: #64748b; }
+
+  /* Acentos en modo claro (tonos pasteles → más oscuros) */
+  :global(html.light) .am-landing .text-sky-300    { color: #0284c7; }
+  :global(html.light) .am-landing .text-sky-400    { color: #0284c7; }
+  :global(html.light) .am-landing .text-emerald-400 { color: #047857; }
+  :global(html.light) .am-landing .text-amber-400  { color: #b45309; }
+  :global(html.light) .am-landing .text-purple-400 { color: #7e22ce; }
+
+  /* Texto que debe quedarse blanco (sobre gradientes de color) */
+  :global(html.light) .am-landing .am-keep,
+  :global(html.light) .am-landing .am-keep * { color: #ffffff !important; }
 </style>

@@ -164,9 +164,22 @@
   let liveMode = $state(true);
   let theme = $state<"dark" | "light">("dark");
 
+  // Cargar preferencia desde localStorage / clase ya marcada en <html>
   $effect(() => {
-  if (typeof document !== "undefined") {
+  if (typeof document === "undefined") return;
+  if (document.documentElement.classList.contains("light") && theme !== "light") {
+  theme = "light";
+  } else if (typeof localStorage !== "undefined") {
+  const saved = localStorage.getItem("hidrotech-theme");
+  if (saved === "light" && theme !== "light") theme = "light";
+  }
+  });
+
+  $effect(() => {
+  if (typeof document === "undefined") return;
   document.documentElement.classList.toggle("light", theme === "light");
+  if (typeof localStorage !== "undefined") {
+  localStorage.setItem("hidrotech-theme", theme);
   }
   });
 
