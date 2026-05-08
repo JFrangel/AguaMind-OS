@@ -42,6 +42,21 @@
   let leaderboard = $state<any[]>([]);
   let mapView3D = $state<boolean>(false);   // toggle vista isometrica del mapa
 
+  // Datos sintéticos para el bar chart cuando el backend no responde aún.
+  // Patrón realista 24 h: valle nocturno + picos académicos 7-9, 12-13, 15-17.
+  const SYNTHETIC_HOURLY_BARS: { hour: string; consumption_l: number; losses_l: number; inflow_lmin: number; turbidity_ntu: number; tank_a_pct: number; phreatic_m: number }[] = (() => {
+    const pattern = [481, 502, 471, 488, 447, 481, 1927, 2850, 3088, 3108, 2775, 2666, 2546, 1484, 1443, 2521, 2358, 2443, 1864, 481, 504, 482, 473, 450];
+    return pattern.map((c, i) => ({
+      hour: `${String(i).padStart(2,'0')}:00`,
+      consumption_l: c,
+      losses_l: Math.round(c * (i >= 22 || i < 6 ? 0.45 : 0.13)),
+      inflow_lmin: 14 + (c / 200),
+      turbidity_ntu: 0.9 + Math.sin(i / 24 * Math.PI * 2) * 0.5,
+      tank_a_pct: 70 + Math.sin((i - 4) / 24 * Math.PI * 2) * 12,
+      phreatic_m: 7.9 + Math.cos(i / 24 * Math.PI * 2) * 0.3,
+    }));
+  })();
+
   // Datos sintéticos para charts de Tendencias (stacked area consumo vs pérdidas 24h)
   const STACK_DATA: { h: number; consumo: number; perdidas: number }[] = [
     {h: 0,  consumo: 12, perdidas: 8}, {h: 1,  consumo: 10, perdidas: 8},
@@ -378,7 +393,9 @@
   });
   onDestroy(() => clearInterval(interval));
 
-  const maxConsumption = $derived(Math.max(...history.map(h => h.consumption_l ?? 0), 1));
+  // Fallback: si el backend aún no respondió, usa los datos sintéticos
+  const displayHistory = $derived<any[]>(history.length > 0 ? history : SYNTHETIC_HOURLY_BARS);
+  const maxConsumption = $derived(Math.max(...displayHistory.map(h => h.consumption_l ?? 0), 1));
   const totalAnnualLoss = $derived((reading?.losses_l_min ?? 0) * 1440 * 365 * 3.5);
   const annualSaving  = $derived(totalAnnualLoss * 0.6);
 </script>
@@ -945,14 +962,18 @@
   <div class="flex items-center justify-between mb-4">
   <div>
   <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Consumo agregado por hora · barras</div>
-  <div class="text-[10px] text-slate-500 mt-0.5">{history.length} muestras del simulador en vivo</div>
+  <div class="text-[10px] text-slate-500 mt-0.5">{displayHistory.length} muestras {history.length > 0 ? 'del simulador en vivo' : '(simuladas · esperando backend)'}</div>
+  </div>
+  <div class="text-right">
+  <div class="text-[10px] text-slate-500 uppercase tracking-wider">Total 24h</div>
+  <div class="text-[14px] font-mono text-sky-400 font-semibold">{displayHistory.reduce((sum, h) => sum + (h.consumption_l ?? 0), 0).toLocaleString()} L</div>
   </div>
   </div>
   <div class="flex items-end gap-px h-32">
-  {#each history as h}
+  {#each displayHistory as h}
   <div class="flex-1 min-w-0 group relative">
   <div class="w-full bg-gradient-to-t from-sky-600 to-sky-400 hover:from-sky-500 hover:to-sky-300 rounded-t transition-colors"
-  style="height:{(h.consumption_l / maxConsumption) * 100}%"></div>
+  style="height:{Math.max(2, (h.consumption_l / maxConsumption) * 100)}%"></div>
   <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 text-[10px] bg-slate-900 border border-white/10 text-slate-200 px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none font-mono">
   {h.hour}: {(h.consumption_l ?? 0).toLocaleString()} L
   </div>
@@ -960,8 +981,8 @@
   {/each}
   </div>
   <div class="flex justify-between text-[9px] text-slate-600 font-mono mt-2">
-  {#each [0, Math.floor(history.length/4), Math.floor(history.length/2), Math.floor(history.length*3/4), history.length-1] as idx}
-  <span>{history[idx]?.hour ?? "—"}</span>
+  {#each [0, Math.floor(displayHistory.length/4), Math.floor(displayHistory.length/2), Math.floor(displayHistory.length*3/4), displayHistory.length-1] as idx}
+  <span>{displayHistory[idx]?.hour ?? "—"}</span>
   {/each}
   </div>
   </div>
@@ -982,7 +1003,7 @@
   </tr>
   </thead>
   <tbody>
-  {#each history.slice(-12).reverse() as h}
+  {#each displayHistory.slice(-12).reverse() as h}
   <tr class="border-b border-white/[0.03] hover:bg-white/[0.02]">
   <td class="py-1.5 px-2 text-slate-300">{h.hour}</td>
   <td class="text-right py-1.5 px-2 text-sky-300">{(h.consumption_l ?? 0).toLocaleString()}</td>
