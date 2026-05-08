@@ -954,11 +954,11 @@
   </div>
 
   <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
-  <svg viewBox="0 0 900 220" class="w-full h-auto">
+  <svg viewBox="0 0 900 220" class="w-full h-auto am-chart">
   <!-- Gridlines -->
   {#each [0, 25, 50, 75, 100] as pct}
-  <line x1="60" y1={30 + (100 - pct) * 1.6} x2="880" y2={30 + (100 - pct) * 1.6} stroke="rgba(255,255,255,0.05)"/>
-  <text x="55" y={34 + (100 - pct) * 1.6} text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="9" font-family="JetBrains Mono">{pct}%</text>
+  <line x1="60" y1={30 + (100 - pct) * 1.6} x2="880" y2={30 + (100 - pct) * 1.6} class="am-grid"/>
+  <text x="55" y={34 + (100 - pct) * 1.6} text-anchor="end" class="am-axis" font-size="9" font-family="JetBrains Mono">{pct}%</text>
   {/each}
 
   <!-- Área de pérdidas (abajo, rojo) -->
@@ -971,14 +971,14 @@
 
   <!-- Eje X labels -->
   {#each [0, 6, 12, 18, 23] as h}
-  <text x={60 + (h / 23) * 820} y="208" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9" font-family="JetBrains Mono">{String(h).padStart(2,'0')}h</text>
+  <text x={60 + (h / 23) * 820} y="208" text-anchor="middle" class="am-axis" font-size="9" font-family="JetBrains Mono">{String(h).padStart(2,'0')}h</text>
   {/each}
 
   <!-- Leyenda -->
   <rect x="700" y="35" width="14" height="10" fill="rgba(14,165,233,0.30)" stroke="#0ea5e9"/>
-  <text x="720" y="44" fill="rgba(255,255,255,0.7)" font-size="10" font-family="Inter">consumo real</text>
+  <text x="720" y="44" class="am-legend" font-size="10" font-family="Inter">consumo real</text>
   <rect x="700" y="55" width="14" height="10" fill="rgba(239,68,68,0.30)" stroke="#ef4444"/>
-  <text x="720" y="64" fill="rgba(255,255,255,0.7)" font-size="10" font-family="Inter">pérdidas técnicas</text>
+  <text x="720" y="64" class="am-legend" font-size="10" font-family="Inter">pérdidas técnicas</text>
   </svg>
   <div class="text-[10px] text-slate-500 mt-2">Las pérdidas representan ~10-15% del flujo total durante el día y crecen al ~50% del flujo nocturno (madrugada). Esto es justo lo que el método "tanques nocturnos" detecta y valida.</div>
   </div>
@@ -2313,6 +2313,14 @@
 
   /* Badge "Tú" del chat (bg-slate-700) en modo claro */
   :global(html.light) .am-root .bg-slate-700 { background: #cbd5e1; color: #0f172a; }
+
+  /* SVG charts: ejes, gridlines y leyendas que respondan al tema */
+  .am-root .am-grid    { stroke: rgba(255,255,255,0.05); }
+  .am-root .am-axis    { fill: rgba(255,255,255,0.5); }
+  .am-root .am-legend  { fill: rgba(255,255,255,0.7); }
+  :global(html.light) .am-root .am-grid    { stroke: rgba(15,23,42,0.10); }
+  :global(html.light) .am-root .am-axis    { fill: rgba(15,23,42,0.65); }
+  :global(html.light) .am-root .am-legend  { fill: rgba(15,23,42,0.85); }
 
   /* Burbujas Tanque A */
   @keyframes bubble1 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.7} 100%{transform:translateY(-100px);opacity:0} }
