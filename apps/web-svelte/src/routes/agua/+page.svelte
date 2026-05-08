@@ -463,24 +463,29 @@
   const totalAnnualLoss = $derived((reading?.losses_l_min ?? 0) * 1440 * 365 * 3.5);
   const annualSaving  = $derived(totalAnnualLoss * 0.6);
 
-  // KPIs derivados para tab Operación (CONSUMO, IEH, PÉRDIDA, ENERGÍA)
+  // Colores de tanques (derivados según nivel)
+  const tankAColor      = $derived((reading?.tank_a_pct ?? 0) < 33 ? "#ef4444" : (reading?.tank_a_pct ?? 0) < 67 ? "#f59e0b" : "#0ea5e9");
+  const tankAColorLight = $derived((reading?.tank_a_pct ?? 0) < 33 ? "#fca5a5" : (reading?.tank_a_pct ?? 0) < 67 ? "#fbbf24" : "#7dd3fc");
+  const tankBColor      = $derived((reading?.tank_b_pct ?? 0) < 33 ? "#ef4444" : "#06b6d4");
+  const tankBColorLight = $derived((reading?.tank_b_pct ?? 0) < 33 ? "#fca5a5" : "#a5f3fc");
+
+  // KPIs derivados para tab Operación (4 KPIs solicitados)
   const tppValue       = $derived(kpis?.TPP?.value ?? 0);
   const iehValue       = $derived(kpis?.IEH?.value ?? Math.max(0, 100 - tppValue));
   const iehStatusVal   = $derived(kpis?.IEH?.status ?? (iehValue >= 90 ? 'ok' : iehValue >= 75 ? 'warning' : 'critical'));
   const tppStatusVal   = $derived(kpis?.TPP?.status ?? 'ok');
-  const consumoDiario  = $derived(Math.round((reading?.total_flow_lmin ?? 0) * 1440));
-  // Energía desperdiciada en bombeo: pérdidas × 0.6 kWh/m³ (eficiencia bombas Barnes)
-  // UNIAJC se autoabastece del acuífero — paga ENERGÍA a EPSA, no agua a EMCALI
-  const lossesLitersDay = $derived(Math.round((reading?.losses_l_min ?? 0) * 1440));
-  const lossesM3Day     = $derived(lossesLitersDay / 1000);
-  const wastedKwhDay    = $derived(lossesM3Day * 0.6);   // kWh desperdiciados/día
-  const energyCostDay   = $derived(Math.round(wastedKwhDay * 650));  // tarifa EPSA $650/kWh
-  const energyStatus    = $derived(wastedKwhDay > 50 ? 'critical' : wastedKwhDay > 20 ? 'warning' : 'ok');
-  const mainKpis        = $derived([
-    { code: "CONSUMO",  name: "Consumo diario",     value: consumoDiario.toLocaleString(), unit: "L/día",  status: 'ok' as KPIStatus,           meta: "vs línea base 45,367 L" },
-    { code: "IEH",      name: "Eficiencia hídrica", value: fmt(iehValue, 1),                unit: "%",      status: iehStatusVal as KPIStatus,    meta: "meta > 90%" },
-    { code: "PÉRDIDA",  name: "TPP · pérdidas",     value: fmt(tppValue, 1),                unit: "%",      status: tppStatusVal as KPIStatus,    meta: "meta < 10%" },
-    { code: "ENERGÍA",  name: "kWh desperdiciados", value: fmt(wastedKwhDay, 1),            unit: "kWh/día",status: energyStatus as KPIStatus,    meta: "bombeo perdido · Ley 1931/2018" },
+  // Consumo diario real = demanda efectiva × 1440 (no caudal bombeado)
+  // demand_l_min es el agua que llega a usuarios; total_flow es bombeo + pérdidas
+  const consumoDiario  = $derived(Math.round(((reading as any)?.demand_l_min ?? (reading?.total_flow_lmin ?? 0) * 0.28) * 1440));
+  // Ahorro de agua vs línea base UNIAJC (45,367 L/día medidos por Sánchez Sotelo 2021)
+  const baselineLitersDay = 45_367;
+  const ahorroPct         = $derived(Math.max(-100, Math.min(100, ((baselineLitersDay - consumoDiario) / baselineLitersDay) * 100)));
+  const ahorroStatus      = $derived(ahorroPct >= 10 ? 'ok' : ahorroPct >= 0 ? 'warning' : 'critical');
+  const mainKpis          = $derived([
+    { code: "CONSUMO",  name: "Consumo total diario",   value: consumoDiario.toLocaleString(), unit: "L/día",  status: 'ok' as KPIStatus,        meta: `línea base ${baselineLitersDay.toLocaleString()} L` },
+    { code: "FUGAS",    name: "Pérdidas por fuga",      value: fmt(tppValue, 1),                unit: "%",      status: tppStatusVal as KPIStatus, meta: "meta < 10% (TPP)" },
+    { code: "AHORRO",   name: "Ahorro de agua",         value: fmt(ahorroPct, 1),                unit: "%",      status: ahorroStatus as KPIStatus, meta: `vs línea base UNIAJC` },
+    { code: "IEH",      name: "Eficiencia hídrica",     value: fmt(iehValue, 1),                unit: "%",      status: iehStatusVal as KPIStatus, meta: "meta > 90%" },
   ]);
 
   // Sensores derivados (5: Caudal, Riego, Presión, Nivel, Humedad)
@@ -695,48 +700,93 @@
   <!-- Main grid: 2 tanques + sensores -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-5">
 
-  <!-- Tanque A visual -->
+  <!-- Tanque A visual con olas animadas -->
   <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-  <div class="flex items-center justify-between mb-4">
-  <div>
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Tanque A · Principal</div>
-  <div class="text-[10px] text-slate-600 mt-0.5">36,000 L · Bomba {reading.pump_active ? "ACTIVA" : "OFF"}</div>
-  </div>
-  <div class="text-[10px] font-mono text-slate-500">{fmtK(reading.tank_a_l)} L</div>
-  </div>
-  <div class="relative h-36 bg-[#060a10] rounded-lg overflow-hidden border border-white/[0.04]">
-  <div
-  class="absolute bottom-0 left-0 right-0 transition-all duration-1000"
-  style="height:{reading.tank_a_pct}%;background:{reading.tank_a_pct < 33 ? 'linear-gradient(180deg,#fca5a5,#ef4444)' : reading.tank_a_pct < 67 ? 'linear-gradient(180deg,#fbbf24,#f59e0b)' : 'linear-gradient(180deg,#7dd3fc,#0ea5e9)'}"
-  ></div>
-  <div class="absolute inset-0 flex items-center justify-center">
-  <span class="text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace">{fmt(reading.tank_a_pct)}%</span>
-  </div>
-  <!-- Línea umbral bomba -->
-  <div class="absolute left-0 right-0 border-t border-amber-500/40 border-dashed" style="bottom:66.7%">
-  <span class="absolute right-2 -top-3 text-[9px] text-amber-500/80 font-mono">66.7% · bomba</span>
-  </div>
-  </div>
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Tanque A · Principal</div>
+        <div class="text-[10px] text-slate-600 mt-0.5">36,000 L · Bomba {reading.pump_active ? "ACTIVA" : "OFF"}</div>
+      </div>
+      <div class="text-[10px] font-mono text-slate-500">{fmtK(reading.tank_a_l)} L</div>
+    </div>
+    <div class="relative h-36 bg-[#060a10] rounded-lg overflow-hidden border border-white/[0.04]">
+      <!-- Agua con olas animadas SVG -->
+      <div class="absolute bottom-0 left-0 right-0 transition-all duration-1000" style="height:{reading.tank_a_pct}%">
+        <!-- Cuerpo de agua con gradiente -->
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,{tankAColorLight},{tankAColor})"></div>
+        <!-- Olas SVG animadas en la superficie -->
+        <svg class="absolute -top-3 left-0 right-0 w-full h-6" viewBox="0 0 1200 24" preserveAspectRatio="none">
+          <path d="M 0 12 Q 100 0 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z" fill={tankAColorLight} opacity="0.85">
+            <animate attributeName="d" dur="3s" repeatCount="indefinite"
+              values="M 0 12 Q 100 0 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z;
+                      M 0 12 Q 100 24 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z;
+                      M 0 12 Q 100 0 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z"/>
+          </path>
+          <path d="M 0 16 Q 150 4 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z" fill={tankAColor} opacity="0.6">
+            <animate attributeName="d" dur="4s" repeatCount="indefinite"
+              values="M 0 16 Q 150 4 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z;
+                      M 0 16 Q 150 24 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z;
+                      M 0 16 Q 150 4 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z"/>
+          </path>
+        </svg>
+        <!-- Burbujas de aire ascendiendo -->
+        {#each [1,2,3] as i}
+          <span class="absolute rounded-full bg-white/40" style="
+            width:{4+i*2}px; height:{4+i*2}px;
+            left:{15+i*30}%; bottom:{i*15}%;
+            animation: bubble{i} {3+i}s ease-in infinite;
+            animation-delay:{i*0.7}s"></span>
+        {/each}
+      </div>
+      <!-- Porcentaje centrado -->
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span class="text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6)">{fmt(reading.tank_a_pct)}%</span>
+      </div>
+      <!-- Línea umbral bomba -->
+      <div class="absolute left-0 right-0 border-t border-amber-500/40 border-dashed" style="bottom:66.7%">
+        <span class="absolute right-2 -top-3 text-[9px] text-amber-500/80 font-mono">66.7% · bomba</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Tanque B visual -->
+  <!-- Tanque B visual con olas animadas -->
   <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-  <div class="flex items-center justify-between mb-4">
-  <div>
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Tanque B · Distribución</div>
-  <div class="text-[10px] text-slate-600 mt-0.5">16,000 L</div>
-  </div>
-  <div class="text-[10px] font-mono text-slate-500">{fmtK(reading.tank_b_l)} L</div>
-  </div>
-  <div class="relative h-36 bg-[#060a10] rounded-lg overflow-hidden border border-white/[0.04]">
-  <div
-  class="absolute bottom-0 left-0 right-0 transition-all duration-1000"
-  style="height:{reading.tank_b_pct}%;background:{reading.tank_b_pct < 33 ? 'linear-gradient(180deg,#fca5a5,#ef4444)' : 'linear-gradient(180deg,#a5f3fc,#06b6d4)'}"
-  ></div>
-  <div class="absolute inset-0 flex items-center justify-center">
-  <span class="text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace">{fmt(reading.tank_b_pct)}%</span>
-  </div>
-  </div>
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Tanque B · Distribución</div>
+        <div class="text-[10px] text-slate-600 mt-0.5">16,000 L</div>
+      </div>
+      <div class="text-[10px] font-mono text-slate-500">{fmtK(reading.tank_b_l)} L</div>
+    </div>
+    <div class="relative h-36 bg-[#060a10] rounded-lg overflow-hidden border border-white/[0.04]">
+      <div class="absolute bottom-0 left-0 right-0 transition-all duration-1000" style="height:{reading.tank_b_pct}%">
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,{tankBColorLight},{tankBColor})"></div>
+        <svg class="absolute -top-3 left-0 right-0 w-full h-6" viewBox="0 0 1200 24" preserveAspectRatio="none">
+          <path d="M 0 12 Q 100 0 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z" fill={tankBColorLight} opacity="0.85">
+            <animate attributeName="d" dur="3.5s" repeatCount="indefinite"
+              values="M 0 12 Q 100 0 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z;
+                      M 0 12 Q 100 24 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z;
+                      M 0 12 Q 100 0 200 12 T 400 12 T 600 12 T 800 12 T 1000 12 T 1200 12 V 24 H 0 Z"/>
+          </path>
+          <path d="M 0 16 Q 150 4 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z" fill={tankBColor} opacity="0.6">
+            <animate attributeName="d" dur="4.5s" repeatCount="indefinite"
+              values="M 0 16 Q 150 4 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z;
+                      M 0 16 Q 150 24 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z;
+                      M 0 16 Q 150 4 300 16 T 600 16 T 900 16 T 1200 16 V 24 H 0 Z"/>
+          </path>
+        </svg>
+        {#each [1,2,3] as i}
+          <span class="absolute rounded-full bg-white/40" style="
+            width:{3+i*2}px; height:{3+i*2}px;
+            left:{20+i*25}%; bottom:{i*12}%;
+            animation: bubbleB{i} {3.5+i}s ease-in infinite;
+            animation-delay:{i*0.5}s"></span>
+        {/each}
+      </div>
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span class="text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6)">{fmt(reading.tank_b_pct)}%</span>
+      </div>
+    </div>
   </div>
 
   <!-- 5 sensores compactos -->
@@ -2320,4 +2370,13 @@
 
   /* Header sticky */
   :global(html.light) .am-root header.sticky { background: rgba(248, 250, 252, 0.95); }
+
+  /* Burbujas Tanque A */
+  @keyframes bubble1 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.7} 100%{transform:translateY(-100px);opacity:0} }
+  @keyframes bubble2 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.6} 100%{transform:translateY(-120px);opacity:0} }
+  @keyframes bubble3 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.5} 100%{transform:translateY(-90px);opacity:0} }
+  /* Burbujas Tanque B */
+  @keyframes bubbleB1 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.7} 100%{transform:translateY(-95px);opacity:0} }
+  @keyframes bubbleB2 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.6} 100%{transform:translateY(-110px);opacity:0} }
+  @keyframes bubbleB3 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.5} 100%{transform:translateY(-85px);opacity:0} }
 </style>
