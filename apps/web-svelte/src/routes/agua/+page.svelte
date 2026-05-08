@@ -305,14 +305,8 @@
   } catch {}
   }
 
-  // Estado del último envío Telegram (para mostrar feedback en UI)
-  let telegramFeedback = $state<{visible: boolean; ok: boolean; msg: string}>({visible:false, ok:false, msg:""});
-
-  function flashTelegram(ok: boolean, msg: string) {
-    telegramFeedback = { visible: true, ok, msg };
-    setTimeout(() => telegramFeedback = { visible: false, ok: false, msg: "" }, 4500);
-  }
-
+  // Notificaciones a Telegram — sin feedback visible en el dashboard (silencioso por diseño:
+  // la sorpresa del pitch es que llega al celular, no que el dashboard cante).
   async function notifyTelegram(endpoint: string, body: any) {
     try {
       const res = await fetch(`/api/water?endpoint=notify/${endpoint}`, {
@@ -321,13 +315,8 @@
         body: JSON.stringify(body),
       });
       const json = await res.json();
-      const sent = json.data?.sent;
-      flashTelegram(sent, sent
-        ? `Telegram → mensaje enviado al operador on-call`
-        : `Telegram desactivado · ${json.data?.hint ?? json.data?.reason ?? "configurar TELEGRAM_BOT_TOKEN"}`);
-      return sent;
-    } catch (e) {
-      flashTelegram(false, "Error contactando al servicio Telegram");
+      return json.data?.sent === true;
+    } catch (_e) {
       return false;
     }
   }
@@ -613,24 +602,6 @@
   {/each}
   </ul>
   </div>
-  </div>
-  {/if}
-
-  <!-- Toast feedback Telegram (flotante, esquina superior derecha) -->
-  {#if telegramFeedback.visible}
-  <div class="fixed top-4 right-4 z-50 max-w-sm rounded-lg border px-4 py-3 shadow-lg backdrop-blur-md transition-all"
-    style="background: {telegramFeedback.ok ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.10)'}; border-color: {telegramFeedback.ok ? '#10b981' : '#f59e0b'};">
-    <div class="flex items-start gap-2.5">
-      <span class="text-[16px]">{telegramFeedback.ok ? '✈️' : '⚠️'}</span>
-      <div class="flex-1 min-w-0">
-        <div class="text-[11px] font-medium {telegramFeedback.ok ? 'text-emerald-300' : 'text-amber-300'}">
-          {telegramFeedback.ok ? 'Notificación enviada' : 'Telegram no configurado'}
-        </div>
-        <div class="text-[10px] text-slate-400 mt-0.5 leading-snug">{telegramFeedback.msg}</div>
-      </div>
-      <button onclick={() => telegramFeedback = {visible:false, ok:false, msg:""}}
-        class="text-slate-500 hover:text-slate-200 text-[14px] leading-none">×</button>
-    </div>
   </div>
   {/if}
 
