@@ -1,5 +1,5 @@
 """
-WaterMind OS - Normalizador universal de sensores.
+Camaleón OS - Normalizador universal de sensores.
 
 Pipeline:
   payload (cualquier formato) -> detector -> adapter -> registry -> CanonicalReading

@@ -1,4 +1,4 @@
-# AQUA-ROI Lite UNIAJC — integración con WaterMind OS
+# AQUA-ROI Lite UNIAJC — integración con Camaleón OS
 
 > Versión piloto del proyecto, aportada por el equipo de Electrónica.
 > Documento original: `AQUA-ROI_Lite_UNIAJC_documento_entregable.docx`
@@ -70,11 +70,11 @@ AQUA-ROI Lite es un sistema **modular** de monitoreo y decisión que inicia con 
 | **Interfaz** | Dashboard web · semáforo local LED + buzzer | Traduce datos técnicos en alertas comprensibles |
 | _Agente Aqua-ROI_ | Reglas en Python/Node-RED | Detecta fugas, riego innecesario, anomalías de bombas |
 
-### 2.3 Equivalencia con la arquitectura de 7 capas de WaterMind OS
+### 2.3 Equivalencia con la arquitectura de 7 capas de Camaleón OS
 
-WaterMind OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi-agente.
+Camaleón OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi-agente.
 
-| Capa WaterMind (7) | Capa AQUA-ROI (5) | Equivalencia |
+| Capa Camaleón (7) | Capa AQUA-ROI (5) | Equivalencia |
 |--------------------|--------------------|---------------|
 | 1 · Física | — | implícita en AQUA-ROI |
 | 2 · Sensado | 1 · Sensado | 1:1 |
@@ -219,7 +219,7 @@ WaterMind OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi
 
 ## 10. Matriz de cumplimiento de la rúbrica
 
-| Criterio | Peso | Cómo lo cumple AQUA-ROI Lite (+ WaterMind) | Meta |
+| Criterio | Peso | Cómo lo cumple AQUA-ROI Lite (+ Camaleón) | Meta |
 |----------|------|--------------------------------------------|------|
 | Viabilidad técnica | 30% | Sensores accesibles + PTAP existente + software libre + modo manual | Excelente |
 | Aplicación industrial | 30% | Entradas, procesos, usos, variables, indicadores, mudas, Ishikawa, mejoras, costo-beneficio | Excelente |
@@ -228,9 +228,9 @@ WaterMind OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi
 
 ---
 
-## 11. Cómo se integra en WaterMind OS
+## 11. Cómo se integra en Camaleón OS
 
-AQUA-ROI Lite no es un proyecto separado — es la **versión piloto realista** del proyecto integrado. WaterMind OS es la plataforma que recibe los datos del piloto AQUA-ROI Lite. El backend de WaterMind:
+AQUA-ROI Lite no es un proyecto separado — es la **versión piloto realista** del proyecto integrado. Camaleón OS es la plataforma que recibe los datos del piloto AQUA-ROI Lite. El backend de Camaleón:
 
 - **Acepta los 2 sensores nuevos** que AQUA-ROI introduce (corriente SCT-013-030, humedad capacitiva) vía el normalizador universal de sensores en `services/api/app/sensors/registry.py`.
 - **Calcula los 2 KPIs nuevos** (kWh/m³ y disponibilidad PTAP) en `_calc_kpis()` de `water.py`.
@@ -246,4 +246,4 @@ AQUA-ROI Lite no es un proyecto separado — es la **versión piloto realista** 
 
 ---
 
-*v1.0 · 8 de mayo de 2026 · entregado por equipo Electrónica · integrado a WaterMind OS por equipo Sistemas*
+*v1.0 · 8 de mayo de 2026 · entregado por equipo Electrónica · integrado a Camaleón OS por equipo Sistemas*

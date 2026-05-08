@@ -1,5 +1,5 @@
 """
-WaterMind OS — Telegram handlers for water management commands.
+Camaleón OS — Telegram handlers for water management commands.
 
 Commands:
   /agua           — show current system status (quick summary)
@@ -63,7 +63,7 @@ async def agua_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     pump_active = d.get("pump_active", False)
 
     lines = [
-        "💧 *WaterMind OS — UNIAJC Sede Sur*",
+        "💧 *Camaleón OS — UNIAJC Sede Sur*",
         f"🕐 `{d['timestamp'][:19]}`",
         "",
         "📊 *Caudales y red*",
@@ -140,7 +140,7 @@ async def kpis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await msg.edit_text(f"❌ Backend no disponible: {e}")
         return
 
-    lines = ["📊 *KPIs — WaterMind OS*", ""]
+    lines = ["📊 *KPIs — Camaleón OS*", ""]
     for name, kpi in d.items():
         lines += [
             f"{_status_emoji(kpi['status'])} *{name}* — {kpi.get('unit', '')}",
@@ -380,7 +380,7 @@ async def sensores(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     flow2 = d.get("flow2_lmin", 0)
 
     lines = [
-        "📡 *Los 6 Sensores — WaterMind Node*",
+        "📡 *Los 6 Sensores — Camaleón Node*",
         "",
         "*1. Caudal* (YF-S201 ×2)",
         f"   Aljibe 1: `{flow1} L/min` · Aljibe 2: `{flow2} L/min`",

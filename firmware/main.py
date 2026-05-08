@@ -1,5 +1,5 @@
 """
-WaterMind OS — Firmware ESP32 (MicroPython)
+Camaleón OS — Firmware ESP32 (MicroPython)
 Loop principal del nodo IoT en la PTAP UNIAJC.
 
 Flujo:
@@ -16,7 +16,7 @@ import network
 
 import config as cfg
 from sensors import SensorBoard
-from mqtt_client import WaterMindMQTT
+from mqtt_client import CamaleónMQTT
 from display import LocalDisplay
 
 
@@ -83,13 +83,13 @@ def aggregate_buffer(buffer: list[dict]) -> dict:
 # ── Loop principal ───────────────────────────────────────────────────────
 def main():
     print("=" * 50)
-    print(f"WaterMind OS · ESP32 Firmware v{cfg.FIRMWARE_VERSION}")
+    print(f"Camaleón OS · ESP32 Firmware v{cfg.FIRMWARE_VERSION}")
     print(f"Node: {cfg.NODE_ID} @ {cfg.NODE_LOCATION}")
     print("=" * 50)
 
     # Inicializar interfaz local
     display = LocalDisplay()
-    display.show_message("WaterMind OS", "Iniciando...", "v" + cfg.FIRMWARE_VERSION)
+    display.show_message("Camaleón OS", "Iniciando...", "v" + cfg.FIRMWARE_VERSION)
     display.set_status("info")
 
     # WiFi
@@ -106,7 +106,7 @@ def main():
         display.set_status("warning")
 
     # MQTT
-    mqtt = WaterMindMQTT()
+    mqtt = CamaleónMQTT()
     if wifi_ok:
         mqtt.connect()
 
@@ -120,7 +120,7 @@ def main():
         return
 
     print("[INIT] Sistema operacional · entrando al loop principal")
-    display.show_message("WaterMind OS", "Operacional", "Loop activo")
+    display.show_message("Camaleón OS", "Operacional", "Loop activo")
     display.set_status("ok")
 
     buffer = []
@@ -185,7 +185,7 @@ def main():
             time.sleep(5)
 
     mqtt.disconnect()
-    display.show_message("WaterMind OS", "Detenido", "")
+    display.show_message("Camaleón OS", "Detenido", "")
     display.set_status("info")
 
 

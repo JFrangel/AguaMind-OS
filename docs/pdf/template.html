@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>WaterMind OS — Hackathon UNIAJC 2026</title>
+<title>Camaleón OS — Hackathon UNIAJC 2026</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -10,7 +10,7 @@
 <!-- ══ PORTADA ═════════════════════════════════════════════════════════ -->
 <div class="cover">
   <div class="logo">💧</div>
-  <h1>WaterMind OS</h1>
+  <h1>Camaleón OS</h1>
   <div class="subtitle">Sistema Inteligente de Gestión Hídrica<br>UNIAJC Sede Sur</div>
 
   <div class="meta">
@@ -22,18 +22,18 @@
 
   <div class="footer">
     Equipo: Ingeniería de Sistemas + Electrónica + Industrial<br>
-    Repositorio: github.com/JFrangel/WaterMind-OS
+    Repositorio: github.com/JFrangel/Camaleón-OS
   </div>
 </div>
 
 <!-- ══ RESUMEN EJECUTIVO ═══════════════════════════════════════════════ -->
 <h2>1. Resumen Ejecutivo</h2>
 
-<p><strong>WaterMind OS</strong> es un sistema inteligente que mide, analiza y optimiza el consumo de agua del campus UNIAJC Sede Sur en tiempo real. Combina <strong>6 sensores IoT</strong>, <strong>4 agentes de inteligencia artificial autónomos</strong>, un <strong>dashboard web moderno</strong> y un <strong>bot de Telegram</strong>.</p>
+<p><strong>Camaleón OS</strong> es un sistema inteligente que mide, analiza y optimiza el consumo de agua del campus UNIAJC Sede Sur en tiempo real. Combina <strong>6 sensores IoT</strong>, <strong>4 agentes de inteligencia artificial autónomos</strong>, un <strong>dashboard web moderno</strong> y un <strong>bot de Telegram</strong>.</p>
 
 <div class="callout">
 <strong>Problema:</strong> La PTAP instalada en 2011 funciona sin medición → entre 20% y 30% de pérdidas invisibles equivalentes a <strong>$19,3 millones COP/año</strong> desperdiciados.<br><br>
-<strong>Solución:</strong> WaterMind OS detecta fugas en menos de 5 minutos, alerta automáticamente y toma decisiones autónomas. Inversión: <strong>$1,043,000 COP</strong>. Recuperación: <strong>~21 días</strong>. TIR: <strong>&gt; 1,000%</strong>.
+<strong>Solución:</strong> Camaleón OS detecta fugas en menos de 5 minutos, alerta automáticamente y toma decisiones autónomas. Inversión: <strong>$1,043,000 COP</strong>. Recuperación: <strong>~21 días</strong>. TIR: <strong>&gt; 1,000%</strong>.
 </div>
 
 <h3>1.1 Datos del campus (fuentes UNIAJC 2024-2025)</h3>
@@ -59,7 +59,7 @@
 
 <pre>
 ┌─────────────────────────────────────────────────────────────────┐
-│                     WaterMind OS — Arquitectura                   │
+│                     Camaleón OS — Arquitectura                   │
 │                                                                   │
 │  ┌──────────┐   ┌──────────────┐   ┌────────────────────┐       │
 │  │  ESP32   │──▶│   FastAPI    │──▶│  Multi-Agente IA   │       │
@@ -74,7 +74,7 @@
 </pre>
 
 <h3>2.2 Sistema Multi-Agente (innovación principal)</h3>
-<p>El núcleo de WaterMind OS es un sistema de <strong>4 agentes especializados</strong> coordinados por un orquestador, todos implementados en LangGraph:</p>
+<p>El núcleo de Camaleón OS es un sistema de <strong>4 agentes especializados</strong> coordinados por un orquestador, todos implementados en LangGraph:</p>
 
 <table>
 <tr><th>Agente</th><th>Responsabilidad</th><th>Decide sobre</th></tr>
@@ -159,7 +159,7 @@ OLED SSD1306  ◀── I2C bus (SDA=21, SCL=22)
 <h3>3.3 Arquitectura Embebida — 4 Módulos</h3>
 <pre>
 ┌──────────────────────────────────────────────────────────────────┐
-│              WaterMind Node v1 — ESP32-WROOM-32                    │
+│              Camaleón Node v1 — ESP32-WROOM-32                    │
 │                                                                    │
 │  ┌─────────────────┐    ┌──────────────────────────────────────┐  │
 │  │    SENSADO      │    │         PROCESAMIENTO                 │  │
@@ -289,7 +289,7 @@ Acuífero 5M L ──▶ Aljibe1 ──▶ Filtro Arena                Aseo Pers
 <h3>4.6 Propuestas de Mejora Operativa</h3>
 
 <div class="callout">
-<strong>Acción 1 — Instrumentación IoT con WaterMind Node</strong><br>
+<strong>Acción 1 — Instrumentación IoT con Camaleón Node</strong><br>
 <em>Inversión:</em> $1,043,000 COP · <em>ROI:</em> ~21 días<br>
 6 sensores + ESP32 + dashboard + agente IA. Reduce TPP de 25% a 10%, detecta fugas en &lt; 5 min. Elimina mudas de Defectos y Espera.
 </div>
@@ -314,7 +314,7 @@ Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000
 <tr><td>Pérdida en 5 años (sin acción)</td><td>$96,579,000 COP</td></tr>
 </table>
 
-<h3>5.2 Inversión WaterMind OS</h3>
+<h3>5.2 Inversión Camaleón OS</h3>
 <table>
 <tr><th>Concepto</th><th>Valor</th></tr>
 <tr><td>Hardware (ESP32 + 6 sensores)</td><td>$693,000 COP</td></tr>
@@ -344,7 +344,7 @@ Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000
 </table>
 
 <div class="success">
-<strong>Conclusión financiera:</strong> WaterMind OS se paga solo en menos de un mes y genera un retorno acumulado de más de $90 millones COP en 5 años, sin contar beneficios ambientales y reputacionales.
+<strong>Conclusión financiera:</strong> Camaleón OS se paga solo en menos de un mes y genera un retorno acumulado de más de $90 millones COP en 5 años, sin contar beneficios ambientales y reputacionales.
 </div>
 
 <!-- ══ ODS Y CIERRE ════════════════════════════════════════════════════ -->
@@ -352,7 +352,7 @@ Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000
 
 <h3>6.1 Objetivos de Desarrollo Sostenible Impactados</h3>
 <table>
-<tr><th>ODS</th><th>Aporte de WaterMind OS</th></tr>
+<tr><th>ODS</th><th>Aporte de Camaleón OS</th></tr>
 <tr><td><strong>ODS 6 — Agua limpia</strong></td><td>Reduce pérdidas 25%→10%, monitorea calidad (turbidez)</td></tr>
 <tr><td><strong>ODS 4 — Educación de calidad</strong></td><td>Modelo educativo de sostenibilidad para ingeniería</td></tr>
 <tr><td><strong>ODS 9 — Industria e innovación</strong></td><td>IoT + IA aplicado con inversión mínima</td></tr>
@@ -360,7 +360,7 @@ Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000
 <tr><td><strong>ODS 13 — Acción climática</strong></td><td>Reduce huella de carbono (~2.3 ton CO₂/año)</td></tr>
 </table>
 
-<h3>6.2 Por qué WaterMind OS gana el hackathon</h3>
+<h3>6.2 Por qué Camaleón OS gana el hackathon</h3>
 
 <div class="callout">
 <strong>Novedad (30%):</strong> primer sistema multi-agente IA + IoT + Telegram para gestión hídrica universitaria en Colombia.<br><br>
@@ -371,7 +371,7 @@ Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000
 
 <h3>6.3 Próximos Pasos (Roadmap Post-Hackathon)</h3>
 <ol>
-  <li><strong>Mes 1:</strong> Piloto WaterMind Node en la PTAP (1 nodo)</li>
+  <li><strong>Mes 1:</strong> Piloto Camaleón Node en la PTAP (1 nodo)</li>
   <li><strong>Mes 2-3:</strong> Expansión a 5 nodos (zonas críticas)</li>
   <li><strong>Mes 4-6:</strong> Replicación en otras sedes UNIAJC</li>
   <li><strong>Mes 7+:</strong> Publicación open source + acompañamiento universidades de la región</li>
@@ -393,10 +393,10 @@ Riego nocturno (22:00–05:00) controlado por agente IA. Reduce consumo de 4,000
 </ol>
 
 <div class="footer-signature">
-WaterMind OS · Sistema Inteligente de Gestión Hídrica<br>
+Camaleón OS · Sistema Inteligente de Gestión Hídrica<br>
 Hackathon UNIAJC 2026 · Facultad de Ingeniería · Cali, Colombia<br>
 Equipo: Ingeniería de Sistemas + Electrónica + Industrial<br>
-Repositorio: github.com/JFrangel/WaterMind-OS<br>
+Repositorio: github.com/JFrangel/Camaleón-OS<br>
 Documento generado: 7 de mayo de 2026
 </div>
 

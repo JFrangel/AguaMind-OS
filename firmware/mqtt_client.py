@@ -1,5 +1,5 @@
 """
-WaterMind OS — Cliente MQTT para ESP32 (MicroPython).
+Camaleón OS — Cliente MQTT para ESP32 (MicroPython).
 Publica lecturas a HiveMQ Cloud o broker local cada 30 segundos.
 Si MQTT falla, hace fallback a HTTP POST /water/ingest.
 """
@@ -19,7 +19,7 @@ except ImportError:
     requests = None
 
 
-class WaterMindMQTT:
+class CamaleónMQTT:
     def __init__(self):
         self.client = None
         self.connected = False

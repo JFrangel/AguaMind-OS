@@ -1,4 +1,4 @@
-# WaterMind OS — Análisis Inteligente y Arquitectura por Capas
+# Camaleón OS — Análisis Inteligente y Arquitectura por Capas
 
 > **Para qué sirve este documento.** Responde dos preguntas que el jurado va a hacer:
 > 1. *"¿Qué TIPO de análisis hace cada agente?"* → la trinidad analítica (sección 1).
@@ -11,7 +11,7 @@
 
 ## Tabla de contenido
 
-1. [La trinidad analítica de WaterMind](#1-la-trinidad-analítica-de-watermind)
+1. [La trinidad analítica de Camaleón](#1-la-trinidad-analítica-de-camaleon)
   - 1.1 Análisis Descriptivo
   - 1.2 Análisis Predictivo
   - 1.3 Análisis Prescriptivo
@@ -28,9 +28,9 @@
 
 ---
 
-## 1. La trinidad analítica de WaterMind
+## 1. La trinidad analítica de Camaleón
 
-> *Un solo agente respondería "hay un problema". WaterMind responde tres preguntas: **qué pasó, qué va a pasar, qué hacemos**.*
+> *Un solo agente respondería "hay un problema". Camaleón responde tres preguntas: **qué pasó, qué va a pasar, qué hacemos**.*
 
 ```mermaid
 flowchart LR
@@ -61,7 +61,7 @@ flowchart LR
 
 **Objetivo:** caracterizar el sistema hídrico con base en datos crudos. Es la base sobre la que todo lo demás se construye.
 
-| Técnica | Implementación WaterMind | Ejemplo concreto |
+| Técnica | Implementación Camaleón | Ejemplo concreto |
 |---------|--------------------------|-------------------|
 | **Tendencias** | Series temporales por sensor (caudal, presión, nivel) — ventana móvil 24 h | "El consumo del Bloque A creció 12% mes a mes desde marzo" |
 | **Promedios** | Media, mediana, desviación estándar, p50/p95/p99 por hora del día | "La presión nocturna promedio es 38 PSI ± 4" |
@@ -74,7 +74,7 @@ flowchart LR
 
 **Objetivo:** anticiparse a un problema usando los patrones aprendidos del histórico.
 
-| Técnica | Implementación WaterMind | Ejemplo concreto |
+| Técnica | Implementación Camaleón | Ejemplo concreto |
 |---------|--------------------------|-------------------|
 | **Regresión** | Lineal y Ridge para demanda diaria; ARIMA/Prophet para series temporales con estacionalidad | "Mañana entre 7-9 AM se proyecta demanda de 1,800 L/min ± 120" |
 | **Redes neuronales** | LSTM ligero (~50K params, CPU) para anomalías multivariadas (caudal + presión + vibración) | "Combinación de presión 28% baja + vibración SW-420 + caudal estable → 92% prob. de fuga oculta" |
@@ -86,11 +86,11 @@ flowchart LR
 
 **Objetivo:** dado lo que pasó (descriptivo) y lo que va a pasar (predictivo), **decidir y ejecutar la mejor acción**.
 
-| Técnica | Implementación WaterMind | Ejemplo concreto |
+| Técnica | Implementación Camaleón | Ejemplo concreto |
 |---------|--------------------------|-------------------|
 | **Predicción aplicada** | Toma las salidas predictivas y las traduce en una decisión accionable con triple validación (3 de 5 agentes deben coincidir) | "Pred. fuga 92% + costo evitado $14,500 L → acción `leak_response`" |
 | **Optimización** | Programación lineal para schedule de bombeo (minimizar kWh × tarifa horaria); reglas para apertura/cierre de EV-RC1 según humedad de suelo | "Bombear 22:00-06:00 a 25 PSI ahorra 40% energía sin afectar nivel de tanque A" |
-| **Simulación** | Escenarios "what-if" con el modelo Vensim (tesis Aristizábal & Largacha 2025): ¿qué pasa si baja cooperación al 0%, 15%, 50%? | "Cooperación 0% → colapso en 2 años. WaterMind activa campaña Smart Water Ledger" |
+| **Simulación** | Escenarios "what-if" con el modelo Vensim (tesis Aristizábal & Largacha 2025): ¿qué pasa si baja cooperación al 0%, 15%, 50%? | "Cooperación 0% → colapso en 2 años. Camaleón activa campaña Smart Water Ledger" |
 
 **Tecnología:** reglas declarativas + `scipy.optimize` + integración Vensim PySD. Implementación en `packages/agents/agentos_agents/nodes/mitigation.py` y `services/api/app/routers/mitigation.py`. **Quién lo ejecuta:** `MitigationAgent`, coordinado por `Orchestrator`.
 
@@ -433,4 +433,4 @@ flowchart LR
 
 ---
 
-*Documento técnico v1.0 · Hackathon UNIAJC 2026 · Repositorio: github.com/JFrangel/WaterMind-OS*
+*Documento técnico v1.0 · Hackathon UNIAJC 2026 · Repositorio: github.com/JFrangel/Camaleón-OS*

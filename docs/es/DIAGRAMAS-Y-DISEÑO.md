@@ -1,4 +1,4 @@
-# WaterMind OS — Diagramas, Arquitectura y Diseño
+# Camaleón OS — Diagramas, Arquitectura y Diseño
 
 > Documento técnico de diseño para el jurado del Hackathon UNIAJC 2026
 > Incluye: diagramas UML profesionales, arquitectura por capas, principios UCD,
@@ -11,13 +11,13 @@
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                                                                                │
-│                          WaterMind OS — Sistema Distribuido                     │
+│                          Camaleón OS — Sistema Distribuido                     │
 │                                                                                │
 ├─ CAPA DE PERCEPCIÓN ─────────────────────────────────────────────────────────┤
 │                                                                                │
 │   <<device>>           <<device>>           <<device>>                         │
 │   ┌──────────┐         ┌──────────┐         ┌──────────┐                      │
-│   │ WaterMind │         │ WaterMind │         │ WaterMind │   ← N nodos          │
+│   │ Camaleón │         │ Camaleón │         │ Camaleón │   ← N nodos          │
 │   │ Node 01  │         │ Node 02  │         │ Node N   │                       │
 │   │ (ESP32)  │         │ (ESP32)  │         │ (ESP32)  │                       │
 │   └────┬─────┘         └────┬─────┘         └────┬─────┘                      │
@@ -99,7 +99,7 @@
    ║                  Campus UNIAJC Sede Sur (Cali)                  ║
    ║                                                                  ║
    ║   ┌──────────────────┐                                          ║
-   ║   │  WaterMind Node   │  Punto de instalación: PTAP              ║
+   ║   │  Camaleón Node   │  Punto de instalación: PTAP              ║
    ║   │  ESP32-WROOM-32  │  Alimentación: 220V → HLK-PM01 → 5V      ║
    ║   │                  │  Backup: Batería 18650                    ║
    ║   │  6 sensores +    │  Conectividad: WiFi 2.4 GHz campus       ║
@@ -256,7 +256,7 @@
 
 ### Aplicados al Dashboard y Bot Telegram
 
-| # | Principio | Implementación en WaterMind OS |
+| # | Principio | Implementación en Camaleón OS |
 |---|-----------|-------------------------------|
 | **1** | **Visibilidad del estado** | KPIs (IEH, TPP, CPE, ICA) siempre visibles en la parte superior. Indicador "En vivo" pulsante. Última actualización en formato HH:MM:SS. |
 | **2** | **Coincidencia con el mundo real** | Lenguaje técnico hídrico familiar: "tanque", "caudal", "presión". Iconografía monocromática que evoca instrumentación industrial. |
@@ -275,7 +275,7 @@
 
 ### 7.1 Definición del producto
 
-**WaterMind OS** es una plataforma SaaS de gestión hídrica inteligente que combina:
+**Camaleón OS** es una plataforma SaaS de gestión hídrica inteligente que combina:
 
 ```
         Hardware IoT          +          IA Multi-Agente          =       Decisiones autónomas
@@ -302,7 +302,7 @@
 
 ### 7.3 Usuarios objetivo (Personas)
 
-| Persona | Necesidad | Cómo WaterMind la resuelve |
+| Persona | Necesidad | Cómo Camaleón la resuelve |
 |---------|-----------|---------------------------|
 | **Director de Mantenimiento** | Ver estado del sistema sin ir al sitio | Dashboard remoto + alertas Telegram |
 | **Operario PTAP** | Saber cuándo activar bomba | Pantalla OLED + LED RGB local |
@@ -357,7 +357,7 @@ Entregables: Demo funcional · PDF · Diagramas · Pitch ensayado
 09:00  Validar que backend + dashboard + simulador corren
 10:00  Inicia pitch · 5 min cronometrados
        ├─ 0:00–0:45  Problema (UNIAJC pierde $19M/año)
-       ├─ 0:45–1:30  Solución (WaterMind OS funcional)
+       ├─ 0:45–1:30  Solución (Camaleón OS funcional)
        ├─ 1:30–2:30  Demo en vivo (inyectar fuga · alerta Telegram)
        ├─ 2:30–3:15  Técnica (UML + circuito ESP32)
        ├─ 3:15–4:00  Industrial (KPIs · Ishikawa · ROI 21 días)
@@ -373,7 +373,7 @@ Entregables: Defensa · Premio (objetivo)
 ### Fase 3 · Piloto Real (Mes 1 post-hackathon)
 
 ```
-[Hito]  WaterMind Node físico instalado en PTAP UNIAJC
+[Hito]  Camaleón Node físico instalado en PTAP UNIAJC
 ─────────────────────────────────────────────────────
 Semana 1  Compra hardware (ESP32 + 6 sensores · ~$700K COP)
 Semana 2  Armado en protoboard · validación bench
@@ -400,7 +400,7 @@ Entregables: 5 nodos · Reporte ROI real · Caso de éxito
 ### Fase 5 · Replicación Regional (Meses 7-12)
 
 ```
-[Hito]  Otras universidades de Cali adoptan WaterMind OS
+[Hito]  Otras universidades de Cali adoptan Camaleón OS
 ───────────────────────────────────────────────────────
 Mes 7-9   Otras sedes UNIAJC (Norte, Centro)
 Mes 10-12 Univalle, Icesi, USB · paquete instalable
@@ -486,7 +486,7 @@ Entregables: Modelo escalable · Whitepaper publicado
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
 │                                                                         │
-│   DIFERENCIADORES CLAVE de WaterMind OS                                 │
+│   DIFERENCIADORES CLAVE de Camaleón OS                                 │
 │   ─────────────────────────────────────────                            │
 │                                                                         │
 │   [1]  Sistema multi-agente IA (no chatbot · 4 agentes especializados) │
@@ -503,5 +503,5 @@ Entregables: Modelo escalable · Whitepaper publicado
 
 ---
 
-*Documento de diseño técnico · WaterMind OS · Hackathon UNIAJC 2026*
+*Documento de diseño técnico · Camaleón OS · Hackathon UNIAJC 2026*
 *Sistema multi-agente de gestión hídrica · Datos reales · Open Source*

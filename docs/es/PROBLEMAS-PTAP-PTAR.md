@@ -2,7 +2,7 @@
 
 > Diagnóstico técnico de los problemas reales identificados en la planta de
 > tratamiento de agua potable (PTAP) y la planta de tratamiento de aguas
-> residuales (PTAR), y cómo WaterMind OS los ataca uno por uno.
+> residuales (PTAR), y cómo Camaleón OS los ataca uno por uno.
 
 ---
 
@@ -39,51 +39,51 @@ Aljibe 1  Aljibe 2 ──── derivación directa a Riego (SIN TRATAR)
 - **Consecuencia:** imposible saber cuánta agua entra, sale o se pierde.
 - **Magnitud:** pérdidas estimadas 20–30 % del caudal de entrada (≈ 9,073–13,610 L/día).
 - **Impacto económico:** $19.3 M COP/año desperdiciados.
-- **Solución WaterMind:** Nodo IoT con 6 sensores en PTAP (Fase 1) → visibilidad 100 % del flujo.
+- **Solución Camaleón:** Nodo IoT con 6 sensores en PTAP (Fase 1) → visibilidad 100 % del flujo.
 
 #### P2 — Pérdidas no contabilizadas
 - **Síntoma:** balance entrada vs. consumo arroja diferencia del 20–30 %.
 - **Causas probables:** fugas en uniones envejecidas, grifos mal cerrados, riego excesivo.
-- **Solución WaterMind:** TPP medible + IsolationForest detecta anomalías + hidrófono acústico identifica huella de fuga.
+- **Solución Camaleón:** TPP medible + IsolationForest detecta anomalías + hidrófono acústico identifica huella de fuga.
 
 #### P3 — Riego con agua tratada (proceso innecesario)
 - **Síntoma:** parte del agua que pasa por filtros termina en jardines/cancha.
 - **Consecuencia:** desperdicio de reactivos de filtración + costo energético.
 - **Cifra:** ~ 4,000 L/día riego, parcialmente desde aljibe 2 sin tratar (correcto), parcialmente desde tanques (incorrecto).
-- **Solución WaterMind:** EV-RC1 + higrómetros suelo → riego sólo cuando humedad < 60 % y desde aljibe 2.
+- **Solución Camaleón:** EV-RC1 + higrómetros suelo → riego sólo cuando humedad < 60 % y desde aljibe 2.
 
 #### P4 — Bombeo sin demanda real (sobreproducción)
 - **Síntoma:** la bomba activa cuando Tanque A < 24,000 L pero sin saber si la demanda lo justifica.
 - **Consecuencia:** consumo eléctrico + desgaste mecánico innecesario.
-- **Solución WaterMind:** relay SSR + lógica del agente (consultar histórico antes de decidir).
+- **Solución Camaleón:** relay SSR + lógica del agente (consultar histórico antes de decidir).
 
 #### P5 — Acuífero sobreexplotado en horas pico
 - **Síntoma:** sin medición del nivel freático, no se sabe si el acuífero se recupera.
 - **Riesgo:** colapso del sistema en escenario de cooperación 0 % (modelo Vensim de la tesis Aristizábal/Largacha 2025 lo demostró).
-- **Solución WaterMind:** transductor 4-20 mA en cada aljibe → nivel freático en tiempo real → reducción automática de extracción.
+- **Solución Camaleón:** transductor 4-20 mA en cada aljibe → nivel freático en tiempo real → reducción automática de extracción.
 
 #### P6 — Tuberías de más de 10 años sin mantenimiento
 - **Síntoma:** uniones de PVC/HG envejecidas con corrosión interna no visible.
 - **Riesgo:** rotura súbita aguas adentro de pared o subterráneas.
-- **Solución WaterMind:** SW-420 en codos críticos + hidrófonos para huella acústica + EV-A* para corte preventivo.
+- **Solución Camaleón:** SW-420 en codos críticos + hidrófonos para huella acústica + EV-A* para corte preventivo.
 
 #### P7 — Tanques sin medición de nivel
 - **Síntoma:** se ignora el nivel actual hasta inspección visual.
 - **Riesgo:** desbordamiento (presión exceso → más fugas) o vaciado (servicio interrumpido).
-- **Solución WaterMind:** JSN-SR04T en cada tanque con alerta automática.
+- **Solución Camaleón:** JSN-SR04T en cada tanque con alerta automática.
 
 #### P8 — Sin monitoreo de calidad del agua
 - **Síntoma:** los filtros podrían estar saturados sin que nadie lo note.
 - **Riesgo:** distribución de agua turbia → riesgo sanitario para 8,234 usuarios.
-- **Solución WaterMind:** TSD-10 a la salida del filtro de carbón → suspende distribución si NTU > 4.
+- **Solución Camaleón:** TSD-10 a la salida del filtro de carbón → suspende distribución si NTU > 4.
 
 #### P9 — Sin alertas ni KPIs
 - **Síntoma:** decisiones basadas en intuición o factura mensual.
-- **Solución WaterMind:** dashboard con IEH, TPP, CPE, ICA + Telegram push + reporte diario PDF.
+- **Solución Camaleón:** dashboard con IEH, TPP, CPE, ICA + Telegram push + reporte diario PDF.
 
 #### P10 — Aljibe 2 deriva directo a riego sin diferenciación operativa
 - **Síntoma:** mezcla de uso productivo y de riego en una sola línea.
-- **Solución WaterMind:** EV-RC1 con T-junction permite cortar el riego sin afectar el resto del sistema.
+- **Solución Camaleón:** EV-RC1 con T-junction permite cortar el riego sin afectar el resto del sistema.
 
 ---
 
@@ -126,25 +126,25 @@ PTAR Alameda          PTAR Entrada
   - Sólidos suspendidos ≤ 90 mg/L
   - Grasas y aceites ≤ 20 mg/L
 - **Realidad UNIAJC:** ningún parámetro se mide en línea.
-- **Solución WaterMind extendida:** sensores adicionales en salida PTAR (turbidez + pH + conductividad) → reporte automático a autoridad ambiental (CVC).
+- **Solución Camaleón extendida:** sensores adicionales en salida PTAR (turbidez + pH + conductividad) → reporte automático a autoridad ambiental (CVC).
 
 #### R3 — Impacto sobre cuenca río Pance y río Cauca
 - **Magnitud:** ~ 30,000 L/día de aguas residuales.
 - **Tesis Mosquera/Lozano (2024):** demostró el impacto de la comunidad académica sobre el ecosistema.
-- **Solución WaterMind:** dashboard público "Pulso del río Pance" mostrando descargas tratadas vs. límites normativos.
+- **Solución Camaleón:** dashboard público "Pulso del río Pance" mostrando descargas tratadas vs. límites normativos.
 
 #### R4 — Vínculo PTAP-PTAR no medido
 - **Problema:** lo que entra (PTAP) y lo que sale (PTAR) no se comparan.
 - **Consecuencia:** no se sabe el ratio uso real vs. evaporación/fugas.
-- **Solución WaterMind:** balance hídrico institucional automático.
+- **Solución Camaleón:** balance hídrico institucional automático.
 
 #### R5 — Mantenimiento reactivo
 - **Síntoma:** los lodos de la PTAR se retiran cuando hay olores o desbordes.
-- **Solución WaterMind extendida:** sensor de turbidez en cámara de lodos → alerta para purgas programadas.
+- **Solución Camaleón extendida:** sensor de turbidez en cámara de lodos → alerta para purgas programadas.
 
 ---
 
-## 3. Cómo WaterMind OS resuelve cada problema
+## 3. Cómo Camaleón OS resuelve cada problema
 
 | # | Problema | Sensor responsable | Acción del agente |
 |---|----------|--------------------|-------------------|
@@ -195,5 +195,5 @@ PTAR Alameda          PTAR Entrada
 
 ---
 
-*Diagnóstico técnico · WaterMind OS · Hackathon UNIAJC 2026*
+*Diagnóstico técnico · Camaleón OS · Hackathon UNIAJC 2026*
 *Fuentes: tesis UNIAJC 2024-2025 + observación directa*

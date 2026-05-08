@@ -1,4 +1,4 @@
-# WaterMind OS — Impacto Ambiental y Alineación con ODS
+# Camaleón OS — Impacto Ambiental y Alineación con ODS
 
 > Análisis profundo del impacto ecológico, alineación con los Objetivos de
 > Desarrollo Sostenible y métricas medibles de sostenibilidad.
@@ -31,7 +31,7 @@ Por cada 1,000 L de agua perdida en el campus:
 
 ---
 
-## 2. Impacto ambiental positivo de WaterMind OS
+## 2. Impacto ambiental positivo de Camaleón OS
 
 ### Métricas conservadoras (TPP de 25% a 10%)
 
@@ -55,52 +55,52 @@ Por cada 1,000 L de agua perdida en el campus:
 
 ## 3. Alineación con los 17 ODS
 
-WaterMind OS impacta **directamente 5 ODS** y **contribuye indirectamente a otros 7**:
+Camaleón OS impacta **directamente 5 ODS** y **contribuye indirectamente a otros 7**:
 
 ### Impacto directo
 
 #### ODS 6 — Agua Limpia y Saneamiento
 **Metas específicas atacadas:**
 - **6.4** — Aumentar la eficiencia en el uso de los recursos hídricos
-  - *Métrica WaterMind:* TPP 25% → 10% (-60% pérdidas)
+  - *Métrica Camaleón:* TPP 25% → 10% (-60% pérdidas)
 - **6.5** — Implementar la gestión integrada de los recursos hídricos
-  - *Métrica WaterMind:* sistema integrado sensores + IA + comunidad
+  - *Métrica Camaleón:* sistema integrado sensores + IA + comunidad
 - **6.b** — Apoyar la participación de las comunidades locales
-  - *Métrica WaterMind:* reportes QR + créditos hídricos + ranking
+  - *Métrica Camaleón:* reportes QR + créditos hídricos + ranking
 
 #### ODS 12 — Producción y Consumo Responsables
 **Metas específicas:**
 - **12.2** — Lograr la gestión sostenible y eficiente de los recursos naturales
-  - *Métrica WaterMind:* extracción acuífero monitoreada + reducida 30%
+  - *Métrica Camaleón:* extracción acuífero monitoreada + reducida 30%
 - **12.5** — Reducir la generación de desperdicios
-  - *Métrica WaterMind:* 7 mudas Lean atacadas + acción automática
+  - *Métrica Camaleón:* 7 mudas Lean atacadas + acción automática
 - **12.8** — Información y conocimiento en sostenibilidad
-  - *Métrica WaterMind:* dashboard público + reportes mensuales
+  - *Métrica Camaleón:* dashboard público + reportes mensuales
 
 #### ODS 13 — Acción por el Clima
 **Metas específicas:**
 - **13.3** — Mejorar la educación y sensibilización en mitigación climática
-  - *Métrica WaterMind:* gamificación + visualización en pantallas LED
+  - *Métrica Camaleón:* gamificación + visualización en pantallas LED
 - **13.b** — Promover mecanismos para gestión efectiva del cambio climático
-  - *Métrica WaterMind:* 7.6 ton CO₂ evitadas/5 años
+  - *Métrica Camaleón:* 7.6 ton CO₂ evitadas/5 años
 
 #### ODS 9 — Industria, Innovación e Infraestructura
 **Metas específicas:**
 - **9.4** — Modernizar la infraestructura y reconvertir las industrias
-  - *Métrica WaterMind:* IoT + IA aplicado a infraestructura del 2011
+  - *Métrica Camaleón:* IoT + IA aplicado a infraestructura del 2011
 - **9.5** — Aumentar la investigación científica
-  - *Métrica WaterMind:* publicación open source + datos para tesis
+  - *Métrica Camaleón:* publicación open source + datos para tesis
 
 #### ODS 15 — Vida de Ecosistemas Terrestres
 **Metas específicas:**
 - **15.1** — Garantizar la conservación de ecosistemas
-  - *Métrica WaterMind:* preservación cuenca río Pance + río Cauca
+  - *Métrica Camaleón:* preservación cuenca río Pance + río Cauca
 - **15.5** — Proteger la biodiversidad y los hábitats naturales
-  - *Métrica WaterMind:* monitoreo de turbidez = calidad ecosistemas acuáticos
+  - *Métrica Camaleón:* monitoreo de turbidez = calidad ecosistemas acuáticos
 
 ### Impacto indirecto
 
-| ODS | Cómo WaterMind contribuye |
+| ODS | Cómo Camaleón contribuye |
 |-----|--------------------------|
 | **4** Educación calidad | Modelo educativo open source · estudiantes aprenden con datos reales |
 | **5** Igualdad de género | Plataforma abierta a toda la comunidad · participación equitativa |
@@ -117,7 +117,7 @@ WaterMind OS impacta **directamente 5 ODS** y **contribuye indirectamente a otro
 ### Resolución 0631 de 2015 (Min. Ambiente)
 Valores límite máximos permisibles para descargas a cuerpos de agua:
 
-| Parámetro | Límite normativo | WaterMind monitorea |
+| Parámetro | Límite normativo | Camaleón monitorea |
 |-----------|-----------------|---------------------|
 | pH | 6.0 - 9.0 | ✓ vía sensor extensible |
 | Turbidez | < 10 NTU agua potable | ✓ TSD-10 (alerta a 4 NTU) |
@@ -126,7 +126,7 @@ Valores límite máximos permisibles para descargas a cuerpos de agua:
 
 ### Decreto 1090 de 2018 (Uso eficiente del agua)
 **Programa de Uso Eficiente y Ahorro del Agua (PUEAA)**:
-- Diagnóstico de uso → ✓ WaterMind hace diagnóstico continuo
+- Diagnóstico de uso → ✓ Camaleón hace diagnóstico continuo
 - Metas de reducción → ✓ TPP, IEH, CPE definidas
 - Indicadores de seguimiento → ✓ KPIs en tiempo real
 - Programas de educación → ✓ gamificación + ranking + créditos
@@ -139,7 +139,7 @@ Nuevo tab en el dashboard con métricas ambientales en vivo:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│   IMPACTO AMBIENTAL — WaterMind OS                            │
+│   IMPACTO AMBIENTAL — Camaleón OS                            │
 │                                                                │
 │   Hoy            Este mes         Este año         5 años     │
 │   ─────          ─────────        ─────────       ───────     │
@@ -158,7 +158,7 @@ Nuevo tab en el dashboard con métricas ambientales en vivo:
 ## 6. Compromisos cuantificables
 
 ```
-WaterMind OS se compromete a entregar (verificable mensualmente):
+Camaleón OS se compromete a entregar (verificable mensualmente):
 
   Año 1
   ─────
@@ -182,4 +182,4 @@ WaterMind OS se compromete a entregar (verificable mensualmente):
 
 ---
 
-*Documento de impacto ambiental · WaterMind OS · Hackathon UNIAJC 2026*
+*Documento de impacto ambiental · Camaleón OS · Hackathon UNIAJC 2026*

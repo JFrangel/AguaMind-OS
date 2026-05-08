@@ -1,5 +1,5 @@
 """
-WaterMind OS — ESP32 Firmware
+Camaleón OS — ESP32 Firmware
 Config: pines GPIO, umbrales, credenciales
 UNIAJC Sede Sur · Hackathon 2026
 
@@ -28,7 +28,7 @@ MQTT_TOPIC_ALERT = "campus/uniajc/alerts/ptap"
 MQTT_KEEPALIVE_S = 60
 
 # Backend HTTP fallback (si falla MQTT)
-BACKEND_URL = "https://watermind-os.up.koyeb.app"
+BACKEND_URL = "https://camaleon-os.up.koyeb.app"
 INGEST_ENDPOINT = "/water/ingest"
 
 # ── Pines GPIO ESP32 ──────────────────────────────────────────────────────

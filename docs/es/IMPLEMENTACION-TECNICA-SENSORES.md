@@ -1,4 +1,4 @@
-# WaterMind OS — Implementación Técnica de Sensores
+# Camaleón OS — Implementación Técnica de Sensores
 
 > Documento de ingeniería detallada: dónde se instala cada sensor, con qué
 > herramienta, qué calibración requiere, qué resistencias de acondicionamiento
@@ -11,7 +11,7 @@
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
 │                                                                             │
-│           UNIAJC SEDE SUR — DISTRIBUCIÓN DE NODOS WATERMIND                  │
+│           UNIAJC SEDE SUR — DISTRIBUCIÓN DE NODOS CAMALEON                  │
 │                                                                             │
 │   Acuífero Río Pance                                                        │
 │   (~5,000,000 L)                                                            │
@@ -236,7 +236,7 @@ SI (humedad_suelo_promedio < 60%) Y         # suelo seco
 
 ## 3. Bill of Materials (BOM) Completo
 
-### Por nodo WaterMind Node v1 (instalación PTAP típica)
+### Por nodo Camaleón Node v1 (instalación PTAP típica)
 
 | Categoría | Item | Modelo / Spec | Cant | Costo unit COP | Subtotal |
 |-----------|------|---------------|------|----------------|----------|
@@ -460,5 +460,5 @@ Mes 1  Recolección datos basales + ajustes finos
 
 ---
 
-*Documento técnico de implementación · WaterMind OS · Hackathon UNIAJC 2026*
+*Documento técnico de implementación · Camaleón OS · Hackathon UNIAJC 2026*
 *Para preguntas específicas: ver docs/es/PREGUNTAS-ASESORIA.md*

@@ -1,5 +1,5 @@
 """
-WaterMind OS — Water management router.
+Camaleón OS — Water management router.
 UNIAJC Sede Sur · Hackathon 2026
 
 Sistema de 6 sensores:
@@ -163,6 +163,8 @@ def _simulate_sensors(
     inject_leak: bool = False,
     inject_peak_irrigation: bool = False,
     inject_turbidity: bool = False,
+    inject_tank_low: bool = False,
+    inject_soil_dry: bool = False,
 ) -> dict:
     """Simula lectura de los 6 sensores con datos realistas."""
     hour   = datetime.now().hour
@@ -219,6 +221,17 @@ def _simulate_sensors(
     if inject_turbidity:
         turbidity_ntu = round(random.uniform(5.0, 8.0), 2)
 
+    if inject_tank_low:
+        # Tanque bajo → cae el nivel, bomba debería activar
+        tank_a_pct = round(min(tank_a_pct, random.uniform(20.0, 32.0)), 1)
+        tank_b_pct = round(min(tank_b_pct, random.uniform(25.0, 40.0)), 1)
+        pump_active = True
+
+    if inject_soil_dry:
+        # Suelo seco → humedad muy baja, agente debería activar riego
+        # (la humedad se aplica más abajo en _simulate_sensors)
+        pass  # marcador, se procesa al final
+
     # ── Sensores AQUA-ROI (compañero electrónica) ─────────────────────────
     # Corriente bomba 1 (típica 18 A nominal · sobrecorriente >24 A)
     base_current = PUMP_CURRENT_NORMAL_A if pump_active else 0.0
@@ -228,6 +241,9 @@ def _simulate_sensors(
     # Humedad de suelo (zona riego cancha) — varía con hora del día y aleatorio
     soil_base = 55.0 + 15.0 * math.sin((hour - 6) * math.pi / 12)
     soil_humidity_pct = round(max(20, min(85, soil_base + random.uniform(-5, 5))), 1)
+    # Escenario suelo seco: humedad cae a niveles críticos
+    if inject_soil_dry:
+        soil_humidity_pct = round(random.uniform(18.0, 28.0), 1)
 
     # kWh/m3 derivado: corriente × voltaje (220V) × tiempo / volumen bombeado
     kwh_per_m3 = 0.0
@@ -464,7 +480,7 @@ def _calc_cost_benefit(r: dict) -> dict:
     daily_loss_cop = round(daily_loss_l * water_cost_cop, 0)
     annual_loss_cop = round(daily_loss_cop * 365, 0)
 
-    # Inversión WaterMind OS (hardware + instalación)
+    # Inversión Camaleón OS (hardware + instalación)
     investment_cop = 1_043_000
 
     # Ahorro proyectado si TPP baja a 10%
@@ -567,7 +583,7 @@ async def system_status():
     alerts = _generate_alerts(r, kpis)
     return {
         "data": {
-            "system":    "WaterMind OS",
+            "system":    "Camaleón OS",
             "campus":    "UNIAJC Sede Sur",
             "timestamp": r["timestamp"],
             # Sensor 1
@@ -626,7 +642,7 @@ async def daily_report():
         "data": {
             "report_date": datetime.now().strftime("%Y-%m-%d"),
             "campus":      "UNIAJC Sede Sur — Cali",
-            "system":      "WaterMind OS v2.0",
+            "system":      "Camaleón OS v2.0",
             "population":  {"students": STUDENT_POPULATION, "total_users": TOTAL_USERS},
             "summary": {
                 "total_consumed_l":  round(total_consumed, 0),
@@ -793,16 +809,27 @@ async def get_constants():
 
 
 class SimulateRequest(BaseModel):
-    scenario: Literal["normal", "leak", "peak_irrigation", "turbidity"] = "normal"
+    scenario: Literal["normal", "leak", "peak_irrigation", "turbidity", "tank_low", "soil_dry"] = "normal"
 
 
 @router.post("/simulate")
 async def simulate_scenario(body: SimulateRequest):
-    """Inyecta un escenario específico para demo (fuga, pico riego, turbidez)."""
+    """Inyecta un escenario alineado con los 5 sensores del campus.
+
+    Escenarios disponibles:
+    - normal: lectura típica del día
+    - leak: fuga (Q ↑ + P ↓ + vibración)
+    - peak_irrigation: pico de riego (R ↑)
+    - tank_low: nivel bajo en tanques (N ↓ → bomba)
+    - soil_dry: humedad de suelo crítica (H ↓ → riego)
+    - turbidity: legacy (sensor turbidez no incluido en BOM)
+    """
     r = _simulate_sensors(
         inject_leak              = (body.scenario == "leak"),
         inject_peak_irrigation   = (body.scenario == "peak_irrigation"),
         inject_turbidity         = (body.scenario == "turbidity"),
+        inject_tank_low          = (body.scenario == "tank_low"),
+        inject_soil_dry          = (body.scenario == "soil_dry"),
     )
     kpis   = _calc_kpis(r)
     alerts = _generate_alerts(r, kpis)
@@ -833,7 +860,7 @@ class IngestRequest(BaseModel):
 @router.post("/ingest")
 async def ingest_sensor_data(body: IngestRequest):
     """
-    Recibe datos reales del nodo ESP32 WaterMind Node v1.
+    Recibe datos reales del nodo ESP32 Camaleón Node v1.
     Calcula KPIs y genera alertas en tiempo real.
     """
     r = {

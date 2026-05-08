@@ -1,9 +1,9 @@
-# WaterMind OS - Tesis UNIAJC vs nuestra solucion
+# Camaleón OS - Tesis UNIAJC vs nuestra solucion
 
 > Para cada problema diagnosticado en las tesis previas, este documento muestra:
 > 1. Que problema vieron los tesistas
 > 2. Como propusieron solucionarlo (recomendaciones del trabajo de grado)
-> 3. Como WaterMind OS lo resuelve hoy con IoT + IA + automatizacion
+> 3. Como Camaleón OS lo resuelve hoy con IoT + IA + automatizacion
 >
 > Hackathon UNIAJC 2026 - v1.0
 
@@ -15,11 +15,11 @@ Fuente: [tesis-uniajc/TGI-CAYCEDO-JARAMILLO.pdf](../../tesis-uniajc/TGI-CAYCEDO-
 
 ### 8 hallazgos de incumplimiento normativo (Tabla 19, pp.80-82)
 
-| # | Problema diagnosticado | Solucion propuesta por la tesis | Solucion de WaterMind OS |
+| # | Problema diagnosticado | Solucion propuesta por la tesis | Solucion de Camaleón OS |
 |---|------------------------|----------------------------------|--------------------------|
 | 1 | **Toma de muestras sin estandarizar** - sin puntos definidos, microbiologia 4 veces/ano vs minimo mensual exigido por Res. 2115/2007 | Definir manualmente puntos de muestreo + cronograma | **Automatizado.** El SensorAgent valida cada lectura contra rangos fisicos cada 30 s. Frecuencia 2,880 muestras/dia/sensor (Res. 2115/2007 exige 12/ano - cumplido en 5 minutos) |
 | 2 | **Calidad fuera de norma** - cloro 0.28-2.10 ppm, fosfatos hasta 1.91 mg/L (limite 0.5), nitratos hasta 22.5 mg/L (limite 10), pH bajo 6.4 | Bomba dosificadora automatica + medidores precisos | **Sensor TSD-10 turbidez en linea + sonda ORP cloro + pH SEN0161** + alerta automatica via Telegram + cierre EV cuando turbidez > 4 NTU. Reporte mensual auto al INVIMA |
-| 3 | **Programas de seguridad y salud** - sin demarcaciones, sin manual SST, equipos basicos | Disenar manual + simulacros + EPP completo | **Fuera de scope tecnologico** - WaterMind OS protocoliza el lado digital (logs, auditoria, capacitacion via dashboard). El lado fisico requiere accion administrativa de UNIAJC |
+| 3 | **Programas de seguridad y salud** - sin demarcaciones, sin manual SST, equipos basicos | Disenar manual + simulacros + EPP completo | **Fuera de scope tecnologico** - Camaleón OS protocoliza el lado digital (logs, auditoria, capacitacion via dashboard). El lado fisico requiere accion administrativa de UNIAJC |
 | 4 | **Manual de funcionamiento** - inexistente o inadecuado segun Titulo C de Min. Vivienda | Redactar manual completo con diagrama de flujo y procedimientos de emergencia | **El propio sistema es manual ejecutable.** Los flujos PHVA estan codificados en el LangGraph multi-agente. Cada accion del agente queda en `mitigation_actions` con razonamiento auditable |
 | 5 | **Personal insuficiente** - un solo operario sin capacitaciones | Programa de capacitacion + contratar mas personal | **El agente IA opera 24/7** con consenso de 5 sub-agentes. Reduce dependencia humana del 100% al ~20% (solo aprobacion de acciones criticas en Fase 1) |
 | 6 | **Insumos inadecuados** - medidor de cloro/pH obsoleto, mediciones por tonalidad "a criterio" | Comprar medidores nuevos + inventario | **6 sensores digitales calibrados + ADS1115 16-bit** elimina la subjetividad. El registry (`packages/sensors/registry.py`) documenta calibracion de cada modelo |
@@ -28,7 +28,7 @@ Fuente: [tesis-uniajc/TGI-CAYCEDO-JARAMILLO.pdf](../../tesis-uniajc/TGI-CAYCEDO-
 
 ### Recomendaciones del cap. 9 de la tesis (p.100)
 
-| Recomendacion del tesista | Como WaterMind OS la materializa |
+| Recomendacion del tesista | Como Camaleón OS la materializa |
 |---------------------------|----------------------------------|
 | "Realizar registro actualizado sobre las fuentes de aguas abastecidas" | Endpoint `/water/zones` con consumo en tiempo real por zona (8 zonas catalogadas) |
 | "Estudios de factibilidad para red de agua no tratada para sanitarios y orinales" | **Implementado en el diagrama**: PTAR -> reuso -> cisternas sanitarias (Res. 1207/2014). Ahorra ~5,000 L/dia |
@@ -36,23 +36,23 @@ Fuente: [tesis-uniajc/TGI-CAYCEDO-JARAMILLO.pdf](../../tesis-uniajc/TGI-CAYCEDO-
 | "Capacitacion frecuente para operarios" | Dashboard con razonamiento explicito de cada decision del agente sirve como herramienta pedagogica |
 | "Demarcaciones y normatividad de instalaciones electricas" | **Fuera de scope** - accion administrativa |
 
-### Costo-beneficio que la tesis propuso vs lo que entrega WaterMind
+### Costo-beneficio que la tesis propuso vs lo que entrega Camaleón
 
-| Concepto | Tesis Caycedo (2021) | WaterMind OS Fase 1 |
+| Concepto | Tesis Caycedo (2021) | Camaleón OS Fase 1 |
 |----------|----------------------|---------------------|
 | Inversion | $16,569,286 COP | $1,431,000 COP (~12x menos) |
 | Ahorro anual | $17,701,440 COP | $20,536,425 COP proyectado |
 | Periodo recuperacion | ~12 meses | ~25 dias |
 | Cumplimiento normativo | Manual via documentacion | Automatico via reportes generados |
 
-**Diferencia clave:** la tesis propone documentar y comprar instrumentos sueltos. WaterMind OS los integra en un sistema autonomo que opera, alerta y reporta sin intervencion humana continua.
+**Diferencia clave:** la tesis propone documentar y comprar instrumentos sueltos. Camaleón OS los integra en un sistema autonomo que opera, alerta y reporta sin intervencion humana continua.
 
 ---
 
 ## Tesis 2 - Sanchez Sotelo (2021)
 **"Propuesta de mejora con Lean Manufacturing para la PTAP UNIAJC Sede Sur"**
 
-| Hallazgo de la tesis | Numero exacto | Como lo usa WaterMind |
+| Hallazgo de la tesis | Numero exacto | Como lo usa Camaleón |
 |----------------------|----------------|----------------------|
 | Caudal validado in-situ | 5.56 L/seg | Linea base del simulador `_simulate_sensors()` |
 | Equivalencia tanque | 1 cm = 160 L | Constante para conversion del JSN-SR04T |
@@ -82,27 +82,27 @@ Aporte: catalogacion completa de equipos con codigos institucionales. Esta lista
 | SB-TH-01/02 | Hidroneumaticos | Altamira PRO XLB, 119 gal, 125 PSI |
 | SB-BC-03/04 | Bombas centrifugas | Barmesa Pumps |
 
-**Solucion WaterMind:** el catalogo es consultable via `GET /water/constants` y el agente puede referenciar cualquier equipo por su codigo en respuestas.
+**Solucion Camaleón:** el catalogo es consultable via `GET /water/constants` y el agente puede referenciar cualquier equipo por su codigo en respuestas.
 
 ---
 
 ## Tesis 4 - Aristizabal Torres & Largacha Perdomo (2025)
 **"Modelo de dinamica de sistemas (Vensim) para demanda y suministro de agua"**
 
-| Escenario simulado | Resultado | WaterMind |
+| Escenario simulado | Resultado | Camaleón |
 |--------------------|-----------|----------|
 | Cooperacion 0% | Colapso del sistema en 2 anos | Trigger automatico de campana Smart Water Ledger cuando consumo > linea base |
 | Cooperacion 15% | Sostenibilidad parcial | Estado actual proyectado |
 | Cooperacion 50% | Sostenible largo plazo | Meta del programa Bienestar Universitario integrado |
 
-**Solucion WaterMind:** los escenarios Vensim se ejecutan via PySD desde el MitigationAgent en analisis prescriptivo (ver [ANALISIS-Y-CAPAS-VISUALES.md](ANALISIS-Y-CAPAS-VISUALES.md) seccion 1.3). El Smart Water Ledger conecta consumo medido con creditos para mejoras del campus, materializando la "cooperacion" del modelo.
+**Solucion Camaleón:** los escenarios Vensim se ejecutan via PySD desde el MitigationAgent en analisis prescriptivo (ver [ANALISIS-Y-CAPAS-VISUALES.md](ANALISIS-Y-CAPAS-VISUALES.md) seccion 1.3). El Smart Water Ledger conecta consumo medido con creditos para mejoras del campus, materializando la "cooperacion" del modelo.
 
 ---
 
 ## Tesis 5 - Arias Montoya, Montiel Angel, Osorio Hernandez (2024)
 **"Sistema de ahorro para mejorar eficiencia de la PTAP"**
 
-| Aporte | Dato | Uso en WaterMind |
+| Aporte | Dato | Uso en Camaleón |
 |--------|------|-----------------|
 | Linea base CPE | 14.04 L/estudiante/dia | KPI calculado en `_calc_kpis()` con meta <= 12.0 |
 | Distribucion zonas | 8 zonas con consumos exactos | Simulador `ZONE_DAILY_BASE` en water.py |
@@ -113,7 +113,7 @@ Aporte: catalogacion completa de equipos con codigos institucionales. Esta lista
 ## Tesis 6 - Mosquera Zapata & Lozano Beltran (2024)
 **"Modelo de dinamica de sistemas para impacto sobre PTAR y ecosistema"**
 
-| Aporte | Uso en WaterMind |
+| Aporte | Uso en Camaleón |
 |--------|-----------------|
 | Modelo de impacto comunitario sobre PTAR | Conecta el reporte ciudadano QR con el sistema de creditos |
 | Caracterizacion de descargas al rio Pance | Base para el monitoreo Resolucion 0631/2015 visible en el mapa |
@@ -122,7 +122,7 @@ Aporte: catalogacion completa de equipos con codigos institucionales. Esta lista
 
 ## Resumen ejecutivo: que cambia
 
-| Lo que hicieron 4-5 anos de tesis | Lo que hace WaterMind OS |
+| Lo que hicieron 4-5 anos de tesis | Lo que hace Camaleón OS |
 |----------------------------------------|--------------------------|
 | **Diagnostico** detallado en PDF | **Diagnostico continuo** en pantalla, actualizado cada 30 s |
 | **Recomendaciones** en papel | **Acciones autonomas** ejecutadas en 5 segundos |
@@ -131,8 +131,8 @@ Aporte: catalogacion completa de equipos con codigos institucionales. Esta lista
 | **5 tesis = 5 documentos** | **1 sistema operativo** que ejecuta las recomendaciones de las 5 |
 | Costo $16.5M COP en consultoria | Costo $1.4M COP en hardware + software open source |
 
-> *No competimos con las tesis previas. Las llevamos a operacion. Caycedo y Jaramillo caracterizaron en 2021. Sanchez Sotelo midio las perdidas en 2021. Gomez Mina diseno el mantenimiento en 2022. Aristizabal y Largacha modelaron en 2025. **Cuatro tesis. Cuatro diagnosticos. Cero soluciones implementadas. WaterMind OS las pone en operacion. Hoy.***
+> *No competimos con las tesis previas. Las llevamos a operacion. Caycedo y Jaramillo caracterizaron en 2021. Sanchez Sotelo midio las perdidas en 2021. Gomez Mina diseno el mantenimiento en 2022. Aristizabal y Largacha modelaron en 2025. **Cuatro tesis. Cuatro diagnosticos. Cero soluciones implementadas. Camaleón OS las pone en operacion. Hoy.***
 
 ---
 
-*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/WaterMind-OS*
+*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/Camaleón-OS*

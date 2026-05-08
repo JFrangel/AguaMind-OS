@@ -1,5 +1,5 @@
 """
-WaterMind OS — Drivers de sensores para ESP32 (MicroPython).
+Camaleón OS — Drivers de sensores para ESP32 (MicroPython).
 
 Implementa lectura de los 6 sensores con acondicionamiento de señal:
   1. YF-S201        — caudal por interrupciones (pulse counter)

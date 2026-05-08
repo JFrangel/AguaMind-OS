@@ -1,4 +1,4 @@
-# WaterMind OS — Arquitectura "Entrada y Salida por Edificio"
+# Camaleón OS — Arquitectura "Entrada y Salida por Edificio"
 
 > Cada edificio del campus tiene 2 caudalímetros: uno en la **entrada de agua
 > potable** y otro en la **salida de aguas residuales**. La diferencia
@@ -16,7 +16,7 @@
                                    → si hay desperdicio, invisible
 ```
 
-### Con WaterMind OS — medición de entrada y salida
+### Con Camaleón OS — medición de entrada y salida
 ```
 [Tanque A] ──[YF-S201 IN]──▶ [Bloque A] ──[YF-S201 OUT]──▶ [PTAR]
                   │                              │
@@ -99,7 +99,7 @@ Por lo tanto, una diferencia > 5 % indica **fuga real**.
                   Nodo IN                      Nodo OUT
 ```
 
-### Cada edificio tiene **2 nodos WaterMind**:
+### Cada edificio tiene **2 nodos Camaleón**:
 
 | Nodo IN (entrada potable) | Nodo OUT (salida residual) |
 |---------------------------|----------------------------|
@@ -303,7 +303,7 @@ Beneficio: cumplimiento Resolución 0631/2015 + protección PTAR.
 │                                                                    │
 │   ARQUITECTURA "ENTRADA Y SALIDA POR EDIFICIO"                     │
 │                                                                    │
-│   • 6 edificios × 2 nodos = 12 nodos WaterMind                      │
+│   • 6 edificios × 2 nodos = 12 nodos Camaleón                      │
 │   • + 1 nodo PTAP + 2 nodos PTAR + sensores tanques               │
 │   • Total: 17 puntos de medición distribuidos                      │
 │                                                                    │
@@ -323,4 +323,4 @@ Beneficio: cumplimiento Resolución 0631/2015 + protección PTAR.
 
 ---
 
-*Documento de arquitectura · WaterMind OS · Hackathon UNIAJC 2026*
+*Documento de arquitectura · Camaleón OS · Hackathon UNIAJC 2026*

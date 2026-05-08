@@ -1,5 +1,5 @@
 """
-WaterMind OS - Servicio de notificaciones a Telegram.
+Camaleón OS - Servicio de notificaciones a Telegram.
 
 Permite que el dashboard dispare alertas al operador on-call cuando ocurren
 eventos clave: arranque del agente, plan ante fenómenos, mitigación crítica.
@@ -134,7 +134,7 @@ async def notify_agent_cycle(body: NotifyAgentStarted):
         issues_text = "\n\n*Hallazgos:*\n" + "\n".join(f"• {i}" for i in body.issues[:5])
 
     text = (
-        f"{decision_emoji} *WaterMind OS — Agente IA*\n"
+        f"{decision_emoji} *Camaleón OS — Agente IA*\n"
         f"Ciclo `#{body.cycle}` ejecutado · decisión `{body.decision}`"
         f"{issues_text}\n\n"
         f"_dashboard.uniajc.edu.co/agua_"
@@ -170,7 +170,7 @@ async def notify_phenomenon(body: NotifyPhenomenon):
     sev_emoji = {"info": "🔵", "warning": "🟡", "critical": "🔴"}[body.severity]
 
     text = (
-        f"{emoji} *WaterMind OS — Alerta de fenómeno*\n"
+        f"{emoji} *Camaleón OS — Alerta de fenómeno*\n"
         f"{sev_emoji} *{label}*\n"
         f"Pronóstico: en `{body.forecast_days}` días\n\n"
     )
@@ -199,7 +199,7 @@ class NotifyMitigation(BaseModel):
 async def notify_mitigation(body: NotifyMitigation):
     """Confirmación tras ejecutar una acción de mitigación."""
     text = (
-        f"✅ *WaterMind OS — Mitigación ejecutada*\n"
+        f"✅ *Camaleón OS — Mitigación ejecutada*\n"
         f"Trigger: `{body.trigger}`\n"
         f"OT: `{body.ot_id or '—'}`\n\n"
         f"*Acción:*\n_{body.summary}_\n\n"
@@ -256,7 +256,7 @@ async def callback_dispatcher(body: CallbackBody):
 async def notify_test():
     """Endpoint de prueba — envía un mensaje al chat configurado."""
     text = (
-        "🔔 *WaterMind OS — Prueba de conexión*\n"
+        "🔔 *Camaleón OS — Prueba de conexión*\n"
         f"Hora: `{datetime.now().strftime('%H:%M:%S')}`\n"
         "Si recibís este mensaje, las notificaciones están operativas."
     )

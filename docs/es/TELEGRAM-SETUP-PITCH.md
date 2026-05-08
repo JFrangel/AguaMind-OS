@@ -1,4 +1,4 @@
-# Telegram + WaterMind OS · setup en 3 minutos para el pitch
+# Telegram + Camaleón OS · setup en 3 minutos para el pitch
 
 > Guía paso a paso para activar el flujo bidireccional dashboard ↔ Telegram
 > antes del pitch. Si todo está listo, durante la demo al jurado:
@@ -13,8 +13,8 @@
 
 1. Abrí Telegram y buscá el contacto **@BotFather** (oficial · check azul).
 2. Mandale `/newbot`
-3. Te pide nombre. Escribí: `WaterMind UNIAJC`
-4. Te pide username (debe terminar en `bot`). Escribí: `watermind_uniajc_bot` (o el que esté libre).
+3. Te pide nombre. Escribí: `Camaleón UNIAJC`
+4. Te pide username (debe terminar en `bot`). Escribí: `camaleon_uniajc_bot` (o el que esté libre).
 5. BotFather te devuelve un mensaje con un **token** del estilo:
    ```
    1234567890:AAFn-XYZ-aBcDeFgHiJkLmNoPqRsTuVwX
@@ -36,7 +36,7 @@
 
 ## Paso 3 · Pegar credenciales en `bot_secrets.json` (15 seg)
 
-Abrí **`D:\descargas\AguaMind OS\bot_secrets.json`** (en la raíz del repo) y reemplazá:
+Abrí **`D:\descargas\Camaleón OS\bot_secrets.json`** (en la raíz del repo) y reemplazá:
 
 ```json
 {
@@ -64,7 +64,7 @@ Si todo está bien, vas a recibir en Telegram un mensaje "✅ *Credenciales vali
 # si ya está corriendo, mátalo primero
 netstat -ano | grep :8000
 # luego en una terminal nueva:
-cd "D:\descargas\AguaMind OS\services\api"
+cd "D:\descargas\Camaleón OS\services\api"
 python demo_server.py
 ```
 
@@ -82,7 +82,7 @@ curl http://localhost:8000/water/notify/test
 
 Si configuraste bien las credenciales, recibís en Telegram:
 
-> 🔔 **WaterMind OS — Prueba de conexión**
+> 🔔 **Camaleón OS — Prueba de conexión**
 > Hora: `12:34:56`
 > Si recibís este mensaje, las notificaciones están operativas.
 
@@ -91,7 +91,7 @@ Si ves `"sent": false, "reason": "no_token"` → revisá el `.env` y reiniciá e
 ## Paso 6 · Arrancar el bot (en otra terminal · 20 seg)
 
 ```bash
-cd "D:\descargas\AguaMind OS\apps\telegram"
+cd "D:\descargas\Camaleón OS\apps\telegram"
 pip install -e .
 python bot.py
 ```
@@ -102,7 +102,7 @@ El bot se queda escuchando. Vas a ver: `Application started`.
 
 ### Flujo 1 — Dashboard → Telegram (notificación de ciclo)
 1. En el dashboard, tab **Inteligencia**, click **"Ejecutar ciclo único"**
-2. En Telegram recibís: 🚨 **WaterMind OS — Agente IA · Ciclo #N · decisión critical**
+2. En Telegram recibís: 🚨 **Camaleón OS — Agente IA · Ciclo #N · decisión critical**
 3. Mensaje incluye 2 botones inline: "📊 Ver dashboard" y "🔄 Otro ciclo"
 
 ### Flujo 2 — Dashboard → Telegram → Backend (sugerencia de fenómeno)
@@ -156,4 +156,4 @@ El bot se queda escuchando. Vas a ver: `Application started`.
 
 ---
 
-*v1.0 · 8 de mayo de 2026 · WaterMind OS · UNIAJC Hackathon*
+*v1.0 · 8 de mayo de 2026 · Camaleón OS · UNIAJC Hackathon*

@@ -1,4 +1,4 @@
-# 🔌 WaterMind OS — Guía de Simulación y Conexión
+# 🔌 Camaleón OS — Guía de Simulación y Conexión
 
 > Cómo simular el sistema completo (sensores + ESP32 + dashboard + Telegram) sin necesidad de hardware físico.
 
@@ -82,7 +82,7 @@ python firmware/simulator_pc.py --scenario leak
 ```json
 {
   "version": 1,
-  "author": "WaterMind OS UNIAJC",
+  "author": "Camaleón OS UNIAJC",
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0 },
     { "type": "wokwi-ssd1306",            "id": "oled", "top": -120, "left": 100 },
@@ -159,7 +159,7 @@ ADS1115 Ch1 ◀── R shunt 150Ω ◀── 4-20mA loop (freático)
 ADS1115 Ch2 ◀── divisor 4.5V→3.3V ◀── TSD-10 (turbidez)
 ```
 
-**Conexión Proteus → WaterMind OS:**
+**Conexión Proteus → Camaleón OS:**
 
 Proteus puede usar **VSPE (Virtual Serial Port Emulator)** para emitir datos por puerto serie. Un script Python lee ese puerto y publica vía HTTP al backend:
 
@@ -255,7 +255,7 @@ Cuando el agente IA detecta `decision === "critical"`, envía notificación PUSH
 ```python
 # packages/agents/agentos_agents/graphs/water_orchestrator.py
 async def alerting_node(state):
-    msg = f"🚨 WaterMind OS — UNIAJC\n..."
+    msg = f"🚨 Camaleón OS — UNIAJC\n..."
     # NotificationDispatcher → bot.send_message(chat_id, msg)
 ```
 
@@ -353,4 +353,4 @@ curl http://localhost:8000/water/constants | jq
 
 ---
 
-*Documento técnico de simulación · WaterMind OS · Hackathon UNIAJC 2026*
+*Documento técnico de simulación · Camaleón OS · Hackathon UNIAJC 2026*

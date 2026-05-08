@@ -1,6 +1,6 @@
-# WaterMind OS — Estrategia frente a la Rúbrica Oficial
+# Camaleón OS — Estrategia frente a la Rúbrica Oficial
 
-> Auto-evaluación honesta de WaterMind OS contra los 11 criterios oficiales
+> Auto-evaluación honesta de Camaleón OS contra los 11 criterios oficiales
 > del Hackathon UNIAJC 2026. Identificamos fortalezas, debilidades y los
 > ajustes finales necesarios para maximizar el puntaje.
 
@@ -22,7 +22,7 @@
 - 12–22 = Moderada
 - 1–11 = Insuficiente
 
-**Meta WaterMind OS: 38–42 puntos (Sobresaliente).**
+**Meta Camaleón OS: 38–42 puntos (Sobresaliente).**
 
 ---
 
@@ -32,7 +32,7 @@
 
 > *"La propuesta es única, no existe antecedente similar en la literatura ni en el mercado."*
 
-| Evidencia WaterMind OS | Puntaje |
+| Evidencia Camaleón OS | Puntaje |
 |----------------------|---------|
 | Sistema multi-agente IA aplicado a gestión hídrica universitaria — sin precedente documentado en LATAM | ✅ |
 | 5 agentes deliberando antes de actuar (no es un agente único) | ✅ |
@@ -45,7 +45,7 @@
 
 > *"La propuesta redefine el sector o crea un nuevo mercado."*
 
-| Evidencia WaterMind OS | Puntaje |
+| Evidencia Camaleón OS | Puntaje |
 |----------------------|---------|
 | Crea categoría: "Smart Campus Hídrico Open Source" | ✅ |
 | Modelo de negocio nuevo: campus → vendedor de créditos de carbono | ✅ |
@@ -289,4 +289,4 @@
 
 ---
 
-*Estrategia frente a rúbrica oficial · WaterMind OS · Hackathon UNIAJC 2026*
+*Estrategia frente a rúbrica oficial · Camaleón OS · Hackathon UNIAJC 2026*

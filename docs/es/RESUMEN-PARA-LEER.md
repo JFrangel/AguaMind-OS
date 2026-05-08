@@ -1,4 +1,4 @@
-# WaterMind OS · Resumen para leer y entender todo
+# Camaleón OS · Resumen para leer y entender todo
 
 > Una hoja para entender el proyecto en 5 minutos. Después, navegar al doc específico
 > según el rol o la pregunta. Para el jurado, equipo, asesor o cualquier persona
@@ -14,7 +14,7 @@ UNIAJC Sede Sur tiene una planta de tratamiento de agua del 2011 que **nunca tuv
 
 **4 tesis UNIAJC diagnosticaron el problema entre 2021 y 2025. Ninguna pasó a operación.**
 
-**WaterMind OS** es un sistema que toma esos 4 diagnósticos y los lleva a operación con:
+**Camaleón OS** es un sistema que toma esos 4 diagnósticos y los lleva a operación con:
 - 6 sensores IoT de bajo costo conectados a un ESP32
 - 5 agentes de inteligencia artificial que deliberan en 5 segundos
 - Un dashboard web con vista 3D del campus + bot de Telegram
@@ -45,7 +45,7 @@ UNIAJC Sede Sur tiene una planta de tratamiento de agua del 2011 que **nunca tuv
    - **Predictivo**: ¿qué va a pasar? (Random Forest, LSTM, ARIMA)
    - **Prescriptivo**: ¿qué hacemos? (cierra EV, reporta CVC, optimiza bombeo)
 4. **Cumplimiento normativo automatizado**: reportes mensuales firmados con SHA-256 a INVIMA, CVC y Min. Vivienda. Trazabilidad legal sin trabajo manual.
-5. **Híbrido con el método tradicional**: el operario sigue midiendo "tanques nocturnos" cada mañana. WaterMind cruza los datos. Si difieren > 5 cm hay un problema (sensor o marca dañados). Doble método independiente = más confianza.
+5. **Híbrido con el método tradicional**: el operario sigue midiendo "tanques nocturnos" cada mañana. Camaleón cruza los datos. Si difieren > 5 cm hay un problema (sensor o marca dañados). Doble método independiente = más confianza.
 
 ---
 
@@ -58,7 +58,7 @@ UNIAJC Sede Sur tiene una planta de tratamiento de agua del 2011 que **nunca tuv
 | Equivalencia tanque | **1 cm = 160 L** | Sánchez Sotelo 2021 |
 | Capacidad PTAR total | **4,000 est** (2×2×1,000) | RETO oficial PDF |
 | Sobrecapacidad PTAR | **2.06×** | 8,234 ÷ 4,000 |
-| Demo Fase 0 (backend mínimo) | **$1,431,000 COP** | BOM WaterMind OS |
+| Demo Fase 0 (backend mínimo) | **$1,431,000 COP** | BOM Camaleón OS |
 | Piloto Fase 1 AQUA-ROI Lite | **$5,570,000 COP** | BOM compañero electrónica |
 | Propuesta completa | **$37,376,807 COP** | Arias Montoya 2024 |
 | Ahorro anual | **$20,536,425 COP** | Proyectado |
@@ -74,13 +74,13 @@ UNIAJC Sede Sur tiene una planta de tratamiento de agua del 2011 que **nunca tuv
 ## Mapa de la documentación · qué leer según tu rol
 
 ### Si eres del jurado (1 documento)
-**Lee:** [TESIS-WATERMIND-OS.md](TESIS-WATERMIND-OS.md)
+**Lee:** [TESIS-CAMALEON-OS.md](TESIS-CAMALEON-OS.md)
 Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubre el 100% de la rúbrica.
 
 ### Si eres del equipo y necesitas defender el pitch (3 documentos)
 1. [HOJA-PITCH-Q&A.md](HOJA-PITCH-Q&A.md) — 8 preguntas anticipadas con respuestas listas
 2. [PITCH-DEFINITIVO.md](PITCH-DEFINITIVO.md) — pitch 5 min cronometrado
-3. [WATERMIND-OS-MASTER.md](WATERMIND-OS-MASTER.md) — doc maestro con números y datos
+3. [CAMALEON-OS-MASTER.md](CAMALEON-OS-MASTER.md) — doc maestro con números y datos
 
 ### Si eres dev y vas a tocar código (3 documentos)
 1. [ANALISIS-Y-CAPAS-VISUALES.md](ANALISIS-Y-CAPAS-VISUALES.md) — arquitectura por capas
@@ -89,10 +89,10 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 
 ### Si eres asesor y quieres ver compliance (2 documentos)
 1. [AUDITORIA-RUBRICA.md](AUDITORIA-RUBRICA.md) — auditoría honesta vs los 11 criterios
-2. [RETO-VS-WATERMIND.md](RETO-VS-WATERMIND.md) — mapeo línea por línea contra RETO PDF
+2. [RETO-VS-CAMALEON.md](RETO-VS-CAMALEON.md) — mapeo línea por línea contra RETO PDF
 
 ### Si quieres validar la base académica (1 documento)
-[TESIS-VS-WATERMIND.md](TESIS-VS-WATERMIND.md) — cómo cada hallazgo de las 6 tesis previas está reflejado en el código.
+[TESIS-VS-CAMALEON.md](TESIS-VS-CAMALEON.md) — cómo cada hallazgo de las 6 tesis previas está reflejado en el código.
 
 ---
 
@@ -100,11 +100,11 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 
 ### Documentos transversales
 
-**[TESIS-WATERMIND-OS.md](TESIS-WATERMIND-OS.md)** · Documento estilo tesis con resumen, abstract, problemática, objetivos, justificación, marco referencial, marco teórico, marco legal, metodología, desarrollo, análisis, conclusiones, recomendaciones, referencias y anexos. Es el documento "todo en uno" para entrega académica formal.
+**[TESIS-CAMALEON-OS.md](TESIS-CAMALEON-OS.md)** · Documento estilo tesis con resumen, abstract, problemática, objetivos, justificación, marco referencial, marco teórico, marco legal, metodología, desarrollo, análisis, conclusiones, recomendaciones, referencias y anexos. Es el documento "todo en uno" para entrega académica formal.
 
-**[WATERMIND-OS-MASTER.md](WATERMIND-OS-MASTER.md)** · Doc maestro post-asesoría jurado del 7 de mayo. 19 capítulos: feedback del jurado, problema, datos validados de 4 tesis, solución, estrategia de datos, sensores, modelo 3D, estrategias derivadas, multi-agente, mitigación, normativas, fases, costo-beneficio, ODS, pitch, Q&A, roles, referencias.
+**[CAMALEON-OS-MASTER.md](CAMALEON-OS-MASTER.md)** · Doc maestro post-asesoría jurado del 7 de mayo. 19 capítulos: feedback del jurado, problema, datos validados de 4 tesis, solución, estrategia de datos, sensores, modelo 3D, estrategias derivadas, multi-agente, mitigación, normativas, fases, costo-beneficio, ODS, pitch, Q&A, roles, referencias.
 
-**[WATERMIND-OS-DOCUMENTACION.md](WATERMIND-OS-DOCUMENTACION.md)** · Doc técnico v1.0 explicando qué es, qué problema resuelve, qué hace de novedoso, arquitectura, los 3 retos cubiertos (Sistemas/Electrónica/Industrial), costo-beneficio, ODS, equipo.
+**[CAMALEON-OS-DOCUMENTACION.md](CAMALEON-OS-DOCUMENTACION.md)** · Doc técnico v1.0 explicando qué es, qué problema resuelve, qué hace de novedoso, arquitectura, los 3 retos cubiertos (Sistemas/Electrónica/Industrial), costo-beneficio, ODS, equipo.
 
 ### Documentos de pitch y defensa
 
@@ -116,9 +116,9 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 
 **[AUDITORIA-RUBRICA.md](AUDITORIA-RUBRICA.md)** · Cumplimiento honesto vs los 11 criterios de la rúbrica oficial (Novedad 30%, Actividad Inventiva 20%, Aplicación Industrial 30%, Impacto 20%). Auto-evaluación 42-44/44. También riesgos reales donde podemos perder puntos.
 
-**[RETO-VS-WATERMIND.md](RETO-VS-WATERMIND.md)** · Mapeo línea por línea de los 16 ítems mínimos del RETO oficial (4 Sistemas + 4 Electrónica + 8 Industrial). Cada uno con evidencia y archivo donde verificarlo.
+**[RETO-VS-CAMALEON.md](RETO-VS-CAMALEON.md)** · Mapeo línea por línea de los 16 ítems mínimos del RETO oficial (4 Sistemas + 4 Electrónica + 8 Industrial). Cada uno con evidencia y archivo donde verificarlo.
 
-**[TESIS-VS-WATERMIND.md](TESIS-VS-WATERMIND.md)** · Por cada una de las 6 tesis UNIAJC, qué problema vio, qué propuso, cómo lo resuelve WaterMind. Tabla resumen costo-beneficio: las tesis $16.5M consultoría vs WaterMind $1.4M operación.
+**[TESIS-VS-CAMALEON.md](TESIS-VS-CAMALEON.md)** · Por cada una de las 6 tesis UNIAJC, qué problema vio, qué propuso, cómo lo resuelve Camaleón. Tabla resumen costo-beneficio: las tesis $16.5M consultoría vs Camaleón $1.4M operación.
 
 ### Documentos técnicos
 
@@ -126,11 +126,11 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 
 **[IMPLEMENTACION-VISUAL-CAPAS.md](IMPLEMENTACION-VISUAL-CAPAS.md)** · Qué se ve en cada capa cuando la abrís: ASCII del campus, mockup OLED, pseudocódigo MicroPython, topic MQTT, schema SQL, mockups por persona (operador, estudiante, admin, inspector). Tabla de "implementado HOY vs proyectado en fases".
 
-**[AQUA-ROI-LITE.md](AQUA-ROI-LITE.md)** · Propuesta del compañero de Electrónica (versión piloto del proyecto). 5 capas, BOM detallado de 18 componentes ($5.57M COP), 3 escenarios costo-beneficio (1.07–1.84 años), 6 mudas Lean, 6M Ishikawa, 5 reglas del agente, plan a prueba de fallos, plan implementación 10 semanas. Integrado a WaterMind OS vía nuevos endpoints `/water/industrial/scenarios` y `/water/industrial/lean`.
+**[AQUA-ROI-LITE.md](AQUA-ROI-LITE.md)** · Propuesta del compañero de Electrónica (versión piloto del proyecto). 5 capas, BOM detallado de 18 componentes ($5.57M COP), 3 escenarios costo-beneficio (1.07–1.84 años), 6 mudas Lean, 6M Ishikawa, 5 reglas del agente, plan a prueba de fallos, plan implementación 10 semanas. Integrado a Camaleón OS vía nuevos endpoints `/water/industrial/scenarios` y `/water/industrial/lean`.
 
 **[ALMACENAMIENTO-DE-DATOS.md](ALMACENAMIENTO-DE-DATOS.md)** · Las 5 capas de storage (Edge NVS 1k lecturas → RAM 1h → Postgres 90d → Parquet 5y → PDF auditable). Schema SQL canónico. Frecuencias de muestreo. Volumetría proyectada. Backup ante caídas. Acceso por rol.
 
-**[ARQUITECTURA.md](ARQUITECTURA.md)** · Arquitectura técnica de AgentOS (la plataforma base sobre la que corre WaterMind).
+**[ARQUITECTURA.md](ARQUITECTURA.md)** · Arquitectura técnica de AgentOS (la plataforma base sobre la que corre Camaleón).
 
 **[ARQUITECTURA-POR-EDIFICIO.md](ARQUITECTURA-POR-EDIFICIO.md)** · Detalle por edificio del campus: Bloque A, Alameda, Cafetería, Labs, Cancha+Jardines, Limpieza.
 
@@ -142,7 +142,7 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 
 ### Documentos industriales
 
-**[CUMPLIMIENTO-NORMATIVO-Y-SOLUCIONES.md](CUMPLIMIENTO-NORMATIVO-Y-SOLUCIONES.md)** · 17 normativas mapeadas a soluciones WaterMind. Sanciones potenciales y reportes automatizados.
+**[CUMPLIMIENTO-NORMATIVO-Y-SOLUCIONES.md](CUMPLIMIENTO-NORMATIVO-Y-SOLUCIONES.md)** · 17 normativas mapeadas a soluciones Camaleón. Sanciones potenciales y reportes automatizados.
 
 **[MITIGACION-Y-ESTRATEGIA.md](MITIGACION-Y-ESTRATEGIA.md)** · 5 estrategias automáticas ante fenómenos. Triggers compuestos en backend. Acciones físicas reales (cierre EV, modo bomba, alertas).
 
@@ -166,11 +166,11 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 
 **[SIMULACION-Y-CONEXION.md](SIMULACION-Y-CONEXION.md)** · Cómo el simulador se conecta al backend. Datos sintéticos realistas.
 
-**[QUE-ES-AGENTOS.md](QUE-ES-AGENTOS.md)** · Qué es la plataforma base AgentOS sobre la que corre WaterMind.
+**[QUE-ES-AGENTOS.md](QUE-ES-AGENTOS.md)** · Qué es la plataforma base AgentOS sobre la que corre Camaleón.
 
 ### Documentos de planificación
 
-**[PLAN-WATERMIND.md](PLAN-WATERMIND.md)** · Plan de implementación a 15 años en 10 fases.
+**[PLAN-CAMALEON.md](PLAN-CAMALEON.md)** · Plan de implementación a 15 años en 10 fases.
 
 **[PLAN-HACKATHON.md](PLAN-HACKATHON.md)** · Plan específico para el hackathon: 90 min para shippear demo.
 
@@ -189,7 +189,7 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 ## Mapa visual del flujo de la información
 
 ```
-                          WATERMIND OS
+                          CAMALEON OS
                               |
         +---------------------+---------------------+
         |                                          |
@@ -217,16 +217,16 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
                           PITCH 5 MIN
                               |
         - Apertura: "9 litros perdidos mientras hablo"
-        - Cierre: "4 tesis · 4 diagnósticos · 0 soluciones · WaterMind las pone en operación · hoy"
+        - Cierre: "4 tesis · 4 diagnósticos · 0 soluciones · Camaleón las pone en operación · hoy"
 ```
 
 ---
 
 ## Si solo tenés 30 segundos para entender
 
-> *"UNIAJC tiene una planta de agua del 2011 sin medición. Pierde 1,587 litros por día sin saberlo y tiene 4 químicos fuera de norma legal. Cuatro tesis lo diagnosticaron pero ninguna pasó a operación. WaterMind OS es el primer sistema multi-agente de IA aplicado a gestión hídrica universitaria en Colombia: 6 sensores IoT + 5 agentes que deliberan + dashboard + bot Telegram. $1.43 millones de inversión, ahorra $20.5 millones al año, recuperación en 25 días, y protege a la universidad de $16,900 millones de exposición legal. Open source. Replicable a 50 universidades del Valle."*
+> *"UNIAJC tiene una planta de agua del 2011 sin medición. Pierde 1,587 litros por día sin saberlo y tiene 4 químicos fuera de norma legal. Cuatro tesis lo diagnosticaron pero ninguna pasó a operación. Camaleón OS es el primer sistema multi-agente de IA aplicado a gestión hídrica universitaria en Colombia: 6 sensores IoT + 5 agentes que deliberan + dashboard + bot Telegram. $1.43 millones de inversión, ahorra $20.5 millones al año, recuperación en 25 días, y protege a la universidad de $16,900 millones de exposición legal. Open source. Replicable a 50 universidades del Valle."*
 
 ---
 
 *Resumen v1.0 · 8 de mayo de 2026 · UNIAJC Hackathon*
-*Repositorio: github.com/JFrangel/WaterMind-OS*
+*Repositorio: github.com/JFrangel/Camaleón-OS*

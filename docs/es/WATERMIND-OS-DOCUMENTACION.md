@@ -1,4 +1,4 @@
-#  WaterMind OS
+#  Camaleón OS
 
 ## Sistema Inteligente de Gestión Hídrica para UNIAJC Sede Sur
 
@@ -6,19 +6,19 @@
 
 > Hackathon UNIAJC 2026 · Facultad de Ingeniería · Cali, Colombia
 > Fecha de entrega: 8 de mayo 2026 · 5:00 PM
-> Repositorio: [github.com/JFrangel/WaterMind-OS](https://github.com/JFrangel/WaterMind-OS)
+> Repositorio: [github.com/JFrangel/Camaleón-OS](https://github.com/JFrangel/Camaleón-OS)
 
 ---
 
-## 1. ¿De qué se trata WaterMind OS?
+## 1. ¿De qué se trata Camaleón OS?
 
-WaterMind OS es un **sistema inteligente** que mide, analiza y optimiza el consumo de agua del campus UNIAJC Sede Sur en tiempo real. Combina **sensores físicos (IoT)**, **agentes de inteligencia artificial autónomos**, un **dashboard web moderno** y un **bot de Telegram** que envía alertas automáticas cuando algo no está funcionando bien.
+Camaleón OS es un **sistema inteligente** que mide, analiza y optimiza el consumo de agua del campus UNIAJC Sede Sur en tiempo real. Combina **sensores físicos (IoT)**, **agentes de inteligencia artificial autónomos**, un **dashboard web moderno** y un **bot de Telegram** que envía alertas automáticas cuando algo no está funcionando bien.
 
-En lugar de seguir perdiendo entre el 20% y 30% del agua sin saber dónde ni por qué, WaterMind OS **detecta fugas en menos de 5 minutos**, **alerta automáticamente** al personal de mantenimiento y **toma decisiones por sí solo** (como cerrar válvulas, reducir riego, generar reportes) sin necesidad de supervisión humana constante.
+En lugar de seguir perdiendo entre el 20% y 30% del agua sin saber dónde ni por qué, Camaleón OS **detecta fugas en menos de 5 minutos**, **alerta automáticamente** al personal de mantenimiento y **toma decisiones por sí solo** (como cerrar válvulas, reducir riego, generar reportes) sin necesidad de supervisión humana constante.
 
 ### En una frase
 
-> *"WaterMind OS convierte cada gota de agua del campus en un dato medible, decidible y ahorrable."*
+> *"Camaleón OS convierte cada gota de agua del campus en un dato medible, decidible y ahorrable."*
 
 ---
 
@@ -46,9 +46,9 @@ La PTAP (Planta de Tratamiento de Agua Potable) de UNIAJC Sede Sur fue instalada
 
 ---
 
-## 3. ¿Qué hace WaterMind OS de novedoso?
+## 3. ¿Qué hace Camaleón OS de novedoso?
 
-WaterMind OS es la **primera solución multidisciplinar** que combina **IoT + IA agéntica + dashboard + Telegram** para gestión hídrica universitaria en Colombia. Estos son sus 5 elementos novedosos:
+Camaleón OS es la **primera solución multidisciplinar** que combina **IoT + IA agéntica + dashboard + Telegram** para gestión hídrica universitaria en Colombia. Estos son sus 5 elementos novedosos:
 
 ###  Multi-agente IA con LangGraph
 
@@ -65,7 +65,7 @@ Los agentes ejecutan **ciclos cada 30 segundos** y toman decisiones sin interven
 
 ###  6 sensores con costo bajo (~$1M COP)
 
-A diferencia de soluciones SCADA industriales que cuestan $50M+ COP, WaterMind OS usa sensores accesibles que cualquier estudiante de ingeniería entiende:
+A diferencia de soluciones SCADA industriales que cuestan $50M+ COP, Camaleón OS usa sensores accesibles que cualquier estudiante de ingeniería entiende:
 
 1. **Caudal** YF-S201 (efecto Hall) — $25K COP
 2. **Presión** MPX5700AP — $45K COP
@@ -78,7 +78,7 @@ Todos conectados a un **ESP32** ($35K COP) que envía datos por WiFi.
 
 ###  Telegram como interfaz oficial
 
-En lugar de pedirle al personal que aprenda otro software, WaterMind OS usa **Telegram** (que todos ya tienen). Los administradores reciben:
+En lugar de pedirle al personal que aprenda otro software, Camaleón OS usa **Telegram** (que todos ya tienen). Los administradores reciben:
 
 - Alertas automáticas cuando hay fugas
 - Reportes diarios a las 6:00 PM
@@ -130,7 +130,7 @@ Funciona en UNIAJC Sede Sur, pero **el mismo sistema** puede instalarse en cualq
   │
   ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│  WATERMIND OS — Backend (Python)  │
+│  CAMALEON OS — Backend (Python)  │
 │  │
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │  FastAPI · /water/* + /water/agent/*  │  │
@@ -295,7 +295,7 @@ $$\text{IEH (\%)} = \frac{Q_{entrada} - Q_{pérdidas}}{Q_{entrada}} \times 100$$
 | Advertencia | 75-89% |  Amarillo |
 | Óptimo | ≥ 90% |  Verde |
 
-**Actual UNIAJC: ~75% · Meta con WaterMind: > 90%**
+**Actual UNIAJC: ~75% · Meta con Camaleón: > 90%**
 
 #### TPP — Tasa de Pérdidas del Proceso
 $$\text{TPP (\%)} = \frac{Q_{pérdidas}}{Q_{entrada}} \times 100$$
@@ -315,7 +315,7 @@ $$\text{CPE (L/est/día)} = \frac{\text{Consumo diario}}{\text{Estudiantes activ
 
 ### 7.2 Análisis Lean — 7 Mudas
 
-| # | Muda | Manifestación | Solución WaterMind |
+| # | Muda | Manifestación | Solución Camaleón |
 |---|------|--------------|-------------------|
 | 1 | Defectos | Fugas no detectadas | Sensores + IsolationForest |
 | 2 | Sobreproducción | Bombeo sin demanda | Activación automática por nivel |
@@ -333,7 +333,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 
 ### 7.4 2 Acciones de mejora concretas
 
-**Acción 1 — Instrumentación IoT con WaterMind Node**
+**Acción 1 — Instrumentación IoT con Camaleón Node**
 - Inversión: $1,043,000 COP (hardware + instalación)
 - Impacto: TPP de 25% → 10% (reduce pérdidas un 60%)
 - Mudas eliminadas: Defectos + Espera
@@ -357,7 +357,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | **Pérdida económica anual** | **$19,315,800 COP** |
 | Pérdida en 5 años (sin acción) | $96,579,000 COP |
 
-###  Inversión WaterMind OS
+###  Inversión Camaleón OS
 
 | Concepto | Valor |
 |----------|-------|
@@ -386,13 +386,13 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | Agua recuperada en 5 años | 16,558,625 L |
 | CO₂ evitado | ~2.3 ton/año |
 
-> **Cada peso invertido en WaterMind OS regresa $17.40 en ahorros.**
+> **Cada peso invertido en Camaleón OS regresa $17.40 en ahorros.**
 
 ---
 
 ## 9. Alineación con Objetivos de Desarrollo Sostenible (ODS)
 
-| ODS | ¿Cómo lo aporta WaterMind? |
+| ODS | ¿Cómo lo aporta Camaleón? |
 |-----|---------------------------|
 | **ODS 6** — Agua limpia | Reduce pérdidas del 25% al 10%, monitorea calidad |
 | **ODS 4** — Educación de calidad | Modelo educativo de sostenibilidad para ingeniería |
@@ -404,7 +404,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 
 ## 10. Roles del equipo — ¿Quién hace qué?
 
-###  Equipo WaterMind OS
+###  Equipo Camaleón OS
 
 | Carrera | Responsabilidad | Entregables |
 |---------|----------------|-------------|
@@ -453,12 +453,12 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | Tiempo | Sección | Qué decir |
 |--------|---------|-----------|
 | 0:00–0:45 | **Problema** | "La PTAP de UNIAJC instalada en 2011 nunca tuvo medición. Pierde el 25% del agua = $19 millones COP/año desperdiciados." |
-| 0:45–1:30 | **Solución** | "WaterMind OS: 6 sensores + 4 agentes IA + Telegram + dashboard. Por solo $1 millón COP." |
+| 0:45–1:30 | **Solución** | "Camaleón OS: 6 sensores + 4 agentes IA + Telegram + dashboard. Por solo $1 millón COP." |
 | 1:30–2:30 | **Demo en vivo** | Abrir dashboard → inyectar fuga → ver alerta en Telegram aparecer automáticamente |
 | 2:30–3:15 | **Técnica** | Mostrar UML componentes (30s) + circuito ESP32 (30s) + diagrama Ishikawa (15s) |
 | 3:15–4:00 | **Industrial** | "TPP de 25% a 10%. ROI en 21 días. TIR > 1,000%." |
 | 4:00–4:45 | **Impacto** | "5 ODS impactados. 2.3 ton CO₂ evitadas. Modelo replicable." |
-| 4:45–5:00 | **Cierre** | "WaterMind OS: cada gota cuenta cuando los datos hablan." |
+| 4:45–5:00 | **Cierre** | "Camaleón OS: cada gota cuenta cuando los datos hablan." |
 
 ### Lo que el jurado debe ver
 
@@ -483,7 +483,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 ###  "¿Es realmente escalable?"
 
 > "Sí. El sistema está diseñado en módulos independientes:
-> - Cada **WaterMind Node** (ESP32 + sensores) es autónomo
+> - Cada **Camaleón Node** (ESP32 + sensores) es autónomo
 > - Se pueden añadir N nodos al mismo dashboard
 > - El backend es FastAPI (deploy en Koyeb/Railway gratis)
 > - Para otras sedes UNIAJC: solo cambiar configuración"
@@ -517,7 +517,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 ###  "¿Y después del hackathon?"
 
 > "Tres pasos:
-> 1. **Piloto** — instalar 1 WaterMind Node en la PTAP (1 mes)
+> 1. **Piloto** — instalar 1 Camaleón Node en la PTAP (1 mes)
 > 2. **Expansión** — 5 nodos cubriendo zonas críticas (3 meses)
 > 3. **Replicación** — otras sedes UNIAJC y publicación open source"
 
@@ -540,12 +540,12 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 
 ---
 
-## 14. Cómo correr WaterMind OS localmente
+## 14. Cómo correr Camaleón OS localmente
 
 ```bash
 # Clonar el repositorio
-git clone git@github.com:JFrangel/WaterMind-OS.git
-cd WaterMind-OS
+git clone git@github.com:JFrangel/Camaleón-OS.git
+cd Camaleón-OS
 
 # Backend FastAPI (puerto 8000)
 cd services/api
@@ -590,18 +590,18 @@ curl -X POST http://localhost:8000/water/simulate \
 
 ## 15. Resumen ejecutivo (1 minuto)
 
-> WaterMind OS es un sistema inteligente que mide, analiza y optimiza el consumo de agua en UNIAJC Sede Sur. Combina **6 sensores IoT** ($1M COP), **4 agentes de IA autónomos** que deciden por sí solos, un **dashboard moderno** y un **bot de Telegram** que avisa cuando hay fugas en menos de 5 minutos.
+> Camaleón OS es un sistema inteligente que mide, analiza y optimiza el consumo de agua en UNIAJC Sede Sur. Combina **6 sensores IoT** ($1M COP), **4 agentes de IA autónomos** que deciden por sí solos, un **dashboard moderno** y un **bot de Telegram** que avisa cuando hay fugas en menos de 5 minutos.
 >
 > Resuelve un problema real: la PTAP del 2011 perdía 25% del agua sin saberlo = **$19 millones COP/año**.
 >
-> Con WaterMind OS, las pérdidas bajan a 10% y el sistema **se paga solo en 21 días**.
+> Con Camaleón OS, las pérdidas bajan a 10% y el sistema **se paga solo en 21 días**.
 >
 > Es interdisciplinar (Sistemas + Electrónica + Industrial), abierto, escalable y replicable. Impacta 5 ODS y reduce 2.3 toneladas de CO₂ al año.
 >
-> **WaterMind OS: cuando los datos hablan, el agua se cuida.**
+> **Camaleón OS: cuando los datos hablan, el agua se cuida.**
 
 ---
 
-*Documento técnico WaterMind OS · Versión 1.0 · Hackathon UNIAJC 2026*
+*Documento técnico Camaleón OS · Versión 1.0 · Hackathon UNIAJC 2026*
 *Equipo: Sistemas + Electrónica + Industrial*
-*Repositorio: github.com/JFrangel/WaterMind-OS*
+*Repositorio: github.com/JFrangel/Camaleón-OS*

@@ -1,4 +1,4 @@
-# WaterMind OS — Estrategia de Mitigación y Acción Activa
+# Camaleón OS — Estrategia de Mitigación y Acción Activa
 
 > Cómo el agente IA pasa de **avisar** a **actuar**: cierra válvulas, reduce
 > presiones, dispara campañas de gamificación y propone obras de infraestructura.
@@ -15,13 +15,13 @@
 | 3ª · Notificación | Sistema envía alertas | "Telegram avisó que hay vibración" |
 | **4ª · Acción autónoma** | **El sistema actúa por sí solo** | **"Detecté fuga en zona 3 → cerré válvula → notifiqué al equipo + comunidad"** |
 
-**WaterMind OS opera en la 4ª generación.**
+**Camaleón OS opera en la 4ª generación.**
 
 ---
 
 ## 2. ¿Qué exactamente vamos a mitigar?
 
-Identificamos **8 problemas concretos** del campus UNIAJC Sede Sur que WaterMind OS ataca con acciones específicas:
+Identificamos **8 problemas concretos** del campus UNIAJC Sede Sur que Camaleón OS ataca con acciones específicas:
 
 | # | Problema | Sensor que detecta | Acción que mitiga |
 |---|----------|-------------------|-------------------|
@@ -61,7 +61,7 @@ Identificamos **8 problemas concretos** del campus UNIAJC Sede Sur que WaterMind
 | D | LED RGB + Buzzer local | Stock | $8K | Alerta visual/sonora en sitio |
 | E | OLED pantalla pública | SSD1306 + Pi Zero | $80K | "Pulso hídrico" en hall edificio |
 
-### Nodo completo "WaterMind Action Node"
+### Nodo completo "Camaleón Action Node"
 
 ```
 ESP32 + 8 sensores + 3 electroválvulas + 1 relay + display + acceso WiFi
@@ -155,7 +155,7 @@ Pegar QR en baños, jardines, cafetería:
 
 ```
 ┌──────────────────────────────────┐
-│   WaterMind OS — Reporte rápido    │
+│   Camaleón OS — Reporte rápido    │
 │                                    │
 │   ┌──────────┐                    │
 │   │   QR     │  Escanea para      │
@@ -275,9 +275,9 @@ Resultado esperado:
 
 ---
 
-## 7. ¿Qué hace WaterMind OS sin baños sensorizados?
+## 7. ¿Qué hace Camaleón OS sin baños sensorizados?
 
-Pregunta clave: **"La universidad no tiene sensores en baños hoy. ¿Cómo arranca WaterMind OS?"**
+Pregunta clave: **"La universidad no tiene sensores en baños hoy. ¿Cómo arranca Camaleón OS?"**
 
 Respuesta: **el sistema funciona de forma incremental, agregando valor desde el primer día.**
 
@@ -310,7 +310,7 @@ Cuando el MitigationAgent ejecuta una acción, **debe documentar y comunicar** a
 ### Mensaje Telegram típico (acción ejecutada)
 
 ```
-🛡️ WaterMind OS — Acción de Mitigación Ejecutada
+🛡️ Camaleón OS — Acción de Mitigación Ejecutada
 ─────────────────────────────────────────────────
 Tipo:     CIERRE DE VÁLVULA AUTOMÁTICO
 Trigger:  Vibración + caída de presión 28%
@@ -354,9 +354,9 @@ Tab nuevo: **"Mitigación"** con:
 
 ## 9. ODS Profundizado (no solo etiquetas)
 
-Cómo cada acción de WaterMind OS aporta a un ODS específico:
+Cómo cada acción de Camaleón OS aporta a un ODS específico:
 
-| ODS | Meta concreta | Cómo WaterMind aporta | Métrica medible |
+| ODS | Meta concreta | Cómo Camaleón aporta | Métrica medible |
 |-----|---------------|----------------------|------------------|
 | **6** Agua limpia | 6.4 Aumentar eficiencia uso agua | TPP de 25% a 10% en 6 meses | Litros recuperados/año |
 | **6** Agua limpia | 6.b Apoyar gestión comunitaria | Reportes QR + créditos hídricos | # reportes/mes ciudadanos |
@@ -374,7 +374,7 @@ Cómo cada acción de WaterMind OS aporta a un ODS específico:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                   │
-│   WaterMind OS NO solo monitorea — ACTÚA.                         │
+│   Camaleón OS NO solo monitorea — ACTÚA.                         │
 │                                                                   │
 │   Cuando el agente detecta un problema, en menos de 30s:         │
 │                                                                   │
@@ -392,4 +392,4 @@ Cómo cada acción de WaterMind OS aporta a un ODS específico:
 
 ---
 
-*Documento técnico de mitigación · WaterMind OS · Hackathon UNIAJC 2026*
+*Documento técnico de mitigación · Camaleón OS · Hackathon UNIAJC 2026*

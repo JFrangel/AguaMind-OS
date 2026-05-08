@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-WaterMind OS — Generador de PDF entregable hackathon UNIAJC 2026.
+Camaleón OS — Generador de PDF entregable hackathon UNIAJC 2026.
 
-Convierte template.html + styles.css → WaterMind-OS-Hackathon-2026.pdf
+Convierte template.html + styles.css → Camaleón-OS-Hackathon-2026.pdf
 usando WeasyPrint.
 
 Uso:
@@ -21,7 +21,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 HTML_FILE   = HERE / "template.html"
 CSS_FILE    = HERE / "styles.css"
-OUTPUT_FILE = HERE / "WaterMind-OS-Hackathon-2026.pdf"
+OUTPUT_FILE = HERE / "Camaleón-OS-Hackathon-2026.pdf"
 
 # Pre-cargar libs (necesario en macOS Apple Silicon)
 HOMEBREW_LIB = "/opt/homebrew/lib"

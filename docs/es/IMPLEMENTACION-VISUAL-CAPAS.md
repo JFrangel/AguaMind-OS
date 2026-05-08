@@ -1,4 +1,4 @@
-# WaterMind OS - Como se ve cada capa implementada (vista visual)
+# Camaleón OS - Como se ve cada capa implementada (vista visual)
 
 > Este documento muestra **lo que un humano ve y toca** en cada una de las 7
 > capas del sistema. Es el complemento visual de
@@ -77,13 +77,13 @@
 **Plano 1 - Detalle interno PTAP** (Ilustracion 22 de la tesis):
 - Archivo: [tesis-uniajc/planos/plano-detalle-PTAP.png](../../tesis-uniajc/planos/plano-detalle-PTAP.png)
 - Muestra: tanque almacenamiento principal + 3 motobombas con manometros + 2 hidroflows + 3 filtros en cascada (Filtro 1, 2, 3) + tanque cloracion (con bomba dosificadora) + tanque almacenamiento subterraneo + tubo de succion + salida 79 m de 3"
-- **WaterMind se conecta:** instrumentando cada filtro con sensores de presion diferencial (detecta saturacion antes del retrolavado), cada motobomba con vibracion (predice falla), tanque cloracion con turbidez post-filtrado.
+- **Camaleón se conecta:** instrumentando cada filtro con sensores de presion diferencial (detecta saturacion antes del retrolavado), cada motobomba con vibracion (predice falla), tanque cloracion con turbidez post-filtrado.
 
 **Plano 2 - Distribucion hidraulica del campus** (Ilustracion 23 de la tesis):
 - Archivo: [tesis-uniajc/planos/plano-distribucion-hidraulica.png](../../tesis-uniajc/planos/plano-distribucion-hidraulica.png)
 - Muestra: PTAR (2 ubicaciones: lote-baldio sur y planta electrica sur), Aljibe central, Cancha futbol + voley + zona altura, Coliseo, GYM, Bienestar, Relax center, Salones, Oficinas, Biblioteca, Cafeteria, Cocina, Parqueaderos, Posteta entrada y salida, Punto cero.
 - Tuberias coloreadas (rojo, verde, morado, naranja) muestran diferentes redes (potable, residual, riego, retorno).
-- **WaterMind se conecta:** modela este layout en el SVG del dashboard `/agua` -> "Mapa del Campus", actualiza el flujo en tiempo real con datos de cada sensor.
+- **Camaleón se conecta:** modela este layout en el SVG del dashboard `/agua` -> "Mapa del Campus", actualiza el flujo en tiempo real con datos de cada sensor.
 
 ---
 
@@ -132,7 +132,7 @@
 
 ```
 +---------------------------+
-| WaterMind Node 01          |
+| Camaleón Node 01          |
 | PTAP UNIAJC               |
 +---------------------------+
 | Caudal:  28.92 L/min      |
@@ -439,4 +439,4 @@ Endpoint publico: `/water/reports/irca/2026-04`
 
 ---
 
-*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/WaterMind-OS*
+*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/Camaleón-OS*

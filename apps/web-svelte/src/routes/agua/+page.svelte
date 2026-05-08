@@ -31,9 +31,9 @@
   let error = $state<string | null>(null);
   let loading = $state(true);
   let lastRefresh = $state<Date | null>(null);
-  let scenario = $state<"normal" | "leak" | "peak_irrigation" | "turbidity">("normal");
+  let scenario = $state<"normal" | "leak" | "peak_irrigation" | "tank_low" | "soil_dry">("normal");
   let scenarioLoading = $state(false);
-  let tab = $state<"dashboard" | "history" | "industrial" | "agent" | "mitigation" | "community" | "architecture">("dashboard");
+  let tab = $state<"dashboard" | "history" | "agent" | "mitigation" | "community">("dashboard");
   let gamification = $state<any>(null);
   let redeemMessage = $state<string | null>(null);
   let valves = $state<any>(null);
@@ -125,15 +125,6 @@
         "Catálogo de canjes con Bienestar Universitario (mejoras en zona común, cafetería, proyectos).",
         "Reportes ciudadanos QR — cualquier estudiante reporta fugas y suma puntos.",
         "Concretiza ODS 11 (ciudades sostenibles) + ODS 17 (alianzas).",
-      ],
-    },
-    architecture:  {
-      title: "Arquitectura",
-      lines: [
-        "Diagrama de las 7 capas (Física → Sensado → Edge → Comunicación → Persistencia → Inteligencia → Aplicación).",
-        "Trinidad analítica visualizada (Descriptivo · Predictivo · Prescriptivo) con sparkline, forecast y voto consensual.",
-        "Flujo end-to-end sensor → cierre EV en 5s · vs 2-4h humano tradicional.",
-        "Mockups por capa: OLED, MQTT topic tree, payload JSON, schema SQL, máquina de estados firmware.",
       ],
     },
   };
@@ -471,10 +462,42 @@
   const maxConsumption = $derived(Math.max(...displayHistory.map(h => h.consumption_l ?? 0), 1));
   const totalAnnualLoss = $derived((reading?.losses_l_min ?? 0) * 1440 * 365 * 3.5);
   const annualSaving  = $derived(totalAnnualLoss * 0.6);
+
+  // KPIs derivados para tab Operación (CONSUMO, IEH, PÉRDIDA, ENERGÍA)
+  const tppValue       = $derived(kpis?.TPP?.value ?? 0);
+  const iehValue       = $derived(kpis?.IEH?.value ?? Math.max(0, 100 - tppValue));
+  const iehStatusVal   = $derived(kpis?.IEH?.status ?? (iehValue >= 90 ? 'ok' : iehValue >= 75 ? 'warning' : 'critical'));
+  const tppStatusVal   = $derived(kpis?.TPP?.status ?? 'ok');
+  const consumoDiario  = $derived(Math.round((reading?.total_flow_lmin ?? 0) * 1440));
+  // Energía desperdiciada en bombeo: pérdidas × 0.6 kWh/m³ (eficiencia bombas Barnes)
+  // UNIAJC se autoabastece del acuífero — paga ENERGÍA a EPSA, no agua a EMCALI
+  const lossesLitersDay = $derived(Math.round((reading?.losses_l_min ?? 0) * 1440));
+  const lossesM3Day     = $derived(lossesLitersDay / 1000);
+  const wastedKwhDay    = $derived(lossesM3Day * 0.6);   // kWh desperdiciados/día
+  const energyCostDay   = $derived(Math.round(wastedKwhDay * 650));  // tarifa EPSA $650/kWh
+  const energyStatus    = $derived(wastedKwhDay > 50 ? 'critical' : wastedKwhDay > 20 ? 'warning' : 'ok');
+  const mainKpis        = $derived([
+    { code: "CONSUMO",  name: "Consumo diario",     value: consumoDiario.toLocaleString(), unit: "L/día",  status: 'ok' as KPIStatus,           meta: "vs línea base 45,367 L" },
+    { code: "IEH",      name: "Eficiencia hídrica", value: fmt(iehValue, 1),                unit: "%",      status: iehStatusVal as KPIStatus,    meta: "meta > 90%" },
+    { code: "PÉRDIDA",  name: "TPP · pérdidas",     value: fmt(tppValue, 1),                unit: "%",      status: tppStatusVal as KPIStatus,    meta: "meta < 10%" },
+    { code: "ENERGÍA",  name: "kWh desperdiciados", value: fmt(wastedKwhDay, 1),            unit: "kWh/día",status: energyStatus as KPIStatus,    meta: "bombeo perdido · Ley 1931/2018" },
+  ]);
+
+  // Sensores derivados (5: Caudal, Riego, Presión, Nivel, Humedad)
+  const flowIrrigation = $derived((reading?.zones as any)?.["Riego/Cancha"] ?? 0);
+  const tankAvg        = $derived(((reading?.tank_a_pct ?? 0) + (reading?.tank_b_pct ?? 0)) / 2);
+  const soilHumidity   = $derived((reading as any)?.soil_humidity_pct ?? Math.max(45, Math.min(85, 65 + Math.sin(Date.now()/60000) * 8)));
+  const sensorList     = $derived([
+    { label: "Caudal general",  value: fmt(reading?.total_flow_lmin, 1) + " L/min", pct: (reading?.total_flow_lmin ?? 0) / 150 * 100, color: "#7dd3fc", code: "Q" },
+    { label: "Caudal riego",    value: fmt(flowIrrigation, 1) + " L/min",           pct: flowIrrigation / 30 * 100,                    color: "#22c55e", code: "R" },
+    { label: "Presión red",     value: fmt(reading?.pressure_kpa, 0) + " kPa",      pct: (reading?.pressure_kpa ?? 0) / 700 * 100,      color: "#a5b4fc", code: "P" },
+    { label: "Nivel tanques",   value: fmt(tankAvg, 1) + " %",                      pct: tankAvg,                                        color: "#0ea5e9", code: "N" },
+    { label: "Humedad suelo",   value: fmt(soilHumidity, 0) + " %",                 pct: soilHumidity,                                   color: "#34d399", code: "H" },
+  ]);
 </script>
 
 <svelte:head>
-  <title>WaterMind OS · UNIAJC</title>
+  <title>Camaleón OS · UNIAJC</title>
 </svelte:head>
 
 <div class="min-h-screen am-root" style="font-family: 'Inter', -apple-system, system-ui, sans-serif;">
@@ -493,7 +516,7 @@
   </div>
   <div class="leading-tight">
   <h1 class="text-[15px] font-semibold tracking-tight text-white flex items-center gap-1.5">
-  WaterMind <span class="text-sky-400 font-light">OS</span>
+  Camaleón <span class="text-sky-400 font-light">OS</span>
   </h1>
   <p class="text-[11px] text-slate-500 mt-0.5 tracking-wide">UNIAJC Sede Sur · Gestión Hídrica Inteligente</p>
   </div>
@@ -508,9 +531,10 @@
   class="text-[11px] bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 rounded-md px-2.5 py-1.5 text-slate-300 outline-none focus:border-sky-500/60 transition-colors"
   >
   <option value="normal">Escenario: Normal</option>
-  <option value="leak">Escenario: Fuga</option>
-  <option value="peak_irrigation">Escenario: Pico Riego</option>
-  <option value="turbidity">Escenario: Turbidez</option>
+  <option value="leak">Fuga (Q ↑ · P ↓)</option>
+  <option value="peak_irrigation">Pico riego (R ↑)</option>
+  <option value="tank_low">Tanque bajo (N ↓)</option>
+  <option value="soil_dry">Suelo seco (H ↓)</option>
   </select>
 
   <button
@@ -551,13 +575,11 @@
   <!-- Tabs -->
   <div class="mx-auto max-w-7xl px-6 flex gap-1">
   {#each [
-  ["dashboard",  "Operación",  "01"],
-  ["history",  "Tendencias",  "02"],
-  ["industrial", "Gestión Industrial","03"],
-  ["agent",  "Inteligencia",  "04"],
-  ["mitigation", "Mapa del Campus",  "05"],
-  ["community",  "Comunidad",  "06"],
-  ["architecture", "Arquitectura",   "07"],
+  ["dashboard",  "Operación",       "01"],
+  ["history",    "Tendencias",      "02"],
+  ["agent",      "Inteligencia",    "03"],
+  ["mitigation", "Mapa del Campus", "04"],
+  ["community",  "Comunidad",       "05"],
   ] as [key, label, num]}
   <button
   onclick={() => { tab = key as typeof tab; if (key === "history") fetchHistory(); if (key === "community") fetchGamification(); }}
@@ -634,36 +656,29 @@
   <span class="text-[10px] font-mono text-slate-600">live</span>
   </div>
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-  {#each Object.entries(kpis) as [name, kpi]}
-  {@const labels = {IEH: "Eficiencia Hídrica", TPP: "Pérdidas Proceso", CPE: "Consumo Estudiante", ICA: "Calidad Agua"}}
-  <div class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] hover:from-white/[0.04] hover:to-white/[0.01] transition-all duration-300 p-5">
-  <!-- Barra superior gradiente -->
-  <div class="absolute top-0 left-0 right-0 h-[2px]" style="background:linear-gradient(90deg, transparent, {statusHex(kpi.status)}, transparent)"></div>
-
-  <!-- Pulso de fondo si crítico -->
-  {#if kpi.status === 'critical'}
-  <div class="absolute inset-0 opacity-[0.04]" style="background:radial-gradient(circle at 50% 0%, {statusHex(kpi.status)}, transparent 70%)"></div>
-  {/if}
-
-  <div class="relative">
-  <div class="flex items-center justify-between mb-3">
-  <div>
-  <div class="text-[10px] font-mono font-bold tracking-[0.15em] text-slate-400">{name}</div>
-  <div class="text-[10px] text-slate-600 mt-0.5">{labels[name as keyof typeof labels] ?? ""}</div>
-  </div>
-  <span class="text-[9px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider border"
-  style="color:{statusHex(kpi.status)};background:{statusHex(kpi.status)}10;border-color:{statusHex(kpi.status)}30">{kpi.status === 'ok' ? 'óptimo' : kpi.status === 'warning' ? 'alerta' : 'crítico'}</span>
-  </div>
-  <div class="flex items-baseline gap-1">
-  <span class="text-[32px] font-semibold tracking-tighter leading-none text-white" style="font-family:'JetBrains Mono','SF Mono',monospace">
-  {fmt(kpi.value, name === "CPE" ? 2 : 1)}
-  </span>
-  <span class="text-[12px] text-slate-500 font-normal">{kpi.unit ?? ""}</span>
-  </div>
-  <div class="text-[10px] text-slate-500 mt-2 font-mono">meta {kpi.target ?? ""}</div>
-  </div>
-  </div>
-  {/each}
+    {#each mainKpis as kpi}
+      <div class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] hover:from-white/[0.04] hover:to-white/[0.01] transition-all duration-300 p-5">
+        <div class="absolute top-0 left-0 right-0 h-[2px]" style="background:linear-gradient(90deg, transparent, {statusHex(kpi.status)}, transparent)"></div>
+        {#if kpi.status === 'critical'}
+          <div class="absolute inset-0 opacity-[0.04]" style="background:radial-gradient(circle at 50% 0%, {statusHex(kpi.status)}, transparent 70%)"></div>
+        {/if}
+        <div class="relative">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-[10px] font-mono font-bold tracking-[0.15em] text-slate-400">{kpi.code}</div>
+              <div class="text-[10px] text-slate-600 mt-0.5">{kpi.name}</div>
+            </div>
+            <span class="text-[9px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider border"
+              style="color:{statusHex(kpi.status)};background:{statusHex(kpi.status)}10;border-color:{statusHex(kpi.status)}30">{kpi.status === 'ok' ? 'óptimo' : kpi.status === 'warning' ? 'alerta' : 'crítico'}</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[32px] font-semibold tracking-tighter leading-none text-white" style="font-family:'JetBrains Mono','SF Mono',monospace">{kpi.value}</span>
+            <span class="text-[12px] text-slate-500 font-normal">{kpi.unit}</span>
+          </div>
+          <div class="text-[10px] text-slate-500 mt-2 font-mono">{kpi.meta}</div>
+        </div>
+      </div>
+    {/each}
   </div>
   </div>
 
@@ -724,18 +739,11 @@
   </div>
   </div>
 
-  <!-- 6 sensores compactos -->
+  <!-- 5 sensores compactos -->
   <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-4">8 Sensores · Tiempo real</div>
+  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-4">5 Sensores · Tiempo real</div>
   <div class="space-y-3">
-  {#each [
-  { label: "Caudal total",      value: fmt(reading.total_flow_lmin, 1) + " L/min", pct: (reading.total_flow_lmin ?? 0) / 150 * 100, color: "#7dd3fc", code: "Q" },
-  { label: "Presión red",       value: fmt(reading.pressure_kpa, 0) + " kPa",      pct: (reading.pressure_kpa ?? 0) / 700 * 100,      color: "#a5b4fc", code: "P" },
-  { label: "Nivel freático",    value: fmt(reading.phreatic_m, 1) + " m",          pct: (reading.phreatic_m ?? 0) / 15 * 100,          color: "#86efac", code: "N" },
-  { label: "Turbidez",          value: fmt(reading.turbidity_ntu, 1) + " NTU",     pct: (reading.turbidity_ntu ?? 0) / 5 * 100,        color: (reading.turbidity_ntu ?? 0) > 4 ? "#f87171" : "#fbbf24", code: "T" },
-  { label: "Corriente bombas",  value: fmt(((reading as any).pump1_current_a ?? 0) + ((reading as any).pump2_current_a ?? 0), 1) + " A",  pct: (((reading as any).pump1_current_a ?? 0) + ((reading as any).pump2_current_a ?? 0)) / 50 * 100, color: "#fb923c", code: "I" },
-  { label: "Humedad suelo",     value: fmt((reading as any).soil_humidity_pct ?? 0, 0) + " %",   pct: (reading as any).soil_humidity_pct ?? 0,                color: "#34d399", code: "H" },
-  ] as s}
+  {#each sensorList as s}
   <div>
   <div class="flex justify-between items-center text-[11px] mb-1">
   <span class="flex items-center gap-2">
@@ -749,52 +757,23 @@
   </div>
   </div>
   {/each}
-  <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-white/[0.06] mt-2">
-  <span class="flex items-center gap-2">
-  <span class="w-4 h-4 rounded-sm flex items-center justify-center text-[10px] font-mono font-bold bg-white/[0.06] text-slate-400">V</span>
-  <span class="text-slate-400">Vibración tubería</span>
-  </span>
-  <span class="font-mono {reading.vibration ? 'text-red-400' : 'text-emerald-400'}">{reading.vibration ? "anomalía" : "estable"}</span>
-  </div>
-  <div class="flex items-center justify-between text-[11px] pt-1">
-  <span class="flex items-center gap-2">
-  <span class="w-4 h-4 rounded-sm flex items-center justify-center text-[10px] font-mono font-bold" style="background:#a855f71A;color:#a855f7">E</span>
-  <span class="text-slate-400">kWh/m³ bombeo</span>
-  </span>
-  <span class="font-mono {((reading as any).kwh_per_m3 ?? 0) < 0.6 ? 'text-emerald-400' : ((reading as any).kwh_per_m3 ?? 0) < 1.0 ? 'text-amber-400' : 'text-red-400'}">{fmt((reading as any).kwh_per_m3 ?? 0, 3)}</span>
-  </div>
   </div>
   </div>
   </div>
 
-  <!-- Método tradicional UNIAJC + validación cruzada -->
-  <div class="mt-6 rounded-xl border border-emerald-500/[0.18] bg-gradient-to-br from-emerald-500/[0.03] to-emerald-500/[0.01] p-4">
-  <div class="flex items-baseline justify-between mb-3">
-  <div>
-  <div class="text-[11px] font-medium tracking-wider uppercase text-emerald-400">Método tradicional UNIAJC · validación cruzada</div>
-  <div class="text-[11px] text-slate-300 mt-1">Respetamos el método de costo cero del operario. WaterMind OS lo digitaliza y lo cruza con el sensor para máxima confianza.</div>
-  </div>
-  <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">$0 · híbrido</span>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
-  <div class="rounded-md border border-white/[0.06] bg-white/[0.02] p-3">
-  <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">17:30 · cierre del día</div>
-  <div class="text-slate-300 leading-snug">Operario llena tanques A 36k L y B 16k L · cierra escotilla · anota marca de nivel en bitácora</div>
-  </div>
-  <div class="rounded-md border border-white/[0.06] bg-white/[0.02] p-3">
-  <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">07:00 · inicio del día</div>
-  <div class="text-slate-300 leading-snug">Abre escotilla · lee nueva marca · diferencia × 160 L/cm = pérdida nocturna en litros</div>
-  </div>
-  <div class="rounded-md border border-emerald-500/[0.20] bg-emerald-500/[0.04] p-3">
-  <div class="text-[10px] uppercase tracking-wider text-emerald-400 mb-1">+ JSN-SR04T en paralelo</div>
-  <div class="text-slate-300 leading-snug">Sensor mide cada 30s. Si difiere &gt;5 cm de marca manual → alerta de calibración. Doble método independiente.</div>
-  </div>
-  </div>
-
-  <div class="text-[10px] text-slate-500 mt-3 pt-3 border-t border-white/[0.06] font-mono">
-  Equivalencia validada: 1 cm = 160 L (Sánchez Sotelo 2021) · 1,587 L/día medidos manualmente · sensor confirma a 2,880 lecturas/día
-  </div>
+  <!-- Validación cruzada: método operario + sensor -->
+  <div class="mt-6 rounded-xl border border-emerald-500/[0.15] bg-emerald-500/[0.03] px-4 py-3 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded shrink-0">híbrido</span>
+      <div class="text-[11px] text-slate-300 truncate">
+        <span class="text-emerald-400">Bitácora 17:30 / 07:00</span>
+        <span class="text-slate-500 mx-1">+</span>
+        <span class="text-emerald-400">JSN-SR04T cada 30s</span>
+        <span class="text-slate-500 mx-1">→</span>
+        <span class="text-slate-400">doble método</span>
+      </div>
+    </div>
+    <span class="text-[10px] font-mono text-slate-500 shrink-0">1 cm = 160 L</span>
   </div>
 
   <!-- Sección Consumo por Zona -->
@@ -886,92 +865,132 @@
   {:else if tab === "history"}
 
   <!-- ── HEATMAP día × hora (consumo principal) ─────────────────────────── -->
-  <div class="mb-4">
-  <h2 class="text-[14px] font-semibold text-white tracking-tight">Patrón de consumo · día × hora</h2>
-  <p class="text-[11px] text-slate-500 mt-0.5">Heatmap semana típica · cada celda = consumo promedio en esa franja · útil para identificar picos académicos vs noches y fines de semana</p>
+  <div class="mb-3 flex items-baseline justify-between">
+    <div>
+      <h2 class="text-[14px] font-semibold text-white tracking-tight">Patrón de consumo · día × hora</h2>
+      <p class="text-[11px] text-slate-500 mt-0.5">Cada celda = caudal promedio (L/min) · pasa el cursor para ver detalle</p>
+    </div>
+    <div class="flex items-center gap-3 text-[10px]">
+      <div class="flex items-center gap-1.5">
+        <div class="w-3 h-3 rounded-sm bg-sky-500/20"></div>
+        <span class="text-slate-500">bajo</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <div class="w-3 h-3 rounded-sm bg-sky-500/60"></div>
+        <span class="text-slate-500">medio</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <div class="w-3 h-3 rounded-sm bg-red-500/80"></div>
+        <span class="text-slate-500">pico</span>
+      </div>
+    </div>
   </div>
 
-  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
-  <svg viewBox="0 0 900 320" class="w-full h-auto">
-  <!-- Eje Y · días -->
-  {#each ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"] as dia, dayI}
-  <text x="40" y={50 + dayI * 32 + 18} text-anchor="end" fill="rgba(255,255,255,0.65)" font-size="11" font-family="Inter">{dia}</text>
-  {/each}
+  <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5 mb-6 overflow-x-auto">
+    <table class="w-full" style="font-family: 'Inter', system-ui;">
+      <thead>
+        <tr>
+          <th class="w-12"></th>
+          {#each [0,2,4,6,8,10,12,14,16,18,20,22] as hLabel}
+            <th class="text-[9px] font-mono font-medium text-slate-500 pb-2" colspan="2">{String(hLabel).padStart(2,'0')}h</th>
+          {/each}
+        </tr>
+      </thead>
+      <tbody>
+        {#each ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"] as dia, dayI}
+          {@const isWeekend = dayI >= 5}
+          <tr>
+            <td class="text-[11px] font-medium text-slate-400 pr-2 py-0.5 align-middle">{dia}</td>
+            {#each Array(24) as _, hour}
+              {@const isPeakMorning = hour >= 7 && hour <= 9}
+              {@const isPeakLunch = hour >= 12 && hour <= 13}
+              {@const isPeakAfternoon = hour >= 15 && hour <= 17}
+              {@const isOff = hour >= 22 || hour < 6}
+              {@const intensity = isWeekend
+                ? (isOff ? 0.04 : 0.10)
+                : isOff ? 0.08
+                : isPeakMorning ? 0.95
+                : isPeakLunch ? 0.78
+                : isPeakAfternoon ? 0.72
+                : hour >= 6 && hour <= 18 ? 0.42
+                : 0.15}
+              {@const valueLpm = Math.round(intensity * 180)}
+              {@const isPeak = intensity >= 0.7 && !isWeekend}
+              <td class="p-0.5 group relative">
+                <div
+                  class="w-full h-7 rounded transition-all hover:scale-110 hover:z-10 cursor-pointer"
+                  style="background: {isPeak ? `rgba(239,68,68,${intensity})` : `rgba(14,165,233,${Math.max(0.05, intensity)})`}"
+                  title="{dia} {String(hour).padStart(2,'0')}:00 · {valueLpm} L/min"
+                ></div>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-20">
+                  {dia} · {String(hour).padStart(2,'0')}:00<br/>
+                  <span class="text-sky-300">{valueLpm} L/min</span>
+                </div>
+              </td>
+            {/each}
+          </tr>
+        {/each}
+      </tbody>
+    </table>
 
-  <!-- Eje X · horas -->
-  {#each [0,4,8,12,16,20,23] as hLabel, i}
-  <text x={60 + (hLabel / 23) * 800} y="40" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="JetBrains Mono">{String(hLabel).padStart(2,'0')}h</text>
-  {/each}
-
-  <!-- Celdas heatmap (24 horas × 7 días) -->
-  {#each Array(7) as _, dayI}
-  {#each Array(24) as _, hour}
-  {@const isWeekend = dayI >= 5}
-  {@const isPeakMorning = hour >= 7 && hour <= 9}
-  {@const isPeakLunch = hour >= 12 && hour <= 13}
-  {@const isPeakAfternoon = hour >= 15 && hour <= 17}
-  {@const isOff = hour >= 22 || hour < 6}
-  {@const intensity = isWeekend
-    ? (isOff ? 0.05 : isPeakMorning || isPeakLunch || isPeakAfternoon ? 0.18 : 0.12)
-    : isOff ? 0.10
-    : isPeakMorning ? 0.95
-    : isPeakLunch ? 0.85
-    : isPeakAfternoon ? 0.80
-    : hour >= 6 && hour <= 18 ? 0.55
-    : 0.20}
-  <rect
-  x={60 + hour * 33}
-  y={50 + dayI * 32}
-  width="31"
-  height="29"
-  rx="2"
-  fill={`rgba(14,165,233,${intensity})`}
-  stroke="rgba(255,255,255,0.04)"
-  stroke-width="0.5"
-  />
-  {/each}
-  {/each}
-
-  <!-- Gradient legend -->
-  <text x="60" y="295" fill="rgba(255,255,255,0.5)" font-size="9" font-family="JetBrains Mono">consumo bajo</text>
-  {#each Array(20) as _, i}
-  <rect x={170 + i * 12} y="285" width="11" height="10" fill={`rgba(14,165,233,${0.05 + (i / 20) * 0.95})`}/>
-  {/each}
-  <text x="420" y="295" fill="rgba(255,255,255,0.5)" font-size="9" font-family="JetBrains Mono">consumo alto</text>
-
-  <!-- Anotaciones de patrones -->
-  <text x="640" y="295" fill="rgba(125,211,252,0.7)" font-size="10" font-family="JetBrains Mono">pico 7-9h · entrada estudiantes</text>
-  </svg>
+    <!-- Insights debajo del heatmap -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-4 border-t border-white/[0.04]">
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Pico máximo</div>
+        <div class="text-[14px] font-mono font-semibold text-red-400">Mar 8h</div>
+        <div class="text-[10px] text-slate-500">~171 L/min</div>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Hora valle</div>
+        <div class="text-[14px] font-mono font-semibold text-sky-400">03h</div>
+        <div class="text-[10px] text-slate-500">~14 L/min</div>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Patrón académico</div>
+        <div class="text-[14px] font-mono font-semibold text-emerald-400">7-9h · 12-13h · 15-17h</div>
+        <div class="text-[10px] text-slate-500">3 picos diarios L-V</div>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Fin de semana</div>
+        <div class="text-[14px] font-mono font-semibold text-slate-300">−85%</div>
+        <div class="text-[10px] text-slate-500">vs días lectivos</div>
+      </div>
+    </div>
   </div>
 
-  <!-- ── Multi-variable sparklines ─────────────────────────────────────── -->
-  <div class="mb-4">
-  <h2 class="text-[14px] font-semibold text-white tracking-tight">Tendencias multi-variable · 24 h</h2>
-  <p class="text-[11px] text-slate-500 mt-0.5">Caudal · presión · nivel de tanque A · turbidez · freático · corriente bombas</p>
+  <!-- ── Tendencias 24h por sensor (5 sensores reales del campus) ─────── -->
+  <div class="mb-4 flex items-baseline justify-between">
+    <div>
+      <h2 class="text-[14px] font-semibold text-white tracking-tight">Tendencias 24 h · 5 sensores</h2>
+      <p class="text-[11px] text-slate-500 mt-0.5">Curva por sensor · valor actual destacado · min/max del día</p>
+    </div>
+    <span class="text-[10px] font-mono text-slate-600">simulación · datos sintéticos calibrados</span>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
   {#each [
-  { name: "Caudal entrada",  unit: "L/min",  color: "#0ea5e9", values: [16,17,17,18,18,18,22,28,30,29,27,26,24,18,17,25,26,25,21,16,15,15,15,16] },
-  { name: "Presión red",     unit: "kPa",    color: "#a855f7", values: [320,318,322,325,328,330,360,395,410,400,385,380,370,340,335,375,380,375,355,330,325,322,320,320] },
-  { name: "Nivel Tank A",    unit: "%",      color: "#10b981", values: [85,84,82,80,78,76,68,55,45,42,48,55,62,72,75,68,60,55,62,72,80,84,86,86] },
-  { name: "Turbidez",        unit: "NTU",    color: "#fbbf24", values: [0.8,0.9,0.9,1.1,1.2,1.3,1.5,1.8,2.1,1.9,1.6,1.4,1.5,1.7,1.8,2.2,2.0,1.7,1.4,1.2,1.0,0.9,0.8,0.8] },
-  { name: "Freático",        unit: "m",      color: "#7dd3fc", values: [8.2,8.2,8.1,8.1,8.0,8.0,7.9,7.8,7.7,7.7,7.8,7.9,7.9,8.0,8.1,8.0,7.9,7.9,8.0,8.1,8.1,8.2,8.2,8.2] },
-  { name: "Corriente bombas",unit: "A",      color: "#fb923c", values: [4,4,4,4,4,4,12,22,24,23,21,20,17,8,8,18,21,20,15,6,5,5,5,5] },
+    { code: "Q", name: "Caudal general",  unit: "L/min", color: "#7dd3fc", values: [60,55,52,48,45,50,90,140,165,160,155,148,130,135,158,160,155,145,120,95,80,70,65,62] },
+    { code: "R", name: "Caudal riego",    unit: "L/min", color: "#22c55e", values: [0,0,0,0,0,0,0,2,3,4,3,2,2,2,3,4,3,2,1,0,0,0,0,0] },
+    { code: "P", name: "Presión red",     unit: "kPa",   color: "#a5b4fc", values: [280,278,275,270,268,275,310,390,420,410,395,380,365,360,395,410,400,385,355,320,300,290,285,282] },
+    { code: "N", name: "Nivel tanques",   unit: "%",     color: "#0ea5e9", values: [88,86,84,80,76,72,65,55,48,52,60,68,74,78,72,65,58,62,72,82,88,92,93,92] },
+    { code: "H", name: "Humedad suelo",   unit: "%",     color: "#34d399", values: [70,68,67,66,65,64,63,62,61,60,58,55,52,50,49,52,58,62,66,68,70,71,72,71] },
   ] as v}
   {@const min = Math.min(...v.values)}
   {@const max = Math.max(...v.values)}
   {@const range = max - min || 1}
-  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
-  <div class="flex items-baseline justify-between mb-2">
-  <div>
-  <div class="text-[11px] text-slate-300 font-medium">{v.name}</div>
-  <div class="text-[9px] text-slate-500 font-mono">{v.unit}</div>
-  </div>
-  <div class="text-right">
-  <div class="text-[16px] font-semibold" style="color:{v.color}">{v.values[v.values.length-1]}</div>
-  <div class="text-[9px] text-slate-500 font-mono">min {min} · max {max}</div>
-  </div>
+  <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] hover:from-white/[0.04] hover:to-white/[0.01] transition-colors p-4">
+  <div class="flex items-start justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <span class="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-mono font-bold" style="background:{v.color}1A;color:{v.color}">{v.code}</span>
+      <div>
+        <div class="text-[11px] text-slate-200 font-medium">{v.name}</div>
+        <div class="text-[9px] text-slate-500 font-mono">{v.unit}</div>
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="text-[18px] font-mono font-semibold leading-none" style="color:{v.color}">{v.values[v.values.length-1]}</div>
+      <div class="text-[9px] text-slate-500 font-mono mt-1">min {min} · max {max}</div>
+    </div>
   </div>
   <svg viewBox="0 0 240 60" class="w-full h-auto">
   <!-- Sparkline -->
@@ -1091,309 +1110,6 @@
   </table>
   </div>
   </div>
-
-  <!-- ════════════════════════════════════════════════════════════════════ -->
-  <!-- TAB 3: INDUSTRIAL · alineado con AQUA-ROI Lite (compañero electrónica)-->
-  <!-- ════════════════════════════════════════════════════════════════════ -->
-  {:else if tab === "industrial"}
-
-  <!-- ── 1. KPIs principales (IEH, TPP, CPE, ICA) + AQUA-ROI (kWh/m³, DPTAP) ── -->
-  <div class="mb-4">
-  <h2 class="text-[14px] font-semibold text-white tracking-tight">Indicadores de desempeño</h2>
-  <p class="text-[11px] text-slate-500 mt-0.5">4 KPIs principales (rúbrica oficial) + 2 métricas operativas AQUA-ROI</p>
-  </div>
-
-  <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-6">
-  {#each [
-  { id: "IEH",   name: "Eficiencia hídrica",   formula: "(Q_entrada − Pérdidas) / Q_entrada × 100", target: "> 90%" },
-  { id: "TPP",   name: "Tasa de pérdidas",     formula: "Pérdidas / Q_entrada × 100",                target: "< 10%" },
-  { id: "CPE",   name: "Consumo per estudiante", formula: "Consumo_diario / Estudiantes",            target: "≤ 14.04 L" },
-  { id: "ICA",   name: "Calidad del agua",     formula: "100 − (Turbidez / 4) × 30",                  target: "> 90 pts" },
-  { id: "kWh_m3",name: "Eficiencia energética",formula: "(I_bombas × 220V × t) / volumen_m³",         target: "< 0.6"   },
-  { id: "DPTAP", name: "Disponibilidad PTAP",  formula: "Horas_disponible / Horas_programadas × 100", target: "> 98%"   },
-  ] as k}
-  {@const kpi = kpis?.[k.id] ?? { value: 0, status: "ok", unit: "" }}
-  <div class="rounded-lg border border-white/[0.04] p-3" style="background: rgba(255,255,255,0.015)">
-  <div class="flex items-baseline justify-between mb-1">
-  <span class="font-mono text-[10px] text-slate-500">{k.id}</span>
-  <span class="text-[8px] uppercase font-mono px-1 rounded" style="color:{statusHex(kpi.status)};background:{statusHex(kpi.status)}1A">{kpi.status}</span>
-  </div>
-  <div class="text-[20px] font-semibold tracking-tight" style="color:{statusHex(kpi.status)}">{fmt(kpi.value, k.id === "CPE" ? 2 : k.id === "kWh_m3" ? 3 : 1)}<span class="text-[10px] text-slate-500 ml-1 font-mono">{kpi.unit ?? ""}</span></div>
-  <div class="text-[10px] text-slate-300 mt-1">{k.name}</div>
-  <div class="text-[9px] font-mono text-slate-600 mt-1.5 leading-tight">{k.formula}</div>
-  <div class="text-[9px] text-slate-500 mt-0.5">meta {k.target}</div>
-  </div>
-  {/each}
-  </div>
-
-  <!-- ── 2. Estadísticas en vivo (estilo Arquitectura) ── -->
-  <div class="mb-4">
-  <h2 class="text-[14px] font-semibold text-white tracking-tight">Estadísticas en vivo</h2>
-  <p class="text-[11px] text-slate-500 mt-0.5">Análisis descriptivo · sparkline 24h · histograma de eventos · curva de optimización energética</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
-  <svg viewBox="0 0 900 320" class="w-full h-auto">
-  <!-- Sparkline TPP 24h -->
-  <g>
-  <text x="20" y="22" fill="rgba(125,211,252,0.85)" font-size="11" font-family="Inter" font-weight="600">TPP últimas 24h · % pérdidas</text>
-  <rect x="20" y="32" width="280" height="100" fill="rgba(0,0,0,0.18)" rx="3" stroke="rgba(125,211,252,0.10)"/>
-  <line x1="20" y1="82" x2="300" y2="82" stroke="rgba(125,211,252,0.18)" stroke-dasharray="2 3"/>
-  <text x="305" y="86" fill="rgba(125,211,252,0.55)" font-size="9" font-family="JetBrains Mono">10%</text>
-  <path d="M 22 110 L 35 108 L 50 102 L 65 95 L 80 88 L 95 80 L 110 70 L 125 62 L 140 56 L 155 60 L 170 65 L 185 72 L 200 78 L 215 72 L 230 65 L 245 58 L 260 52 L 275 48 L 290 50 L 298 54"
-  fill="none" stroke="#0ea5e9" stroke-width="2"/>
-  <circle cx="280" cy="48" r="3" fill="#fbbf24"/>
-  <text x="280" y="38" text-anchor="middle" fill="rgba(251,191,36,0.85)" font-size="8" font-family="JetBrains Mono">pico</text>
-  <text x="20" y="148" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">0h</text>
-  <text x="155" y="148" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">12h</text>
-  <text x="288" y="148" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">24h</text>
-  </g>
-
-  <!-- Histograma eventos de fuga por hora del día -->
-  <g>
-  <text x="320" y="22" fill="rgba(251,146,60,0.85)" font-size="11" font-family="Inter" font-weight="600">Fugas detectadas por hora</text>
-  <rect x="320" y="32" width="260" height="100" fill="rgba(0,0,0,0.18)" rx="3" stroke="rgba(251,146,60,0.10)"/>
-  {#each [3,2,4,5,6,4,2,1,1,2,3,2,1,2,3,2,3,4,5,6,8,9,7,5] as v, i}
-  {@const x = 322 + i * 10.5}
-  {@const h = v * 9}
-  <rect x={x} y={130 - h} width="8" height={h} rx="1" fill={v > 6 ? '#ef4444' : v > 4 ? '#fb923c' : '#fbbf24'} opacity="0.75"/>
-  {/each}
-  <text x="320" y="148" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">0h</text>
-  <text x="450" y="148" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">12h</text>
-  <text x="568" y="148" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">24h</text>
-  <text x="510" y="50" fill="rgba(239,68,68,0.7)" font-size="8" font-family="JetBrains Mono">21:00 pico nocturno</text>
-  </g>
-
-  <!-- Curva optimización kWh/m³ vs hora -->
-  <g>
-  <text x="600" y="22" fill="rgba(168,85,247,0.85)" font-size="11" font-family="Inter" font-weight="600">kWh/m³ baseline vs eco</text>
-  <rect x="600" y="32" width="280" height="100" fill="rgba(0,0,0,0.18)" rx="3" stroke="rgba(168,85,247,0.10)"/>
-  <line x1="600" y1="60" x2="880" y2="60" stroke="rgba(168,85,247,0.20)" stroke-dasharray="2 3"/>
-  <text x="882" y="64" fill="rgba(168,85,247,0.55)" font-size="9" font-family="JetBrains Mono">0.6</text>
-  <!-- baseline (alta) -->
-  <path d="M 605 65 L 625 64 L 650 65 L 680 66 L 710 65 L 740 63 L 770 62 L 800 64 L 830 65 L 855 66 L 875 65"
-  fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" stroke-dasharray="3 2"/>
-  <!-- optimizada (eco-nocturno) -->
-  <path d="M 605 75 L 625 80 L 650 90 L 680 95 L 710 100 L 740 100 L 770 95 L 800 80 L 830 70 L 855 67 L 875 65"
-  fill="none" stroke="#a855f7" stroke-width="2"/>
-  <!-- área de ahorro -->
-  <path d="M 625 64 L 625 80 L 650 90 L 680 95 L 710 100 L 740 100 L 770 95 L 800 80 L 800 64 L 770 62 L 740 63 L 710 65 L 680 66 L 650 65 Z"
-  fill="rgba(168,85,247,0.18)"/>
-  <text x="740" y="148" text-anchor="middle" fill="rgba(168,85,247,0.7)" font-size="9" font-family="JetBrains Mono">22:00–06:00 · −40% kWh</text>
-  </g>
-
-  <!-- Heatmap día × hora consumo -->
-  <g>
-  <text x="20" y="180" fill="rgba(34,197,94,0.85)" font-size="11" font-family="Inter" font-weight="600">Heatmap consumo · día × franja horaria</text>
-  {#each Array(7) as _, dayI}
-  {#each Array(6) as _, blockI}
-  {@const intensity = dayI < 5 ? (blockI === 1 ? 0.85 : blockI === 2 ? 0.70 : blockI === 3 ? 0.50 : blockI === 4 ? 0.30 : 0.20) : (blockI === 0 ? 0.10 : 0.20)}
-  <rect x={22 + blockI * 38} y={195 + dayI * 16} width="36" height="14" rx="2" fill={`rgba(34,197,94,${intensity})`} stroke="rgba(255,255,255,0.04)"/>
-  {/each}
-  {/each}
-  <text x="22" y="318" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">L M X J V S D · 0-4 · 4-8 · 8-12 · 12-16 · 16-20 · 20-24</text>
-  </g>
-
-  <!-- Distribución p50/p95/p99 presión -->
-  <g>
-  <text x="320" y="180" fill="rgba(56,189,248,0.85)" font-size="11" font-family="Inter" font-weight="600">Distribución presión red · p50/p95/p99</text>
-  <text x="322" y="208" fill="rgba(255,255,255,0.7)" font-size="9.5" font-family="JetBrains Mono">p50  →  286 kPa</text>
-  <rect x="322" y="214" width="160" height="6" rx="3" fill="rgba(56,189,248,0.7)"/>
-  <text x="322" y="240" fill="rgba(255,255,255,0.7)" font-size="9.5" font-family="JetBrains Mono">p95  →  412 kPa</text>
-  <rect x="322" y="246" width="220" height="6" rx="3" fill="rgba(56,189,248,0.45)"/>
-  <text x="322" y="272" fill="rgba(255,255,255,0.7)" font-size="9.5" font-family="JetBrains Mono">p99  →  478 kPa</text>
-  <rect x="322" y="278" width="240" height="6" rx="3" fill="rgba(56,189,248,0.25)"/>
-  <text x="322" y="306" fill="rgba(56,189,248,0.55)" font-size="9" font-family="JetBrains Mono">rango óptimo: 200–400 kPa · meta p95 &lt; 450</text>
-  </g>
-
-  <!-- Gauge ROI -->
-  <g>
-  <text x="600" y="180" fill="rgba(16,185,129,0.85)" font-size="11" font-family="Inter" font-weight="600">ROI escenarios · payback (años)</text>
-  {#each [
-  { name: "Prudente", val: 1.84, color: "#fbbf24" },
-  { name: "Conservador", val: 1.26, color: "#10b981" },
-  { name: "Medio", val: 1.07, color: "#34d399" },
-  ] as s, i}
-  <text x="605" y={205 + i * 30} fill="rgba(255,255,255,0.7)" font-size="10" font-family="Inter">{s.name}</text>
-  <rect x="685" y={199 + i * 30} width="160" height="10" rx="2" fill="rgba(255,255,255,0.05)"/>
-  <rect x="685" y={199 + i * 30} width={(2 - s.val) / 2 * 160} height="10" rx="2" fill={s.color} opacity="0.85"/>
-  <text x="850" y={207 + i * 30} fill={s.color} font-size="10" font-family="JetBrains Mono" font-weight="bold">{s.val} años</text>
-  {/each}
-  </g>
-  </svg>
-  </div>
-
-  <!-- ── 3. Costo-beneficio · 3 escenarios AQUA-ROI Lite ── -->
-  <div class="mb-4">
-  <h2 class="text-[14px] font-semibold text-white tracking-tight">Costo-beneficio · 3 escenarios</h2>
-  <p class="text-[11px] text-slate-500 mt-0.5">Inversión piloto AQUA-ROI Lite vs propuesta completa Arias Montoya 2024</p>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
-  {#each [
-  { name: "Conservador", savings: 4_429_751, payback: 1.26, color: "#10b981", note: "Recuperación fugas + riego inteligente + alertas + menos recorridos" },
-  { name: "Medio",       savings: 5_200_000, payback: 1.07, color: "#34d399", note: "Si el sistema detecta fugas mayores no documentadas hoy" },
-  { name: "Prudente sin mantenimiento", savings: 3_030_000, payback: 1.84, color: "#fbbf24", note: "Solo cuenta ahorro de fugas y riego, sin predictivo" },
-  ] as e}
-  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
-  <div class="flex items-baseline justify-between mb-3">
-  <span class="text-[12px] font-semibold text-white">{e.name}</span>
-  <span class="text-[10px] font-mono" style="color:{e.color}">{e.payback} años</span>
-  </div>
-  <div class="text-[24px] font-semibold tracking-tight" style="color:{e.color}">${e.savings.toLocaleString('es-CO')}</div>
-  <div class="text-[10px] text-slate-500 font-mono">COP/año ahorro</div>
-  <div class="text-[10px] text-slate-400 mt-3 leading-snug">{e.note}</div>
-  </div>
-  {/each}
-  </div>
-
-  <!-- Comparativa de 3 inversiones -->
-  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
-  <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-3">Comparativa de inversión</div>
-  <div class="grid grid-cols-3 gap-3">
-  {#each [
-  { label: "Demo Fase 0", val: 1_431_000, sub: "backend mínimo + simulador" },
-  { label: "Piloto AQUA-ROI Lite", val: 5_570_000, sub: "BOM compañero electrónica · Fase 1", highlight: true },
-  { label: "Propuesta completa", val: 37_376_807, sub: "Arias Montoya 2024 · sin medición" },
-  ] as inv}
-  <div class={`rounded-md p-3 border ${inv.highlight ? 'border-emerald-500/30' : 'border-white/[0.04]'}`}>
-  <div class="text-[10px] text-slate-500 uppercase tracking-wider">{inv.label}</div>
-  <div class={`text-[18px] font-semibold mt-1 ${inv.highlight ? 'text-emerald-400' : 'text-white'}`}>${inv.val.toLocaleString('es-CO')}</div>
-  <div class="text-[9px] text-slate-500 mt-1">{inv.sub}</div>
-  </div>
-  {/each}
-  </div>
-  <div class="text-[10px] text-slate-500 mt-3">El piloto AQUA-ROI reduce 85.1% la barrera financiera respecto a la propuesta completa.</div>
-  </div>
-
-  <!-- ── 4. Lean Manufacturing · 6 mudas + 6M Ishikawa ── -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Lean · 6 mudas en PTAP</div>
-  <div class="space-y-1">
-  {#each [
-  ["Defectos", "Fugas, calidad variable, lectura tardía", "Alertas caudal nocturno + presión + turbidez"],
-  ["Sobreprocesamiento", "Tratar/bombear agua que se pierde", "Medición pérdidas + riego por necesidad"],
-  ["Esperas", "Reaccionar cuando equipo ya falló", "Mantenimiento predictivo (corriente + presión)"],
-  ["Movimiento", "Inspecciones manuales sin priorización", "Dashboard + rutas por alerta"],
-  ["Energía desperdiciada", "Bombas con ciclos frecuentes", "Conteo ciclos + kWh/m³"],
-  ["Talento subutilizado", "Operario sin datos para decidir", "Interfaz semáforo + recomendaciones"],
-  ] as [muda, manif, contra]}
-  <div class="border-b border-white/[0.04] py-2">
-  <div class="text-[11px] text-amber-400 font-medium">{muda}</div>
-  <div class="text-[10px] text-slate-400 mt-0.5">{manif}</div>
-  <div class="text-[10px] text-emerald-400 mt-0.5">→ {contra}</div>
-  </div>
-  {/each}
-  </div>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Ishikawa 6M · causa-efecto</div>
-  <div class="text-[10px] text-slate-500 mb-3 italic">Efecto: pérdidas de agua y baja eficiencia económica-operativa de la PTAP</div>
-  <div class="space-y-2">
-  {#each [
-  ["Método", "Mantenimiento correctivo · riego sin humedad · registros manuales"],
-  ["Medición", "Sin caudalímetros · sin medidor eléctrico · sin históricos"],
-  ["Maquinaria", "Bombas con ciclos frecuentes · filtros sin retrolavado · hidroflo dependiente"],
-  ["Mano de obra", "Un solo operario · capacitación limitada · carga compartida"],
-  ["Materiales", "Tuberías con posibles fugas · válvulas sin inspección"],
-  ["Medio ambiente", "Variación calidad cruda · turbidez · sequía/lluvia · presión sobre acuífero"],
-  ] as [cat, causes]}
-  <div class="border-l-2 border-sky-500/40 pl-3">
-  <div class="text-[11px] text-sky-300 font-medium">{cat}</div>
-  <div class="text-[10px] text-slate-400">{causes}</div>
-  </div>
-  {/each}
-  </div>
-  </div>
-  </div>
-
-  <!-- ── 5. Reglas declarativas del agente (Tabla 13 AQUA-ROI) ── -->
-  <div class="mb-4">
-  <h2 class="text-[14px] font-semibold text-white tracking-tight">Reglas del agente · acciones automáticas</h2>
-  <p class="text-[11px] text-slate-500 mt-0.5">5 reglas declarativas con condición + acción + nivel de severidad</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
-  <div class="space-y-2">
-  {#each [
-  { id: "leak_night",  name: "Fuga nocturna",      condition: "caudal > umbral entre 20:00–05:00 + presión estable",    action: "Alerta amarilla · revisar baños, pilas y red principal",            severity: "warning",  color: "#fbbf24" },
-  { id: "pump_fail",   name: "Falla bomba",        condition: "corriente alta + presión baja",                            action: "Alerta naranja/roja · revisar bomba, filtros, válvulas, cavitación", severity: "critical", color: "#ef4444" },
-  { id: "filter_sat",  name: "Filtro saturado",    condition: "diferencial de presión creciente",                         action: "Programar retrolavado por condición real",                          severity: "warning",  color: "#fbbf24" },
-  { id: "irr_unneed",  name: "Riego innecesario",  condition: "humedad ≥ 60% o tanque bajo",                              action: "Bloquear riego automático o avisar no regar",                       severity: "info",     color: "#0ea5e9" },
-  { id: "sensor_bad",  name: "Sensor incoherente", condition: "lectura fuera de rango o sin cambio prolongado",          action: "Usar último dato válido + marcar dudoso + pedir inspección",        severity: "warning",  color: "#fbbf24" },
-  ] as r}
-  <div class="border-b border-white/[0.04] py-2 grid grid-cols-12 gap-3 items-baseline">
-  <span class="col-span-2 text-[10px] font-mono text-slate-500">{r.id}</span>
-  <span class="col-span-2 text-[11px] font-semibold" style="color:{r.color}">{r.name}</span>
-  <span class="col-span-4 text-[10px] text-slate-400 font-mono">{r.condition}</span>
-  <span class="col-span-4 text-[10px] text-slate-300">{r.action}</span>
-  </div>
-  {/each}
-  </div>
-  </div>
-
-  <!-- ── 6. Plan a prueba de fallos ── -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Plan a prueba de fallos</div>
-  <div class="space-y-1.5 text-[10.5px]">
-  {#each [
-  ["Sin internet",            "Mide localmente, guarda en microSD"],
-  ["Sin Wi-Fi humedal",       "Registro local + LoRa opcional"],
-  ["Falla sensor de nivel",   "Flotador físico de seguridad + modo manual"],
-  ["Falla sensor de presión", "Manómetros existentes + alerta de sensor"],
-  ["Lectura incoherente",     "Descartar dato + último válido + revisión"],
-  ["Bloqueo del MCU",         "Watchdog reinicia el sistema"],
-  ["Mantenimiento PTAP",      "Modo manual físico + registro de evento"],
-  ] as [falla, resp]}
-  <div class="flex gap-3 py-1.5 border-b border-white/[0.04]">
-  <span class="text-amber-400 w-44 shrink-0">{falla}</span>
-  <span class="text-slate-400">→ {resp}</span>
-  </div>
-  {/each}
-  </div>
-  </div>
-
-  <!-- ── 7. Plan implementación 10 semanas ── -->
-  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Plan de implementación · 10 semanas</div>
-  <div class="space-y-1.5 text-[10.5px]">
-  {#each [
-  ["Sem 1",   "Levantamiento final · diámetros, Wi-Fi, puntos corte, seguridad eléctrica"],
-  ["Sem 2",   "Compra y banco de pruebas · sensores en mesa"],
-  ["Sem 3",   "Instalación piloto · gabinete, caudalímetro, presión, corriente, nivel, humedad"],
-  ["Sem 4",   "Calibración · vs manómetros y medición manual de tanque"],
-  ["Sem 5–8", "Línea base · datos consumo normal, riego, ciclos de bombas"],
-  ["Sem 9",   "Ajuste de reglas · umbrales reales de fuga, corriente, presión, riego"],
-  ["Sem 10",  "Entrega · dashboard, informe ahorros, plan escalamiento, capacitación"],
-  ] as [t, act]}
-  <div class="flex gap-3 py-1.5 border-b border-white/[0.04]">
-  <span class="text-sky-400 w-16 shrink-0 font-mono">{t}</span>
-  <span class="text-slate-300">{act}</span>
-  </div>
-  {/each}
-  </div>
-  </div>
-  </div>
-
-  <!-- ── 8. Datos del campus (constantes Sánchez Sotelo + Caycedo) ── -->
-  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Datos del campus (validados por tesis UNIAJC)</div>
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Consumo total</div><div class="font-mono text-white text-[14px] mt-1">45,367 L/día</div><div class="text-[9px] text-slate-500">Arias Montoya 2024</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Pérdidas medidas</div><div class="font-mono text-amber-400 text-[14px] mt-1">1,587 L/día</div><div class="text-[9px] text-slate-500">Sánchez Sotelo 2021</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Equiv. tanque</div><div class="font-mono text-white text-[14px] mt-1">1 cm = 160 L</div><div class="text-[9px] text-slate-500">validación cruzada</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Caudal aljibes</div><div class="font-mono text-white text-[14px] mt-1">113.56 L/min</div><div class="text-[9px] text-slate-500">Caycedo & Jaramillo</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Estudiantes</div><div class="font-mono text-white text-[14px] mt-1">3,230</div><div class="text-[9px] text-slate-500">activos/día</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Usuarios totales</div><div class="font-mono text-white text-[14px] mt-1">8,234</div><div class="text-[9px] text-slate-500">+ docentes y staff</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Cap. PTAR total</div><div class="font-mono text-white text-[14px] mt-1">4,000 est</div><div class="text-[9px] text-slate-500">2 PTAR × 2 mód × 1k</div></div>
-  <div><div class="text-slate-500 text-[10px] uppercase tracking-wider">Sobrecapacidad</div><div class="font-mono text-red-400 text-[14px] mt-1">2.06×</div><div class="text-[9px] text-slate-500">8,234 ÷ 4,000</div></div>
-  </div>
-  </div>
-
-  <!-- ════════════════════════════════════════════════════════════════════ -->
   <!-- TAB 4: AGENTE IA -->
   <!-- ════════════════════════════════════════════════════════════════════ -->
   {:else if tab === "agent"}
@@ -1433,7 +1149,7 @@
   {#each [
   { code: "ORC", name: "Orchestrator",  desc: "Coordinador general · consolida",  status: agent?.last_decision ?? "—" },
   { code: "SYS", name: "SystemsAgent",  desc: "KPIs IEH/TPP/CPE · IsolationForest",  status: agent?.agents?.systems  ?? "—" },
-  { code: "SEN", name: "SensorAgent",  desc: "Validación 6 sensores · calidad señal", status: agent?.agents?.sensor  ?? "—" },
+  { code: "SEN", name: "SensorAgent",  desc: "Validación 5 sensores · Q·R·P·N·H",   status: agent?.agents?.sensor  ?? "—" },
   { code: "IND", name: "IndustrialAgent",  desc: "Lean (7 mudas) · ODS · costos",  status: agent?.agents?.industrial ?? "—" },
   { code: "MIT", name: "MitigationAgent",  desc: "Acción autónoma · electroválvulas",  status: (agent?.last_decision && agent.last_decision !== "ok") ? "execute" : "idle" },
   ] as a}
@@ -1514,39 +1230,39 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
   {#each [
   {
+  trigger: "leak", title: "Fuga detectada", color: "#ef4444",
+  cond: "Q ↑ + P ↓ 28% en <90s",
+  impact_l: 14500,
+  acts: ["Cierra EV-A2 inmediato", "Bomba a standby",
+  "Genera OT mantenimiento", "Push Telegram al equipo"],
+  },
+  {
+  trigger: "peak_irrigation", title: "Pico riego", color: "#22c55e",
+  cond: "R > 3× baseline + horario diurno",
+  impact_l: 1800,
+  acts: ["Cierra EV-RC1 inmediato", "Reprograma a 22:00-05:00",
+  "Verifica humedad H del suelo", "Notifica jardinería"],
+  },
+  {
+  trigger: "tank_low", title: "Tanque bajo", color: "#0ea5e9",
+  cond: "N < 33% (12,000 L Tanque A)",
+  impact_l: 0,
+  acts: ["Activa bomba auto", "Pre-llena Tanque A",
+  "Eleva presión P si hay demanda alta", "Aviso operador"],
+  },
+  {
+  trigger: "soil_dry", title: "Suelo seco", color: "#34d399",
+  cond: "H < 30% en zona riego",
+  impact_l: 0,
+  acts: ["Activa EV-RC1 (riego inteligente)", "Solo si horario nocturno",
+  "Monitorea humedad post-riego", "Cierra al alcanzar 60%"],
+  },
+  {
   trigger: "drought_mode", title: "Sequía / El Niño", color: "#f59e0b",
-  cond: "freático < 5 m + IDEAM El Niño",
+  cond: "IDEAM El Niño + tendencia Q ↓ semanal",
   impact_l: 10400,
-  acts: ["Bomba eco_drought (-70%)", "Cierra EV-RC1 (riego)", "Presión nocturna 38→25 PSI",
-  "Aviso operador + reporte CVC"],
-  },
-  {
-  trigger: "flood_mode", title: "Lluvias / La Niña", color: "#0ea5e9",
-  cond: "lluvia > 25 mm/h sostenida",
-  impact_l: 5500,
-  acts: ["Bomba a rain_standby", "Cierra EV-RC1 (riego innecesario)",
-  "Monitoreo saturación PTAR", "Alerta drenaje preventivo"],
-  },
-  {
-  trigger: "quake_mode", title: "Sismo", color: "#ef4444",
-  cond: "acelerómetro > 0.05 g local",
-  impact_l: 0,
-  acts: ["Cierra TODAS las EV controlables", "Bomba emergency_off",
-  "Alerta evacuación PTAP/PTAR", "Bloquea reapertura hasta inspección"],
-  },
-  {
-  trigger: "contamination_mode", title: "Contaminación", color: "#a855f7",
-  cond: "turbidez > 4 NTU o pH fuera 6-9",
-  impact_l: 0,
-  acts: ["Aísla EV-OUT-A/B (tanques)", "Bomba isolated",
-  "Reporte automático INVIMA", "Suspende distribución hasta muestra"],
-  },
-  {
-  trigger: "surge_mode", title: "Pico demanda", color: "#10b981",
-  cond: "consumo > 150% baseline",
-  impact_l: 2500,
-  acts: ["Cierra EV-RC1 (prioriza uso humano)", "Bomba a 100% (boost seguro)",
-  "Recalcula recarga tanques", "Aviso al operador"],
+  acts: ["Bomba eco (-70% extracción)", "Cierra EV-RC1 todo el día",
+  "Presión nocturna 380→260 kPa", "Reporte CVC + activa campaña"],
   },
   ] as p}
   <div class="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
@@ -1579,7 +1295,7 @@
   </div>
 
   <div class="text-[10px] text-slate-500 mt-3 pt-3 border-t border-white/[0.06]">
-  Cada plan ejecuta acciones físicas reales (cierre EV vía MQTT + ajuste VFD bomba) + reporte auditable. Documentación: <span class="text-amber-400 font-mono">docs/es/WATERMIND-OS-MASTER.md §9</span>
+  Cada plan ejecuta acciones físicas reales (cierre EV vía MQTT + ajuste VFD bomba) + reporte auditable. Documentación: <span class="text-amber-400 font-mono">docs/es/CAMALEON-OS-MASTER.md §9</span>
   </div>
 
   <!-- Fuentes de datos meteorológicos en tiempo real -->
@@ -1629,7 +1345,7 @@
   {/each}
   </div>
   <div class="text-[10px] text-slate-500 mt-2.5">
-  Sensores locales (freático 4-20mA, turbidez TSD-10, vibración SW-420, presión MPX5700) complementan el contexto meteorológico. El backend hace fetch periódico (15 min) a estas APIs y normaliza con <span class="font-mono text-sky-400">app/sensors/normalizer.py</span>.
+  Sensores locales (Q caudal YF-S201, R caudal riego YF-DN50, P presión MPX5700AP, N nivel JSN-SR04T, H humedad HW-080) complementan el contexto meteorológico. El backend hace fetch periódico (15 min) a estas APIs y normaliza con <span class="font-mono text-sky-400">app/sensors/normalizer.py</span>.
   </div>
   </div>
   </div>
@@ -1665,9 +1381,9 @@
   },
   {
   code: "SEN", name: "SensorAgent", color: "#10b981",
-  conf: reading?.vibration ? 85 : 96,
+  conf: 96,
   text: reading
-  ? `6/6 sensores en rango. Presión ${reading.pressure_kpa} kPa, freático ${reading.phreatic_m} m, turbidez ${reading.turbidity_ntu} NTU.${reading.vibration ? ' SW-420 detecta vibración anómala.' : ''}`
+  ? `5/5 sensores en rango. Q caudal ${reading.total_flow_lmin?.toFixed(1)} L/min, R riego ${(reading.zones?.["Riego/Cancha"] ?? 0).toFixed(1)} L/min, P presión ${reading.pressure_kpa} kPa, N tanques A=${reading.tank_a_pct}%/B=${reading.tank_b_pct}%, H humedad ${(reading as any).soil_humidity_pct ?? 65}%.`
   : "Esperando lecturas..."
   },
   {
@@ -2521,674 +2237,6 @@
 
   {/if}
 
-  {:else if tab === "architecture"}
-
-  <div class="mb-6">
-  <h2 class="text-[16px] font-semibold text-white tracking-tight">Arquitectura por capas</h2>
-  <p class="text-[11px] text-slate-500 mt-1">De abajo (agua física) hacia arriba (botón en pantalla). Cada capa es independientemente reemplazable.</p>
-  </div>
-
-  <!-- SVG con las 7 capas -->
-  <div class="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-6 mb-6">
-  <svg viewBox="0 0 900 720" class="w-full h-auto" style="background:linear-gradient(180deg,rgba(125,211,252,0.04) 0%,rgba(14,165,233,0.02) 100%)">
-  <defs>
-  <pattern id="archGrid" width="30" height="30" patternUnits="userSpaceOnUse">
-  <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(148,163,184,0.06)" stroke-width="1"/>
-  </pattern>
-  <marker id="archArrowDown" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="8" markerHeight="8" orient="auto">
-  <path d="M 0 0 L 5 10 L 10 0 z" fill="#7dd3fc"/>
-  </marker>
-  </defs>
-  <rect width="900" height="720" fill="url(#archGrid)"/>
-
-  <!-- Conector vertical central -->
-  <line x1="450" y1="40" x2="450" y2="690" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="4 3" opacity="0.45"/>
-
-  <!-- ═══ CAPA 7 · APLICACIÓN (y=40-130) ═══ -->
-  <g>
-  <rect x="40" y="40" width="820" height="90" rx="8" fill="rgba(125,211,252,0.10)" stroke="#7dd3fc" stroke-width="1.5"/>
-  <text x="60" y="65" fill="#7dd3fc" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 7 · APLICACIÓN</text>
-  <text x="60" y="82" fill="rgba(148,163,184,0.7)" font-size="9" font-family="JetBrains Mono">qué ven los humanos · &lt; 100 ms (UI)</text>
-  <!-- 4 cards horizontales -->
-  <rect x="80" y="92" width="170" height="30" rx="4" fill="rgba(56,189,248,0.10)" stroke="#38bdf8" stroke-width="1"/>
-  <text x="165" y="111" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="Inter">Dashboard SvelteKit</text>
-  <rect x="270" y="92" width="170" height="30" rx="4" fill="rgba(56,189,248,0.10)" stroke="#38bdf8" stroke-width="1"/>
-  <text x="355" y="111" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="Inter">Bot Telegram</text>
-  <rect x="460" y="92" width="170" height="30" rx="4" fill="rgba(56,189,248,0.10)" stroke="#38bdf8" stroke-width="1"/>
-  <text x="545" y="111" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="Inter">Reportes PDF auditables</text>
-  <rect x="650" y="92" width="170" height="30" rx="4" fill="rgba(56,189,248,0.10)" stroke="#38bdf8" stroke-width="1"/>
-  <text x="735" y="111" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="Inter">API pública (Ley 1712)</text>
-  </g>
-
-  <!-- ═══ CAPA 6 · INTELIGENCIA (y=145-235) ═══ -->
-  <g>
-  <rect x="40" y="145" width="820" height="90" rx="8" fill="rgba(99,102,241,0.10)" stroke="#818cf8" stroke-width="1.5"/>
-  <text x="60" y="170" fill="#818cf8" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 6 · INTELIGENCIA</text>
-  <text x="60" y="187" fill="rgba(148,163,184,0.7)" font-size="9" font-family="JetBrains Mono">5 agentes · LangGraph · LLM cascade · 1-5 s</text>
-  <!-- 5 agentes -->
-  {#each [
-  { code: "ORC", name: "Orchestrator", x: 80 },
-  { code: "SYS", name: "Systems",  x: 230 },
-  { code: "SEN", name: "Sensor",  x: 380 },
-  { code: "IND", name: "Industrial",  x: 530 },
-  { code: "MIT", name: "Mitigation",  x: 680 },
-  ] as a}
-  <rect x={a.x} y="195" width="135" height="30" rx="4" fill="rgba(99,102,241,0.15)" stroke="#a5b4fc" stroke-width="1"/>
-  <text x={a.x+10} y="207" fill="#a5b4fc" font-size="9" font-family="JetBrains Mono" font-weight="bold">{a.code}</text>
-  <text x={a.x+10} y="220" fill="rgba(165,180,252,0.85)" font-size="9.5" font-family="Inter">{a.name}</text>
-  {/each}
-  </g>
-
-  <!-- ═══ CAPA 5 · PERSISTENCIA (y=250-340) ═══ -->
-  <g>
-  <rect x="40" y="250" width="820" height="90" rx="8" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="1.5"/>
-  <text x="60" y="275" fill="#22c55e" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 5 · PERSISTENCIA</text>
-  <text x="60" y="292" fill="rgba(148,163,184,0.7)" font-size="9" font-family="JetBrains Mono">FastAPI + Postgres + Parquet · 50-200 ms</text>
-  <rect x="80" y="300" width="220" height="30" rx="4" fill="rgba(34,197,94,0.15)" stroke="#4ade80" stroke-width="1"/>
-  <text x="190" y="319" text-anchor="middle" fill="#4ade80" font-size="10" font-family="Inter">FastAPI · /water/* · /water/agent/*</text>
-  <rect x="320" y="300" width="200" height="30" rx="4" fill="rgba(34,197,94,0.15)" stroke="#4ade80" stroke-width="1"/>
-  <text x="420" y="319" text-anchor="middle" fill="#4ade80" font-size="10" font-family="Inter">Cache RAM · última hora</text>
-  <rect x="540" y="300" width="160" height="30" rx="4" fill="rgba(34,197,94,0.15)" stroke="#4ade80" stroke-width="1"/>
-  <text x="620" y="319" text-anchor="middle" fill="#4ade80" font-size="10" font-family="Inter">Postgres · 90 días</text>
-  <rect x="720" y="300" width="120" height="30" rx="4" fill="rgba(34,197,94,0.15)" stroke="#4ade80" stroke-width="1"/>
-  <text x="780" y="319" text-anchor="middle" fill="#4ade80" font-size="10" font-family="Inter">Parquet · 5 años</text>
-  </g>
-
-  <!-- ═══ CAPA 4 · COMUNICACIÓN (y=355-445) ═══ -->
-  <g>
-  <rect x="40" y="355" width="820" height="90" rx="8" fill="rgba(245,158,11,0.10)" stroke="#f59e0b" stroke-width="1.5"/>
-  <text x="60" y="380" fill="#f59e0b" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 4 · COMUNICACIÓN</text>
-  <text x="60" y="397" fill="rgba(148,163,184,0.7)" font-size="9" font-family="JetBrains Mono">MQTT TLS 8883 · HTTP fallback · NVS · 30-100 ms</text>
-  <rect x="80" y="405" width="240" height="30" rx="4" fill="rgba(245,158,11,0.15)" stroke="#fbbf24" stroke-width="1"/>
-  <text x="200" y="424" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="Inter">HiveMQ Cloud (TLS QoS 1)</text>
-  <rect x="340" y="405" width="220" height="30" rx="4" fill="rgba(245,158,11,0.15)" stroke="#fbbf24" stroke-width="1"/>
-  <text x="450" y="424" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="Inter">HTTP REST fallback</text>
-  <rect x="580" y="405" width="240" height="30" rx="4" fill="rgba(245,158,11,0.15)" stroke="#fbbf24" stroke-width="1"/>
-  <text x="700" y="424" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="Inter">NVS local · 1,000 lecturas offline</text>
-  </g>
-
-  <!-- ═══ CAPA 3 · EDGE (y=460-550) ═══ -->
-  <g>
-  <rect x="40" y="460" width="820" height="90" rx="8" fill="rgba(168,85,247,0.10)" stroke="#a855f7" stroke-width="1.5"/>
-  <text x="60" y="485" fill="#a855f7" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 3 · EDGE / EMBEBIDA</text>
-  <text x="60" y="502" fill="rgba(148,163,184,0.7)" font-size="9" font-family="JetBrains Mono">ESP32-WROOM dual-core · ADS1115 16-bit · OLED + LED + buzzer · 1-30 s</text>
-  <rect x="80" y="510" width="200" height="30" rx="4" fill="rgba(168,85,247,0.15)" stroke="#c084fc" stroke-width="1"/>
-  <text x="180" y="529" text-anchor="middle" fill="#c084fc" font-size="10" font-family="Inter">Core 0 · 1 Hz · sensores</text>
-  <rect x="300" y="510" width="200" height="30" rx="4" fill="rgba(168,85,247,0.15)" stroke="#c084fc" stroke-width="1"/>
-  <text x="400" y="529" text-anchor="middle" fill="#c084fc" font-size="10" font-family="Inter">Core 1 · 30s · MQTT publish</text>
-  <rect x="520" y="510" width="160" height="30" rx="4" fill="rgba(168,85,247,0.15)" stroke="#c084fc" stroke-width="1"/>
-  <text x="600" y="529" text-anchor="middle" fill="#c084fc" font-size="10" font-family="Inter">OLED + LED + buzzer</text>
-  <rect x="700" y="510" width="120" height="30" rx="4" fill="rgba(168,85,247,0.15)" stroke="#c084fc" stroke-width="1"/>
-  <text x="760" y="529" text-anchor="middle" fill="#c084fc" font-size="10" font-family="Inter">220V → 5V + bat.</text>
-  </g>
-
-  <!-- ═══ CAPA 2 · SENSADO (y=565-655) ═══ -->
-  <g>
-  <rect x="40" y="565" width="820" height="90" rx="8" fill="rgba(239,68,68,0.10)" stroke="#ef4444" stroke-width="1.5"/>
-  <text x="60" y="590" fill="#fca5a5" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 2 · SENSADO</text>
-  <text x="60" y="607" fill="rgba(148,163,184,0.7)" font-size="9" font-family="JetBrains Mono">6 sensores físicos · normalizador universal acepta 10 formatos · &lt; 1 s</text>
-  {#each [
-  { code: "YF-S201",   variable: "Caudal",  x: 80 },
-  { code: "MPX5700AP", variable: "Presión",  x: 215 },
-  { code: "JSN-SR04T", variable: "Nivel tanque", x: 350 },
-  { code: "SW-420",  variable: "Vibración",  x: 485 },
-  { code: "4-20mA",  variable: "Freático",  x: 620 },
-  { code: "TSD-10",  variable: "Turbidez",  x: 755 },
-  ] as s}
-  <rect x={s.x} y="615" width="125" height="30" rx="4" fill="rgba(239,68,68,0.15)" stroke="#fca5a5" stroke-width="1"/>
-  <text x={s.x+62} y="627" text-anchor="middle" fill="#fca5a5" font-size="9" font-family="JetBrains Mono" font-weight="bold">{s.code}</text>
-  <text x={s.x+62} y="640" text-anchor="middle" fill="rgba(252,165,165,0.8)" font-size="9" font-family="Inter">{s.variable}</text>
-  {/each}
-  </g>
-
-  <!-- ═══ CAPA 1 · FÍSICA (y=665-720) ═══ -->
-  <g>
-  <rect x="40" y="665" width="820" height="55" rx="8" fill="rgba(56,189,248,0.10)" stroke="#0ea5e9" stroke-width="1.5"/>
-  <text x="60" y="685" fill="#0ea5e9" font-size="11" font-family="JetBrains Mono" font-weight="bold">CAPA 1 · FÍSICA · UNIAJC Sede Sur</text>
-  <text x="60" y="703" fill="rgba(148,163,184,0.85)" font-size="9.5" font-family="Inter">Aljibes 1+2 → PTAP 2011 (3 filtros) → Tank A 36k L + Tank B 16k L → 6 edificios → PTAR Alameda + PTAR Entrada (4,000 est cap) → Río Pance/Cauca</text>
-  </g>
-
-  <!-- Flechas de flujo lateral -->
-  <line x1="20" y1="60" x2="20" y2="690" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="6 3" opacity="0.55"/>
-  <text x="6" y="380" fill="rgba(125,211,252,0.7)" font-size="9" font-family="JetBrains Mono" transform="rotate(-90 6 380)">datos suben</text>
-  <line x1="880" y1="60" x2="880" y2="690" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3 2" opacity="0.55" marker-end="url(#archArrowDown)"/>
-  <text x="893" y="380" fill="rgba(251,191,36,0.7)" font-size="9" font-family="JetBrains Mono" transform="rotate(90 893 380)">acciones bajan</text>
-  </svg>
-  </div>
-
-  <!-- Tabla resumen + estado por capa -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-
-  <!-- Tabla de responsabilidades -->
-  <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Responsabilidad de cada capa</div>
-  <div class="space-y-1.5 text-[11px]">
-  {#each [
-  { n: "07", color: "#7dd3fc", name: "Aplicación", resp: "Visualizar, notificar, reportar", lat: "<100ms" },
-  { n: "06", color: "#a5b4fc", name: "Inteligencia", resp: "Analizar (3 niveles) y decidir", lat: "1-5s" },
-  { n: "05", color: "#4ade80", name: "Persistencia", resp: "Validar, almacenar, servir API", lat: "50-200ms" },
-  { n: "04", color: "#fbbf24", name: "Comunicación", resp: "Transportar al backend con garantías", lat: "30-100ms" },
-  { n: "03", color: "#c084fc", name: "Edge", resp: "Filtrar, promediar, almacenar local", lat: "1-30s" },
-  { n: "02", color: "#fca5a5", name: "Sensado", resp: "Convertir fenómeno físico en señal", lat: "<1s" },
-  { n: "01", color: "#0ea5e9", name: "Física", resp: "El recurso hídrico real", lat: "—" },
-  ] as l}
-  <div class="flex items-center gap-2 p-2 rounded-md border border-white/[0.04] bg-white/[0.015]">
-  <span class="text-[9px] font-mono px-1.5 py-0.5 rounded shrink-0" style="background:{l.color}1A;color:{l.color}">{l.n}</span>
-  <span class="font-medium text-slate-200 shrink-0 w-24">{l.name}</span>
-  <span class="text-slate-400 flex-1 truncate text-[10.5px]">{l.resp}</span>
-  <span class="text-slate-500 font-mono text-[10px] shrink-0">{l.lat}</span>
-  </div>
-  {/each}
-  </div>
-  </div>
-
-  <!-- Estado live de cada capa -->
-  <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-3">Estado en vivo</div>
-  <div class="space-y-2">
-  {#each [
-  { n: "07", name: "Aplicación", status: "active", val: "dashboard 6 tabs · bot Telegram" },
-  { n: "06", name: "Inteligencia", status: agent?.running ? "active" : "off", val: agent?.running ? `agente ciclo #${agent.cycle} · decisión ${agent.last_decision}` : "agente detenido" },
-  { n: "05", name: "Persistencia", status: "active", val: "FastAPI :8000 · simulador en RAM" },
-  { n: "04", name: "Comunicación", status: "demo", val: "MQTT pendiente · HTTP fallback OK" },
-  { n: "03", name: "Edge", status: "demo", val: "firmware MicroPython listo · sin hardware aún" },
-  { n: "02", name: "Sensado", status: "demo", val: `6 sensores simulados · normalizador acepta 10 formatos` },
-  { n: "01", name: "Física", status: "doc", val: "planos hidráulicos UNIAJC en repo" },
-  ] as l}
-  {@const c = l.status === "active" ? "#10b981" : l.status === "off" ? "#ef4444" : "#f59e0b"}
-  <div class="flex items-center gap-3 text-[11px]">
-  <span class="text-[9px] font-mono w-7 text-slate-500">{l.n}</span>
-  <span class="w-1.5 h-1.5 rounded-full" style="background:{c}"></span>
-  <span class="font-medium text-slate-300 w-24">{l.name}</span>
-  <span class="text-slate-500 flex-1 truncate text-[10.5px]">{l.val}</span>
-  <span class="text-[9px] font-mono uppercase" style="color:{c}">{l.status}</span>
-  </div>
-  {/each}
-  </div>
-
-  <div class="mt-4 pt-3 border-t border-white/[0.06] text-[10px] text-slate-500 font-mono leading-relaxed">
-  <span class="text-emerald-400">active</span> · operativo en este momento &nbsp;·&nbsp;
-  <span class="text-amber-400">demo</span> · código listo, infra/hardware pendiente &nbsp;·&nbsp;
-  <span class="text-amber-400">doc</span> · solo documentación
-  </div>
-  </div>
-
-  </div>
-
-  <!-- ═══ DIAGRAMA 2 · TRINIDAD ANALÍTICA (3 niveles) ═══ -->
-  <div class="mt-6 mb-3">
-  <h2 class="text-[15px] font-semibold text-white tracking-tight">Trinidad analítica del agente</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Cada lectura pasa por 3 niveles de análisis. Lo descriptivo alimenta lo predictivo, lo predictivo informa lo prescriptivo.</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-6 mb-6">
-  <svg viewBox="0 0 900 460" class="w-full h-auto">
-  <defs>
-  <marker id="arrTrin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#7dd3fc"/>
-  </marker>
-  <linearGradient id="bandPred" x1="0" y1="0" x2="0" y2="1">
-  <stop offset="0%" stop-color="rgba(245,158,11,0.30)"/>
-  <stop offset="100%" stop-color="rgba(245,158,11,0)"/>
-  </linearGradient>
-  </defs>
-
-  <!-- ═══════════ NIVEL 1 · DESCRIPTIVO (azul) ═══════════ -->
-  <g>
-  <rect x="20" y="20" width="280" height="420" rx="12" fill="rgba(14,165,233,0.06)" stroke="#0ea5e9" stroke-width="1.2"/>
-  <text x="40" y="48" fill="#0ea5e9" font-size="10" font-family="JetBrains Mono" font-weight="bold">NIVEL 1 · DESCRIPTIVO</text>
-  <text x="40" y="72" fill="white" font-size="15" font-family="Inter" font-weight="bold">¿Qué pasó?</text>
-  <text x="40" y="89" fill="rgba(255,255,255,0.6)" font-size="9.5" font-family="Inter">SystemsAgent · SensorAgent</text>
-
-  <!-- CHART 1A: Sparkline caudal 24h -->
-  <text x="40" y="115" fill="#7dd3fc" font-size="9.5" font-family="JetBrains Mono">caudal últimas 24 h · L/min</text>
-  <rect x="40" y="120" width="240" height="80" fill="rgba(0,0,0,0.20)" stroke="rgba(125,211,252,0.15)" stroke-width="0.5" rx="3"/>
-  <!-- gridlines -->
-  <line x1="40" y1="160" x2="280" y2="160" stroke="rgba(125,211,252,0.10)" stroke-dasharray="2 3"/>
-  <!-- línea promedio histórico -->
-  <line x1="40" y1="158" x2="280" y2="158" stroke="rgba(125,211,252,0.35)" stroke-width="0.5" stroke-dasharray="3 3"/>
-  <text x="282" y="161" fill="rgba(125,211,252,0.5)" font-size="8" font-family="JetBrains Mono">avg</text>
-  <!-- Sparkline path: pico en h7-9 (mañana), baja al mediodía, pico h12-14, valle h22-h5 -->
-  <path d="M 40 188 L 50 192 L 60 194 L 70 196 L 80 192 L 90 175 L 100 155 L 110 132 L 120 128 L 130 145 L 140 158 L 150 138 L 160 125 L 170 142 L 180 158 L 190 168 L 200 162 L 210 152 L 220 148 L 230 158 L 240 170 L 250 180 L 260 188 L 270 192 L 280 195"
-  fill="none" stroke="#0ea5e9" stroke-width="2"/>
-  <!-- Highlight peaks -->
-  <circle cx="115" cy="128" r="3" fill="#7dd3fc"/>
-  <circle cx="160" cy="125" r="3" fill="#7dd3fc"/>
-  <text x="40" y="213" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">0</text>
-  <text x="155" y="213" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">12h</text>
-  <text x="265" y="213" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">24h</text>
-
-  <!-- CHART 1B: Heatmap consumo por hora x día (7x4 = 28 celdas) -->
-  <text x="40" y="240" fill="#7dd3fc" font-size="9.5" font-family="JetBrains Mono">heatmap día × hora</text>
-  {#each Array(7) as _, dayI}
-  {#each Array(4) as _, blockI}
-  {@const intensity = dayI < 5 ? (blockI === 1 ? 0.85 : blockI === 2 ? 0.55 : 0.25) : (blockI === 0 ? 0.10 : 0.20)}
-  <rect x={40 + blockI * 30} y={250 + dayI * 17} width="28" height="15" rx="2" fill={`rgba(14,165,233,${intensity})`} stroke="rgba(255,255,255,0.05)"/>
-  {/each}
-  {/each}
-  <text x="40" y="383" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">L M X J V S D · 0-6 · 6-12 · 12-18 · 18-24</text>
-
-  <!-- CHART 1C: Distribución p50/p95/p99 -->
-  <text x="40" y="404" fill="#7dd3fc" font-size="9.5" font-family="JetBrains Mono">distrib · p50/p95/p99</text>
-  <rect x="40" y="412" width="120" height="6" rx="3" fill="rgba(14,165,233,0.7)"/>
-  <rect x="160" y="412" width="60" height="6" rx="3" fill="rgba(14,165,233,0.45)"/>
-  <rect x="220" y="412" width="20" height="6" rx="3" fill="rgba(14,165,233,0.25)"/>
-  <text x="248" y="418" fill="rgba(255,255,255,0.55)" font-size="8" font-family="JetBrains Mono">L/min</text>
-  <text x="105" y="430" text-anchor="middle" fill="rgba(125,211,252,0.7)" font-size="8" font-family="JetBrains Mono">p50</text>
-  <text x="200" y="430" text-anchor="middle" fill="rgba(125,211,252,0.5)" font-size="8" font-family="JetBrains Mono">p95</text>
-  </g>
-
-  <!-- Flecha 1 → 2 -->
-  <line x1="305" y1="230" x2="325" y2="230" stroke="#7dd3fc" stroke-width="2" marker-end="url(#arrTrin)"/>
-
-  <!-- ═══════════ NIVEL 2 · PREDICTIVO (naranja) ═══════════ -->
-  <g>
-  <rect x="330" y="20" width="280" height="420" rx="12" fill="rgba(245,158,11,0.06)" stroke="#f59e0b" stroke-width="1.2"/>
-  <text x="350" y="48" fill="#f59e0b" font-size="10" font-family="JetBrains Mono" font-weight="bold">NIVEL 2 · PREDICTIVO</text>
-  <text x="350" y="72" fill="white" font-size="15" font-family="Inter" font-weight="bold">¿Qué va a pasar?</text>
-  <text x="350" y="89" fill="rgba(255,255,255,0.6)" font-size="9.5" font-family="Inter">IndustrialAgent</text>
-
-  <!-- CHART 2A: Forecast con banda de confianza -->
-  <text x="350" y="115" fill="#fbbf24" font-size="9.5" font-family="JetBrains Mono">forecast 6h · ARIMA + LSTM</text>
-  <rect x="350" y="120" width="240" height="80" fill="rgba(0,0,0,0.20)" stroke="rgba(251,191,36,0.15)" stroke-width="0.5" rx="3"/>
-  <!-- ahora vertical -->
-  <line x1="470" y1="120" x2="470" y2="200" stroke="rgba(251,191,36,0.55)" stroke-width="1" stroke-dasharray="3 2"/>
-  <text x="473" y="132" fill="rgba(251,191,36,0.7)" font-size="8" font-family="JetBrains Mono">ahora</text>
-  <!-- past actual -->
-  <path d="M 355 175 L 375 168 L 395 172 L 415 158 L 435 165 L 455 152 L 470 158"
-  fill="none" stroke="#fbbf24" stroke-width="2"/>
-  <!-- forecast band -->
-  <path d="M 470 158 L 490 148 L 510 132 L 530 122 L 550 130 L 570 138 L 585 145 L 585 175 L 570 168 L 550 162 L 530 155 L 510 165 L 490 175 L 470 158 Z"
-  fill="url(#bandPred)" stroke="none"/>
-  <!-- forecast line -->
-  <path d="M 470 158 L 490 148 L 510 132 L 530 122 L 550 130 L 570 138 L 585 145"
-  fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="4 2"/>
-  <circle cx="530" cy="122" r="3" fill="#fbbf24"/>
-  <text x="528" y="118" text-anchor="middle" fill="rgba(251,191,36,0.85)" font-size="8" font-family="JetBrains Mono">pico 7AM</text>
-  <text x="354" y="213" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">-6h</text>
-  <text x="468" y="213" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">0</text>
-  <text x="565" y="213" fill="rgba(255,255,255,0.5)" font-size="8" font-family="JetBrains Mono">+6h</text>
-
-  <!-- CHART 2B: Anomaly score (IsolationForest) timeline -->
-  <text x="350" y="240" fill="#fbbf24" font-size="9.5" font-family="JetBrains Mono">anomaly score · IsolationForest</text>
-  <rect x="350" y="248" width="240" height="40" fill="rgba(0,0,0,0.15)" rx="3"/>
-  <line x1="350" y1="276" x2="590" y2="276" stroke="rgba(251,191,36,0.25)" stroke-dasharray="2 2"/>
-  <text x="592" y="280" fill="rgba(251,191,36,0.5)" font-size="8" font-family="JetBrains Mono">0.5</text>
-  {#each [0.12, 0.18, 0.15, 0.22, 0.30, 0.45, 0.78, 0.85, 0.65, 0.40, 0.25, 0.20] as v, i}
-  {@const x = 358 + i * 19}
-  {@const h = v * 35}
-  {@const isAnom = v > 0.5}
-  <rect x={x} y={285 - h} width="14" height={h} rx="1.5" fill={isAnom ? '#ef4444' : '#fbbf24'} opacity={isAnom ? 0.85 : 0.6}/>
-  {/each}
-
-  <!-- CHART 2C: Random Forest feature importance -->
-  <text x="350" y="313" fill="#fbbf24" font-size="9.5" font-family="JetBrains Mono">RF feature importance · clasif. fuga</text>
-  {#each [
-  { name: "presión", val: 0.32, color: "#f59e0b" },
-  { name: "vibración", val: 0.27, color: "#fbbf24" },
-  { name: "caudal", val: 0.18, color: "#fbbf24" },
-  { name: "Δpresión", val: 0.13, color: "#fbbf24" },
-  { name: "freático", val: 0.10, color: "#f59e0b" },
-  ] as f, i}
-  <text x="350" y={335 + i * 17} fill="rgba(255,255,255,0.7)" font-size="9" font-family="JetBrains Mono">{f.name}</text>
-  <rect x="410" y={328 + i * 17} width={f.val * 350} height="10" rx="2" fill={f.color} opacity="0.75"/>
-  <text x={415 + f.val * 350} y={336 + i * 17} fill="rgba(251,191,36,0.85)" font-size="8" font-family="JetBrains Mono">{(f.val*100).toFixed(0)}%</text>
-  {/each}
-  <text x="350" y="430" fill="rgba(251,191,36,0.7)" font-size="9" font-family="JetBrains Mono" font-weight="bold">P(fuga) = 0.92 · tipo: fisura_lenta</text>
-  </g>
-
-  <!-- Flecha 2 → 3 -->
-  <line x1="615" y1="230" x2="635" y2="230" stroke="#7dd3fc" stroke-width="2" marker-end="url(#arrTrin)"/>
-
-  <!-- ═══════════ NIVEL 3 · PRESCRIPTIVO (rojo) ═══════════ -->
-  <g>
-  <rect x="640" y="20" width="245" height="420" rx="12" fill="rgba(239,68,68,0.06)" stroke="#ef4444" stroke-width="1.2"/>
-  <text x="660" y="48" fill="#ef4444" font-size="10" font-family="JetBrains Mono" font-weight="bold">NIVEL 3 · PRESCRIPTIVO</text>
-  <text x="660" y="72" fill="white" font-size="15" font-family="Inter" font-weight="bold">¿Qué hacemos?</text>
-  <text x="660" y="89" fill="rgba(255,255,255,0.6)" font-size="9.5" font-family="Inter">Orchestrator + Mitigation</text>
-
-  <!-- CHART 3A: Voto consensual 5 agentes -->
-  <text x="660" y="115" fill="#fca5a5" font-size="9.5" font-family="JetBrains Mono">voto consensual · 4 de 5 ≥ critical</text>
-  {#each [
-  { code: "ORC", vote: "critical", color: "#ef4444", x: 660 },
-  { code: "SYS", vote: "critical", color: "#ef4444", x: 700 },
-  { code: "SEN", vote: "warning",  color: "#fbbf24", x: 740 },
-  { code: "IND", vote: "critical", color: "#ef4444", x: 780 },
-  { code: "MIT", vote: "critical", color: "#ef4444", x: 820 },
-  ] as v, i}
-  <circle cx={v.x + 18} cy="138" r="14" fill={v.color + '30'} stroke={v.color} stroke-width="1.5"/>
-  <text x={v.x + 18} y="142" text-anchor="middle" fill={v.color} font-size="8" font-family="JetBrains Mono" font-weight="bold">{v.code}</text>
-  {#if i < 4}
-  <line x1={v.x + 32} y1="138" x2={v.x + 36} y2="138" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
-  {/if}
-  {/each}
-  <!-- consensus bar -->
-  <rect x="660" y="160" width="200" height="6" rx="3" fill="rgba(239,68,68,0.20)"/>
-  <rect x="660" y="160" width="160" height="6" rx="3" fill="#ef4444"/>
-  <text x="765" y="180" text-anchor="middle" fill="#fca5a5" font-size="9" font-family="JetBrains Mono">consenso 80% → ACTÚA</text>
-
-  <!-- CHART 3B: Optimización scipy curve (kWh por hora) -->
-  <text x="660" y="210" fill="#fca5a5" font-size="9.5" font-family="JetBrains Mono">optim · presión vs kWh</text>
-  <rect x="660" y="218" width="200" height="60" fill="rgba(0,0,0,0.15)" rx="3"/>
-  <line x1="660" y1="248" x2="860" y2="248" stroke="rgba(252,165,165,0.20)" stroke-dasharray="2 2"/>
-  <!-- baseline kWh sin optim -->
-  <path d="M 665 230 L 685 232 L 705 234 L 725 233 L 745 232 L 765 230 L 785 228 L 805 230 L 825 232 L 845 234 L 855 232"
-  fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.2" stroke-dasharray="3 2"/>
-  <!-- optimizada (más baja en horario eco) -->
-  <path d="M 665 248 L 685 256 L 705 262 L 725 268 L 745 270 L 765 268 L 785 260 L 805 250 L 825 240 L 845 235 L 855 232"
-  fill="none" stroke="#ef4444" stroke-width="2"/>
-  <!-- área de ahorro -->
-  <path d="M 685 232 L 685 256 L 705 262 L 725 268 L 745 270 L 765 268 L 785 260 L 805 250 L 805 230 L 785 228 L 765 230 L 745 232 L 725 233 L 705 234 Z"
-  fill="rgba(239,68,68,0.18)"/>
-  <text x="745" y="295" text-anchor="middle" fill="rgba(252,165,165,0.7)" font-size="9" font-family="JetBrains Mono">22:00–06:00 · −40% kWh</text>
-
-  <!-- CHART 3C: Acción ejecutada -->
-  <text x="660" y="320" fill="#fca5a5" font-size="9.5" font-family="JetBrains Mono">decisión final · acción</text>
-  <rect x="660" y="328" width="205" height="40" rx="6" fill="rgba(239,68,68,0.18)" stroke="#ef4444" stroke-width="1.5"/>
-  <text x="763" y="349" text-anchor="middle" fill="white" font-size="11" font-family="JetBrains Mono" font-weight="bold">CIERRA EV-A2</text>
-  <text x="763" y="362" text-anchor="middle" fill="rgba(252,165,165,0.85)" font-size="9" font-family="JetBrains Mono">+ reporte CVC + OT-30685054</text>
-
-  <!-- CHART 3D: Impacto en plata -->
-  <text x="660" y="392" fill="#fca5a5" font-size="9.5" font-family="JetBrains Mono">impacto monetizado</text>
-  <text x="660" y="412" fill="white" font-size="14" font-family="JetBrains Mono" font-weight="bold">$36,400</text>
-  <text x="730" y="412" fill="rgba(252,165,165,0.7)" font-size="9" font-family="JetBrains Mono">COP/día · 10,400 L</text>
-  <text x="660" y="430" fill="rgba(252,165,165,0.6)" font-size="8.5" font-family="JetBrains Mono">CO₂ evitado: 4.78 kg</text>
-  </g>
-  </svg>
-  </div>
-
-  <!-- ═══ DIAGRAMA 3 · SECUENCIA END-TO-END (sensor → cierre EV) ═══ -->
-  <div class="mt-6 mb-3">
-  <h2 class="text-[15px] font-semibold text-white tracking-tight">Flujo end-to-end · sensor detecta fuga → cierre automático</h2>
-  <p class="text-[11px] text-slate-500 mt-1">5 segundos vs 2-4 horas manual. Cada paso es una capa.</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-4 mb-6">
-  <svg viewBox="0 0 900 460" class="w-full h-auto">
-  <defs>
-  <marker id="arrSeq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(125,211,252,0.6)"/>
-  </marker>
-  </defs>
-
-  <!-- 7 swim lanes (uno por capa) -->
-  {#each [
-  { y: 30, code: "L1", name: "Física", color: "#0ea5e9" },
-  { y: 80, code: "L2", name: "Sensado", color: "#fca5a5" },
-  { y: 130, code: "L3", name: "Edge ESP32", color: "#c084fc" },
-  { y: 180, code: "L4", name: "Comunicación MQTT", color: "#fbbf24" },
-  { y: 230, code: "L5", name: "FastAPI + DB", color: "#4ade80" },
-  { y: 280, code: "L6", name: "Inteligencia (5 agentes)", color: "#a5b4fc" },
-  { y: 330, code: "L7", name: "Aplicación + actuadores", color: "#7dd3fc" },
-  ] as l}
-  <rect x="20" y={l.y} width="860" height="34" rx="6" fill={l.color + '0F'} stroke={l.color} stroke-width="0.7" stroke-dasharray="2 2" opacity="0.5"/>
-  <text x="32" y={l.y + 22} fill={l.color} font-size="10" font-family="JetBrains Mono" font-weight="bold">{l.code}</text>
-  <text x="62" y={l.y + 22} fill="rgba(255,255,255,0.85)" font-size="10.5" font-family="Inter">{l.name}</text>
-  {/each}
-
-  <!-- Pasos del flujo (cajitas + flechas verticales) -->
-  {#each [
-  { x: 200, y_from: 30, y_to: 80, label: "fuga genera vibración + caída presión" },
-  { x: 290, y_from: 80, y_to: 130, label: "SW-420 ON · MPX5700 → 0.7V" },
-  { x: 380, y_from: 130, y_to: 180, label: "buffer 30s · σ + min + max" },
-  { x: 470, y_from: 180, y_to: 230, label: "publish topic=sensors/ptap-01" },
-  { x: 560, y_from: 230, y_to: 280, label: "validate · cache · upsert DB" },
-  { x: 650, y_from: 280, y_to: 330, label: "voto 3 de 5 → leak_response" },
-  { x: 740, y_from: 330, y_to: 280, label: "POST /mitigate/auto", up: true },
-  { x: 800, y_from: 280, y_to: 130, label: "MQTT actuators/EV-A2 close", up: true, dotted: true },
-  ] as s}
-  <line x1={s.x} y1={s.y_from + 34} x2={s.x} y2={s.y_to} stroke="rgba(125,211,252,0.55)" stroke-width="1.8" stroke-dasharray={s.dotted ? '4 3' : ''} marker-end="url(#arrSeq)"/>
-  <rect x={s.x - 75} y={Math.min(s.y_from, s.y_to) + 38} width="150" height="14" rx="3" fill="rgba(15,23,42,0.85)" stroke="rgba(125,211,252,0.3)" stroke-width="0.5"/>
-  <text x={s.x} y={Math.min(s.y_from, s.y_to) + 48} text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="9" font-family="Inter">{s.label}</text>
-  {/each}
-
-  <!-- Footer del diagrama -->
-  <text x="450" y="400" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11" font-family="Inter">Total end-to-end: <tspan fill="#10b981" font-weight="bold">~5 segundos</tspan> · vs respuesta humana tradicional: <tspan fill="#ef4444" font-weight="bold">2-4 horas</tspan></text>
-  <text x="450" y="425" text-anchor="middle" fill="rgba(125,211,252,0.7)" font-size="10" font-family="JetBrains Mono">cada flecha vertical = 1 capa · línea sólida = datos suben · línea punteada = acción baja</text>
-  </svg>
-  </div>
-
-  <!-- ═══ MOCKUPS por capa ═══ -->
-  <div class="mt-6 mb-3">
-  <h2 class="text-[15px] font-semibold text-white tracking-tight">Manifestación física por capa</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Cómo se ve cada capa cuando la abrís — display OLED, MQTT topics, payload, tabla SQL.</p>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-
-  <!-- Mockup 1 · OLED Display (capa 3) -->
-  <div class="rounded-xl border border-purple-500/[0.20] bg-purple-500/[0.03] p-3 font-mono">
-  <div class="text-[10px] text-purple-400 uppercase tracking-wider mb-2">Capa 3 · OLED 0.96"</div>
-  <pre class="text-[9px] text-purple-200 leading-tight whitespace-pre overflow-hidden">
-+-------------------+
-|WaterMind Node 01   |
-|PTAP UNIAJC        |
-+-------------------+
-|Q:    28.92 L/min  |
-|P:    67.4 kPa BAJA|
-|TankA 72%  TankB 78|
-|Freat: 8.04 m   OK |
-|NTU:   1.13     OK |
-+-------------------+
-|MQTT OK · WiFi -54 |
-|TX 12s ago         |
-+-------------------+</pre>
-  <div class="text-[9px] text-purple-400/70 mt-1.5">visible sin internet</div>
-  </div>
-
-  <!-- Mockup 2 · MQTT topic (capa 4) -->
-  <div class="rounded-xl border border-amber-500/[0.20] bg-amber-500/[0.03] p-3 font-mono">
-  <div class="text-[10px] text-amber-400 uppercase tracking-wider mb-2">Capa 4 · MQTT topics</div>
-  <pre class="text-[9px] text-amber-200 leading-tight whitespace-pre overflow-hidden">
-campus/uniajc/
-  sensors/
-    esp32-ptap-01    ← payload
-    esp32-bloque-a-01
-  actuators/
-    EV-A1   close|open
-    EV-A2   close|open
-    EV-RC1  close|open
-    pump-main  auto|eco
-  alerts/
-    critical
-    warning
-  reports/
-    monthly-irca
-    quarterly-cvc</pre>
-  <div class="text-[9px] text-amber-400/70 mt-1.5">TLS 8883 · QoS 1</div>
-  </div>
-
-  <!-- Mockup 3 · Payload JSON (capa 4 / 5) -->
-  <div class="rounded-xl border border-emerald-500/[0.20] bg-emerald-500/[0.03] p-3 font-mono">
-  <div class="text-[10px] text-emerald-400 uppercase tracking-wider mb-2">Capa 5 · Payload canónico</div>
-  <pre class="text-[9px] text-emerald-200 leading-tight whitespace-pre overflow-hidden">{`{
-  "node_id": "esp32-ptap-01",
-  "ts": "2026-05-08T03:00Z",
-  "flow1_lmin":   14.5,
-  "pressure_kpa": 320,
-  "tank_a_pct":   72,
-  "vibration":  false,
-  "phreatic_m":  8.04,
-  "turbidity_ntu": 1.13,
-  "wifi_rssi": -54,
-  "battery_v":  4.1,
-  "uptime_s": 86400
-}`}</pre>
-  <div class="text-[9px] text-emerald-400/70 mt-1.5">10 formatos aceptados</div>
-  </div>
-
-  <!-- Mockup 4 · Schema SQL (capa 5) -->
-  <div class="rounded-xl border border-sky-500/[0.20] bg-sky-500/[0.03] p-3 font-mono">
-  <div class="text-[10px] text-sky-400 uppercase tracking-wider mb-2">Capa 5 · tabla water_readings</div>
-  <pre class="text-[9px] text-sky-200 leading-tight whitespace-pre overflow-hidden">
-id            BIGSERIAL PK
-timestamp     TIMESTAMPTZ
-node_id       TEXT
-sensor_id     TEXT
-sensor_type   TEXT
-value         DOUBLE
-unit          TEXT
-raw           JSONB
-quality       TEXT
-metadata      JSONB
-created_at    TIMESTAMPTZ
-
-INDEX (ts DESC)
-INDEX (node_id, sensor)
-INDEX (quality) WHERE
-   quality != 'ok'</pre>
-  <div class="text-[9px] text-sky-400/70 mt-1.5">retención 90d · luego Parquet</div>
-  </div>
-  </div>
-
-  <!-- ═══ DIAGRAMA 4 · Máquina de estados del firmware ═══ -->
-  <div class="mt-6 mb-3">
-  <h2 class="text-[15px] font-semibold text-white tracking-tight">Máquina de estados · firmware ESP32</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Cómo el nodo IoT sobrevive cortes de internet y reconecta.</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-6 mb-6">
-  <svg viewBox="0 0 900 280" class="w-full h-auto">
-  <defs>
-  <marker id="arrFsm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#a855f7"/>
-  </marker>
-  </defs>
-
-  {#each [
-  { x: 80,  y: 130, label: "BOOT", color: "#94a3b8" },
-  { x: 220, y: 130, label: "WIFI_CONNECT", color: "#7dd3fc" },
-  { x: 380, y: 130, label: "MQTT_CONNECT", color: "#fbbf24" },
-  { x: 540, y: 130, label: "READY", color: "#10b981" },
-  { x: 700, y:  60, label: "READING (1Hz)", color: "#a855f7" },
-  { x: 700, y: 200, label: "PUBLISHING (30s)", color: "#a855f7" },
-  { x: 540, y: 235, label: "HTTP_FALLBACK", color: "#f59e0b" },
-  { x: 380, y: 235, label: "NVS_BUFFER", color: "#ef4444" },
-  ] as s}
-  <rect x={s.x - 60} y={s.y - 18} width="120" height="36" rx="8" fill={s.color + '20'} stroke={s.color} stroke-width="1.5"/>
-  <text x={s.x} y={s.y + 4} text-anchor="middle" fill={s.color} font-size="11" font-family="JetBrains Mono" font-weight="bold">{s.label}</text>
-  {/each}
-
-  <!-- Transiciones -->
-  <line x1="140" y1="130" x2="160" y2="130" stroke="#a855f7" stroke-width="2" marker-end="url(#arrFsm)"/>
-  <line x1="280" y1="130" x2="320" y2="130" stroke="#a855f7" stroke-width="2" marker-end="url(#arrFsm)"/>
-  <line x1="440" y1="130" x2="480" y2="130" stroke="#a855f7" stroke-width="2" marker-end="url(#arrFsm)"/>
-  <line x1="600" y1="120" x2="640" y2="80" stroke="#a855f7" stroke-width="2" marker-end="url(#arrFsm)"/>
-  <line x1="600" y1="140" x2="640" y2="190" stroke="#a855f7" stroke-width="2" marker-end="url(#arrFsm)"/>
-  <line x1="640" y1="220" x2="600" y2="235" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 2" marker-end="url(#arrFsm)"/>
-  <line x1="480" y1="235" x2="440" y2="235" stroke="#ef4444" stroke-width="2" stroke-dasharray="3 2" marker-end="url(#arrFsm)"/>
-  <path d="M 380 217 Q 380 160 440 130" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#arrFsm)"/>
-
-  <text x="640" y="115" fill="rgba(168,85,247,0.7)" font-size="9" font-family="JetBrains Mono">core 0</text>
-  <text x="640" y="180" fill="rgba(168,85,247,0.7)" font-size="9" font-family="JetBrains Mono">core 1</text>
-  <text x="535" y="225" fill="rgba(245,158,11,0.7)" font-size="9" font-family="JetBrains Mono">si MQTT falla</text>
-  <text x="430" y="225" fill="rgba(239,68,68,0.7)" font-size="9" font-family="JetBrains Mono">si HTTP falla</text>
-  <text x="395" y="170" fill="rgba(16,185,129,0.7)" font-size="9" font-family="JetBrains Mono">WiFi reconecta · drena buffer</text>
-  </svg>
-  </div>
-
-  <!-- ═══ MAPEO 7-capas WaterMind vs 5-capas AQUA-ROI Lite (compañero electrónica) ═══ -->
-  <div class="mt-6 mb-3">
-  <h2 class="text-[15px] font-semibold text-white tracking-tight">Equivalencia con AQUA-ROI Lite</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Las 7 capas de WaterMind <span class="text-emerald-400">incluyen</span> las 5 capas del piloto AQUA-ROI Lite (compañero de electrónica). Mismo backbone, WaterMind agrega Capa Física (planos hidráulicos) e Inteligencia multi-agente.</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.04] p-5 mb-6" style="background: rgba(255,255,255,0.015)">
-  <svg viewBox="0 0 900 380" class="w-full h-auto">
-  <defs>
-  <marker id="arrEqui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/>
-  </marker>
-  </defs>
-
-  <!-- Encabezados -->
-  <text x="180" y="30" text-anchor="middle" fill="#7dd3fc" font-size="13" font-family="Inter" font-weight="bold">WaterMind OS · 7 capas</text>
-  <text x="700" y="30" text-anchor="middle" fill="#fbbf24" font-size="13" font-family="Inter" font-weight="bold">AQUA-ROI Lite · 5 capas</text>
-
-  <!-- 7 capas WaterMind (izquierda) -->
-  {#each [
-  { y: 45,  num: "07", name: "Aplicación",    color: "#7dd3fc", aqua: "5 · Interfaz" },
-  { y: 88,  num: "06", name: "Inteligencia",  color: "#a5b4fc", aqua: "Agente Aqua-ROI" },
-  { y: 131, num: "05", name: "Persistencia",  color: "#4ade80", aqua: "4 · Datos" },
-  { y: 174, num: "04", name: "Comunicación",  color: "#fbbf24", aqua: "3 · Comunicación" },
-  { y: 217, num: "03", name: "Edge / Embebida",color: "#c084fc", aqua: "2 · Procesamiento embebido" },
-  { y: 260, num: "02", name: "Sensado",       color: "#fca5a5", aqua: "1 · Sensado" },
-  { y: 303, num: "01", name: "Física",        color: "#0ea5e9", aqua: null },
-  ] as l, i}
-  <!-- WaterMind capa -->
-  <rect x="40" y={l.y} width="280" height="38" rx="6" fill={l.color + '15'} stroke={l.color} stroke-width="1"/>
-  <text x="55" y={l.y + 17} fill={l.color} font-size="10" font-family="JetBrains Mono" font-weight="bold">{l.num}</text>
-  <text x="85" y={l.y + 17} fill="white" font-size="11" font-family="Inter" font-weight="600">{l.name}</text>
-
-  {#if l.aqua}
-  <!-- Flecha de equivalencia -->
-  <line x1="320" y1={l.y + 19} x2="558" y2={l.y + 19} stroke="#34d399" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6" marker-end="url(#arrEqui)"/>
-  <!-- AQUA-ROI capa -->
-  <rect x="560" y={l.y} width="280" height="38" rx="6" fill="#fbbf241A" stroke="#fbbf24" stroke-width="1"/>
-  <text x="700" y={l.y + 22} text-anchor="middle" fill="#fbbf24" font-size="11" font-family="Inter" font-weight="600">{l.aqua}</text>
-  {:else}
-  <!-- Capa Física no tiene equivalente -->
-  <text x="340" y={l.y + 22} fill="rgba(255,255,255,0.4)" font-size="9" font-family="JetBrains Mono">implícita</text>
-  <rect x="560" y={l.y} width="280" height="38" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/>
-  <text x="700" y={l.y + 22} text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="11" font-family="Inter" font-style="italic">implícita en AQUA-ROI</text>
-  {/if}
-  {/each}
-
-  <!-- Footer explicativo -->
-  <text x="450" y="365" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10.5" font-family="Inter">WaterMind OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi-agente (5 agentes deliberan vs 1 agente reglas)</text>
-  </svg>
-  </div>
-
-  <!-- ═══ MATRIZ DE CUMPLIMIENTO RÚBRICA OFICIAL ═══ -->
-  <div class="mt-6 mb-3">
-  <h2 class="text-[15px] font-semibold text-white tracking-tight">Cumplimiento de la rúbrica oficial · 11 criterios</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Auto-evaluación del proyecto integrado WaterMind + AQUA-ROI Lite contra los criterios del jurado UNIAJC 2026</p>
-  </div>
-
-  <div class="rounded-2xl border border-white/[0.04] overflow-hidden mb-6">
-  <table class="w-full text-[11px]">
-  <thead style="background: rgba(255,255,255,0.03)">
-  <tr class="text-left">
-  <th class="py-2.5 px-4 font-medium text-slate-500 uppercase tracking-wider text-[10px]">Categoría</th>
-  <th class="py-2.5 px-4 font-medium text-slate-500 uppercase tracking-wider text-[10px]">Peso</th>
-  <th class="py-2.5 px-4 font-medium text-slate-500 uppercase tracking-wider text-[10px]">Criterio</th>
-  <th class="py-2.5 px-4 font-medium text-slate-500 uppercase tracking-wider text-[10px]">Evidencia</th>
-  <th class="py-2.5 px-4 font-medium text-slate-500 uppercase tracking-wider text-[10px] text-right">Pts</th>
-  </tr>
-  </thead>
-  <tbody>
-  {#each [
-  { cat: "NOVEDAD",         color: "#a855f7", peso: "30%", criterio: "Originalidad",          evidencia: "Multi-agente IA + Smart Water Ledger + tokenización CO₂ + TinyML acústico", pts: "4/4" },
-  { cat: "",                color: "#a855f7", peso: "",     criterio: "Disrupción",            evidencia: "Crea categoría Smart Campus Hídrico Open Source + híbrido medición tradicional", pts: "4/4" },
-  { cat: "",                color: "#a855f7", peso: "",     criterio: "Creatividad recursos",  evidencia: "LangGraph + ESP32 + LLM cascade gratis + 4 fuentes meteo gratuitas", pts: "4/4" },
-  { cat: "ACT. INVENTIVA",  color: "#0ea5e9", peso: "20%", criterio: "Integración disciplinar", evidencia: "8 disciplinas: Sistemas + Electrónica + Industrial + IA/ML + UX + Economía + Compliance + Sostenibilidad", pts: "4/4" },
-  { cat: "",                color: "#0ea5e9", peso: "",     criterio: "Sistematización",       evidencia: "6 metodologías: Design Thinking + TRIZ + Lean + Lean Startup + GitOps + CRISP-DM", pts: "4/4" },
-  { cat: "APL. INDUSTRIAL", color: "#10b981", peso: "30%", criterio: "Viabilidad técnica",    evidencia: "Backend + dashboard + simulador corriendo · BOM AQUA-ROI Lite $5.57M validado", pts: "4/4" },
-  { cat: "",                color: "#10b981", peso: "",     criterio: "Escalonamiento",        evidencia: "Plan 10 fases en 15 años · piloto $5.57M → completo $37M con datos reales", pts: "4/4" },
-  { cat: "",                color: "#10b981", peso: "",     criterio: "Mercado",               evidencia: "350+ universidades CO + hospitales + conjuntos + open source MIT", pts: "4/4" },
-  { cat: "IMPACTO",         color: "#fbbf24", peso: "20%", criterio: "Sostenibilidad ambiental", evidencia: "−596 kWh/año · −16.5M L/5 años · −7.6 ton CO₂/5 años", pts: "4/4" },
-  { cat: "",                color: "#fbbf24", peso: "",     criterio: "Bienestar comunidad",   evidencia: "Calidad agua 8,234 usuarios + Smart Water Ledger + Bienestar Universitario", pts: "4/4" },
-  { cat: "",                color: "#fbbf24", peso: "",     criterio: "Participación ciudadana", evidencia: "Reportes QR + datos abiertos Ley 1712/2014 + alianzas UNIAJC + CVC + EMCALI", pts: "4/4" },
-  ] as r, i}
-  <tr class="border-t border-white/[0.04]">
-  <td class="py-2.5 px-4 align-top">
-  {#if r.cat}<span class="text-[10px] font-mono font-bold uppercase" style="color:{r.color}">{r.cat}</span>{/if}
-  </td>
-  <td class="py-2.5 px-4 align-top text-slate-400 font-mono text-[10px]">{r.peso}</td>
-  <td class="py-2.5 px-4 align-top text-white">{r.criterio}</td>
-  <td class="py-2.5 px-4 align-top text-slate-400">{r.evidencia}</td>
-  <td class="py-2.5 px-4 align-top text-right font-mono text-emerald-400 font-bold">{r.pts}</td>
-  </tr>
-  {/each}
-  <tr class="border-t-2 border-emerald-500/30" style="background: rgba(16,185,129,0.05)">
-  <td class="py-3 px-4 font-bold text-white" colspan="3">TOTAL · proyección honesta</td>
-  <td class="py-3 px-4 text-emerald-400">Sobresaliente · 11/11 criterios en Excelente</td>
-  <td class="py-3 px-4 text-right font-mono text-emerald-400 font-bold text-[14px]">44/44</td>
-  </tr>
-  </tbody>
-  </table>
-  </div>
-
   {/if}
 
   </main>
@@ -3204,7 +2252,7 @@ INDEX (quality) WHERE
   <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
   </svg>
   </div>
-  <span class="text-[12px] font-semibold text-white">WaterMind OS</span>
+  <span class="text-[12px] font-semibold text-white">Camaleón OS</span>
   <span class="text-[10px] text-slate-500 ml-1">v1.0</span>
   </div>
   <p class="text-[10px] text-slate-500 max-w-md leading-relaxed">

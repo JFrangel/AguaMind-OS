@@ -1,5 +1,5 @@
 """
-WaterMind OS — Servidor Demo Mínimo
+Camaleón OS — Servidor Demo Mínimo
 Carga solo los routers /water/* y /water/agent/* sin las dependencias pesadas
 (langgraph, crewai, supabase). Ideal para mostrar el dashboard rápidamente.
 
@@ -9,6 +9,8 @@ Uso:
     # → http://localhost:8000
     # → http://localhost:8000/docs
 """
+
+from __future__ import annotations
 
 import asyncio
 import os
@@ -33,14 +35,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Importar SOLO los routers de WaterMind (sin LLM/RAG/etc)
+# Importar SOLO los routers de Camaleón (sin LLM/RAG/etc)
 from app.routers import water, mitigation, telegram_notify
 from app.sensors.normalizer import normalize, normalize_payload
 from app.sensors.schemas import IngestPayload, IngestResult
 
 
 app = FastAPI(
-    title="WaterMind OS · Demo Backend",
+    title="Camaleón OS · Demo Backend",
     version="1.0.0",
     description="Backend mínimo para demo del hackathon UNIAJC 2026.",
 )
@@ -131,13 +133,13 @@ async def _autostart_agent():
         # Ejecutar 1 ciclo inmediato para que el dashboard tenga datos al cargar
         await _agent.run_cycle()
         _agent._task = asyncio.create_task(_agent.start())
-        print("[startup] Agente WaterMind iniciado automaticamente (cada 30s)")
+        print("[startup] Agente Camaleón iniciado automaticamente (cada 30s)")
 
 
 @app.get("/", tags=["meta"])
 async def root():
     return {
-        "service":  "WaterMind OS · Demo Backend",
+        "service":  "Camaleón OS · Demo Backend",
         "version":  "1.0.0",
         "campus":   "UNIAJC Sede Sur",
         "endpoints": {
@@ -183,7 +185,7 @@ async def list_formats():
                 {"name": "json_array",    "desc": "Lista de objetos JSON"},
                 {"name": "ndjson",        "desc": "Newline-delimited JSON (un dict por linea)"},
                 {"name": "csv",           "desc": "CSV con header timestamp,sensor_id,model,value"},
-                {"name": "esp32_compact", "desc": "Formato compacto del firmware ESP32 de WaterMind"},
+                {"name": "esp32_compact", "desc": "Formato compacto del firmware ESP32 de Camaleón"},
                 {"name": "modbus",        "desc": "Lista [(addr, valor), ...] de holding registers"},
                 {"name": "scada",         "desc": "Tag-based SCADA (FT-101, PT-201, ...)"},
                 {"name": "opcua",         "desc": "OPC-UA con NodeId -> {Value, SourceTimestamp}"},
@@ -383,7 +385,7 @@ def _score_intents(question: str) -> list[tuple[str, int]]:
 
 def _frag_saludo(r, kpis, alerts):
     crit = sum(1 for k in kpis.values() if k["status"] == "critical")
-    base = "Hola, soy el agente conversacional de WaterMind OS."
+    base = "Hola, soy el agente conversacional de Camaleón OS."
     if crit:
         return f"{base} Veo {len(alerts)} alertas activas y {crit} KPIs en rojo, asi que hay temas por resolver."
     if alerts:
@@ -460,7 +462,7 @@ def _frag_sostenibilidad(r, kpis, alerts):
 
 
 def _frag_agente(r, kpis, alerts):
-    return ("Soy el agente conversacional de WaterMind OS. Coordino 5 agentes especializados: "
+    return ("Soy el agente conversacional de Camaleón OS. Coordino 5 agentes especializados: "
             "Orchestrator, Systems (KPIs+IsolationForest), Sensor (validacion), "
             "Industrial (Lean+ML predictivo) y Mitigation (accion). "
             "Cada uno hace analisis descriptivo, predictivo o prescriptivo segun toque.")
@@ -550,7 +552,7 @@ def _fallback_response(messages: list[dict]) -> str:
 
 
 def _system_prompt() -> str:
-    return """Eres el agente IA de WaterMind OS, sistema de gestión hídrica de UNIAJC Sede Sur en Cali, Colombia.
+    return """Eres el agente IA de Camaleón OS, sistema de gestión hídrica de UNIAJC Sede Sur en Cali, Colombia.
 
 Datos del campus:
 - 8,234 usuarios totales · 3,230 estudiantes activos
@@ -779,7 +781,7 @@ async def agent_deliberate():
             "execution_time_s": 3.2,
         },
         "telegram_msg": (
-            "🛡️ WaterMind OS — Acción autónoma\n"
+            "🛡️ Camaleón OS — Acción autónoma\n"
             "Trigger: vibración + caída presión 28%\n"
             "Decisión: cerrar EV-A2\n"
             "Tiempo deliberación: 3.2s\n"
@@ -816,7 +818,7 @@ async def agent_stream():
 if __name__ == "__main__":
     import uvicorn
     print("╔══════════════════════════════════════════════════════════╗")
-    print("║   WaterMind OS · Demo Backend                            ║")
+    print("║   Camaleón OS · Demo Backend                            ║")
     print("║   UNIAJC Sede Sur · Hackathon 2026                       ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print("  → http://localhost:8000")

@@ -1,10 +1,10 @@
-# WaterMind OS — Documento Maestro
+# Camaleón OS — Documento Maestro
 
 **Sistema Inteligente de Gestión Hídrica · UNIAJC Sede Sur**
 
 > **Hackathon UNIAJC 2026 · Facultad de Ingeniería · 7-8 de mayo**
 > Versión post-asesoría con jurados (mayo 7) — incorpora feedback recibido.
-> Repositorio: [github.com/JFrangel/WaterMind-OS](https://github.com/JFrangel/WaterMind-OS)
+> Repositorio: [github.com/JFrangel/Camaleón-OS](https://github.com/JFrangel/Camaleón-OS)
 
 ---
 
@@ -14,7 +14,7 @@
 2. [Feedback del Jurado y Ajustes](#2-feedback-del-jurado-y-ajustes)
 3. [El Problema Real](#3-el-problema-real)
 4. [Datos Validados (4 tesis UNIAJC)](#4-datos-validados-4-tesis-uniajc)
-5. [Solución WaterMind OS](#5-solución-watermind-os)
+5. [Solución Camaleón OS](#5-solución-camaleon-os)
 6. [Estrategia de Datos — el corazón de la propuesta](#6-estrategia-de-datos)
 7. [Sensores e Instrumentación](#7-sensores-e-instrumentación)
 8. [Modelo 3D del Campus](#8-modelo-3d-del-campus)
@@ -34,7 +34,7 @@
 
 ## 1. Resumen Ejecutivo
 
-**WaterMind OS es una plataforma de caracterización inteligente de agua** que combina sensores IoT distribuidos, un sistema multi-agente de IA y un modelo 3D interactivo del campus para **convertir datos en estrategias de mitigación** que protegen el recurso hídrico, evitan sanciones normativas y empoderan a la comunidad universitaria.
+**Camaleón OS es una plataforma de caracterización inteligente de agua** que combina sensores IoT distribuidos, un sistema multi-agente de IA y un modelo 3D interactivo del campus para **convertir datos en estrategias de mitigación** que protegen el recurso hídrico, evitan sanciones normativas y empoderan a la comunidad universitaria.
 
 ### Diferenciadores clave (post-feedback jurado)
 
@@ -60,7 +60,7 @@
 
 ### Lo que el jurado señaló
 
-| Comentario jurado | Ajuste en WaterMind OS |
+| Comentario jurado | Ajuste en Camaleón OS |
 |-------------------|------------------------|
 | *"Todos van a poner sensores, la innovación está en qué haces con los datos"* | Reescribir innovación: **estrategias de mitigación**, no predicción |
 | *"No digan 'predecir' si ya están midiendo. Eso es contradictorio"* | Eliminar lenguaje "predictivo" → cambiar por **caracterización + estrategias** |
@@ -79,8 +79,8 @@
 
 ### Lema corregido del proyecto
 
-**Antes:** *"WaterMind OS predice fugas"*
-**Después:** *"WaterMind OS caracteriza el sistema hídrico y deriva estrategias de mitigación accionables"*
+**Antes:** *"Camaleón OS predice fugas"*
+**Después:** *"Camaleón OS caracteriza el sistema hídrico y deriva estrategias de mitigación accionables"*
 
 ---
 
@@ -178,7 +178,7 @@ PTAR (Planta Tratamiento Aguas Residuales):
 
 ---
 
-## 5. Solución WaterMind OS
+## 5. Solución Camaleón OS
 
 ### Arquitectura conceptual
 
@@ -194,7 +194,7 @@ PTAR (Planta Tratamiento Aguas Residuales):
   │ MQTT/HTTP
   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  WATERMIND OS — Backend  │
+│  CAMALEON OS — Backend  │
 │  │
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │  CARACTERIZACIÓN DE DATOS  │  │
@@ -419,7 +419,7 @@ Impacto esperado: -25% consumo total durante alerta
 Hoy: Aljibe 2 envía agua sin tratar a riego, pero también aporta a PTAP.
   Mezcla operativa sin claridad.
 
-Con WaterMind OS:
+Con Camaleón OS:
   · YF-DN50 mide flujo exacto en derivación riego
   · Higrómetros HW-080 miden humedad real del suelo
   · EV-RC1 controla apertura/cierre
@@ -448,7 +448,7 @@ Conexión real con Bienestar UNIAJC:
 
 Reportes ciudadanos QR:
   Estudiante escanea QR en baño → reporta fuga → +20 puntos
-  WaterMind valida con sensores → si confirma, genera OT
+  Camaleón valida con sensores → si confirma, genera OT
   Si falsa alarma → +5 puntos por colaborar
 
 Resultado: -10 a -15% consumo por cambio cultural
@@ -461,7 +461,7 @@ Resultado: -10 a -15% consumo por cambio cultural
 Hoy: Bombas centrífugas funcionan a misma potencia siempre (Sánchez 2021)
   Ciclos 3-4 minutos = consumo eléctrico innecesario
 
-Con datos WaterMind OS:
+Con datos Camaleón OS:
   · Histórico de demanda hora por hora
   · Identificación de horas pico vs valle
   · Curva característica de bombas (TPM)
@@ -519,7 +519,7 @@ Si Q_entrada > capacidad PTAR total (4,000 estudiantes = 2 PTAR x 2 modulos x 1,
        Si la pérdida supera el promedio histórico → alerta manual
 ```
 
-**Cómo WaterMind OS lo cruza (validación a dos métodos):**
+**Cómo Camaleón OS lo cruza (validación a dos métodos):**
 
 ```
 Lectura sensor JSN-SR04T cada 30s → nivel digital cm
@@ -533,7 +533,7 @@ Triangulación:
 
 **Ventaja combinada — costo $0 + sensor JSN-SR04T $30K:**
 
-| Métrica | Solo manual | Solo sensor | Híbrido WaterMind |
+| Métrica | Solo manual | Solo sensor | Híbrido Camaleón |
 |---------|-------------|-------------|---------------------|
 | Frecuencia | 2 lecturas/día | 2,880 lecturas/día | 2,880 + validación humana |
 | Detección de fuga diurna | — (solo nocturna) | hora exacta | hora exacta + confirmación visual programada |
@@ -542,7 +542,7 @@ Triangulación:
 | Costo | $0 | $30K + setup | $30K + costumbre actual |
 | Confiabilidad | media | alta | **muy alta** |
 
-**Implicación para el pitch:** *"el método tradicional NO se va. WaterMind OS lo respeta y lo amplifica. Dos métodos independientes que se validan entre sí."*
+**Implicación para el pitch:** *"el método tradicional NO se va. Camaleón OS lo respeta y lo amplifica. Dos métodos independientes que se validan entre sí."*
 
 ---
 
@@ -589,9 +589,9 @@ vs Humano: 2-4 horas (turno mantenimiento)
 
 ## 11. Mitigación Activa
 
-### 11.1 Lo que hace WaterMind OS que ningún otro sistema hace
+### 11.1 Lo que hace Camaleón OS que ningún otro sistema hace
 
-| Acción | Antes (manual) | Con WaterMind OS |
+| Acción | Antes (manual) | Con Camaleón OS |
 |--------|---------------|------------------|
 | Detectar fuga | Días/semanas | < 5 segundos |
 | Cerrar válvula | Personal va al sitio | Automático en 3 segundos |
@@ -674,7 +674,7 @@ SEGURIDAD INFORMACIÓN:
 | Multa Res. 0631/2015 | 5,000 SMMLV ≈ $6,500M COP |
 | Multa Ley 1581/2012 | 2,000 SMMLV ≈ $2,600M COP |
 | **TOTAL EXPOSICIÓN** | **$16,900M COP** |
-| **Inversión WaterMind para evitarlo** | **$5–19M COP** |
+| **Inversión Camaleón para evitarlo** | **$5–19M COP** |
 
 > Cada peso invertido protege $890–3,380 en exposición legal.
 
@@ -737,7 +737,7 @@ SEGURIDAD INFORMACIÓN:
 - Solo añadir más nodos a la red existente
 
 ### Fase 10 — Madurez (Año 10-15)
-- WaterMind OS como infraestructura crítica institucional
+- Camaleón OS como infraestructura crítica institucional
 - Integración con SUI (Sistema Único de Información)
 - Reporte automático ICONTEC + ISO 14001
 
@@ -812,23 +812,23 @@ TOTAL AHORRO ANUAL:  $20,536,425 COP/año (proyectado)
 ```
 ODS 6  Agua Limpia y Saneamiento
   Meta 6.4 — eficiencia uso agua
-  WaterMind: TPP 25% → 10%
+  Camaleón: TPP 25% → 10%
 
 ODS 12 Producción/Consumo Responsables
   Meta 12.5 — reducción desperdicios
-  WaterMind: 7 mudas Lean atacadas
+  Camaleón: 7 mudas Lean atacadas
 
 ODS 13 Acción por el Clima
   Meta 13.3 — educación mitigación
-  WaterMind: 7.6 ton CO₂ evitadas/5 años
+  Camaleón: 7.6 ton CO₂ evitadas/5 años
 
 ODS 9  Industria, Innovación, Infraestructura
   Meta 9.4 — modernizar
-  WaterMind: IoT + IA en infraestructura 2011
+  Camaleón: IoT + IA en infraestructura 2011
 
 ODS 11 Ciudades Sostenibles
   Meta 11.6 — reducir impacto ambiental
-  WaterMind: modelo Smart Campus
+  Camaleón: modelo Smart Campus
 ```
 
 ### ODS impactados indirectamente
@@ -849,7 +849,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo · ODS 10 Des
 | 2:30–3:30 | Diferenciadores | Estrategias derivadas de datos (no predicción) · 4 estrategias clave |
 | 3:30–4:15 | Impacto | $1.4M inversión · 25 días ROI · 5 ODS · 16.5M L recuperados |
 | 4:15–4:45 | Validación académica | 4 tesis UNIAJC integradas (Caycedo, Sánchez, Gómez, Aristizábal) |
-| 4:45–5:00 | Cierre | "4 tesis. 4 diagnósticos. 0 soluciones implementadas. WaterMind OS las pone en operación. Hoy." |
+| 4:45–5:00 | Cierre | "4 tesis. 4 diagnósticos. 0 soluciones implementadas. Camaleón OS las pone en operación. Hoy." |
 
 ### Apertura textual
 
@@ -857,14 +857,14 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo · ODS 10 Des
 
 ### Cierre textual
 
-> *"WaterMind OS no es un proyecto. Es la culminación de 5 años de investigación en UNIAJC sobre la PTAP, llevada a operación. Caycedo y Jaramillo caracterizaron en 2021. Sánchez Sotelo midió las pérdidas en 2021. Gómez Mina diseñó mantenimiento en 2022. Aristizábal y Largacha modelaron en 2025. Cuatro tesis. Cuatro diagnósticos. Cero soluciones implementadas. WaterMind OS las toma todas y las pone en operación. Hoy."*
+> *"Camaleón OS no es un proyecto. Es la culminación de 5 años de investigación en UNIAJC sobre la PTAP, llevada a operación. Caycedo y Jaramillo caracterizaron en 2021. Sánchez Sotelo midió las pérdidas en 2021. Gómez Mina diseñó mantenimiento en 2022. Aristizábal y Largacha modelaron en 2025. Cuatro tesis. Cuatro diagnósticos. Cero soluciones implementadas. Camaleón OS las toma todas y las pone en operación. Hoy."*
 
 ---
 
 ## 17. Q&A Anticipado
 
 ### "¿Por qué no usaron un SCADA tradicional?"
-> SCADA cuesta $50M+, es cerrado, no aprende, no cumple normativa automáticamente, no se conecta con la comunidad. WaterMind OS cuesta $1.4M, es open source, multiagente y replicable.
+> SCADA cuesta $50M+, es cerrado, no aprende, no cumple normativa automáticamente, no se conecta con la comunidad. Camaleón OS cuesta $1.4M, es open source, multiagente y replicable.
 
 ### "¿Qué pasa si el agente toma una decisión incorrecta?"
 > Triple validación: 5 agentes deben coincidir, alerta humana en menos de 30 segundos, override manual desde dashboard. En Fase 1 piloto requerimos confirmación humana antes de actuar.
@@ -942,7 +942,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo · ODS 10 Des
 - Ley 1712 de 2014 — Transparencia
 - Resolución 055 UNIAJC enero 2025 — Seguridad información
 
-### Otros documentos WaterMind OS (consolidados aquí)
+### Otros documentos Camaleón OS (consolidados aquí)
 
 - [`ANALISIS-Y-CAPAS-VISUALES.md`](ANALISIS-Y-CAPAS-VISUALES.md) — **trinidad analítica (descriptivo/predictivo/prescriptivo) + arquitectura de 7 capas con diagramas Mermaid + ASCII**
 - `INNOVACION-RADICAL.md`
@@ -959,13 +959,13 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo · ODS 10 Des
 - `PREGUNTAS-ASESORIA.md`
 - `SIMULACION-Y-CONEXION.md`
 - `PROBLEMA-DEL-AGENTE.md`
-- `WATERMIND-OS-DOCUMENTACION.md`
+- `CAMALEON-OS-DOCUMENTACION.md`
 
 ---
 
 ## Cierre
 
-> **WaterMind OS** = Caracterización inteligente + Estrategias accionables + Comunidad empoderada
+> **Camaleón OS** = Caracterización inteligente + Estrategias accionables + Comunidad empoderada
 >
 > No predecimos. **Caracterizamos.**
 > No avisamos. **Actuamos.**
@@ -976,4 +976,4 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo · ODS 10 Des
 ---
 
 *Documento maestro v2.0 · Post-asesoría jurados · 7 de mayo 2026*
-*WaterMind OS · Hackathon UNIAJC 2026 · github.com/JFrangel/WaterMind-OS*
+*Camaleón OS · Hackathon UNIAJC 2026 · github.com/JFrangel/Camaleón-OS*

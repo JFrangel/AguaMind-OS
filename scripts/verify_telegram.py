@@ -1,5 +1,5 @@
 """
-WaterMind OS — verificador de credenciales de Telegram.
+Camaleón OS — verificador de credenciales de Telegram.
 
 Uso:
     python scripts/verify_telegram.py
@@ -60,7 +60,7 @@ def main() -> int:
     # Probar el endpoint de Telegram directamente
     payload = urllib.parse.urlencode({
         "chat_id": chat_id,
-        "text": "✅ *WaterMind OS — Credenciales validadas*\n\nEl bot puede enviarte mensajes desde esta PC (o cualquier otra que tenga `bot_secrets.json`).",
+        "text": "✅ *Camaleón OS — Credenciales validadas*\n\nEl bot puede enviarte mensajes desde esta PC (o cualquier otra que tenga `bot_secrets.json`).",
         "parse_mode": "Markdown",
     }).encode()
     url = f"https://api.telegram.org/bot{token}/sendMessage"

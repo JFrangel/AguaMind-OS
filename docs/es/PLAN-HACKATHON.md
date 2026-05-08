@@ -1,4 +1,4 @@
-# WaterMind OS — Plan Hackathon UNIAJC 2026
+# Camaleón OS — Plan Hackathon UNIAJC 2026
 ## "Tecnologías con Propósito · Inteligencia con Conciencia"
 ### Fecha límite: 8 de mayo 2026 · 5:00 PM · Pitch ante jurado
 
@@ -13,15 +13,15 @@ El hackathon evalúa 4 criterios (100 pts total):
 - **Impacto** 20% — sostenibilidad, bienestar, comunidad
 
 Entregables concretos:
-1. **Solución funcional** (app corriendo = WaterMind OS sobre AgentOS)
+1. **Solución funcional** (app corriendo = Camaleón OS sobre AgentOS)
 2. **Documentación técnica** con diagramas UML, circuito electrónico, análisis industrial
 3. **Mockups / Wireframes** de las interfaces
 4. **Pitch de 5 minutos** ante el jurado
 
 ---
 
-## FASE A — SOFTWARE: WaterMind OS (sobre AgentOS)
-> Lo que el equipo de Sistemas construye. AgentOS es el boilerplate, WaterMind es el producto.
+## FASE A — SOFTWARE: Camaleón OS (sobre AgentOS)
+> Lo que el equipo de Sistemas construye. AgentOS es el boilerplate, Camaleón es el producto.
 
 ### A1 · Dashboard Web `/agua`  ✅ HECHO (SvelteKit)
 - [x] KPIs en tiempo real: IEH, TPP, CPE con colores de alerta
@@ -135,7 +135,7 @@ ZONE_DAILY_BASE = {
 **Herramienta:** draw.io / PlantUML / Lucidchart  
 **Qué incluir:**
 ```
-WaterMind OS
+Camaleón OS
 ├── <<Frontend>> SvelteKit Dashboard
 │     ├── /agua — Dashboard hídrico
 │     └── / — Chat IA con agente
@@ -199,7 +199,7 @@ Capturas del dashboard real + anotaciones de UCD:
 ### C2 · Arquitectura Completa del Sistema Embebido
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                  WaterMind Node (ESP32)                   │
+│                  Camaleón Node (ESP32)                   │
 │                                                          │
 │  ┌──────────────┐    ┌─────────────────────────────────┐ │
 │  │   SENSADO    │    │        PROCESAMIENTO             │ │
@@ -374,7 +374,7 @@ SCADA       planos
 
 ### D4 · Propuesta de Mejora Operativa
 
-**Acción 1: Instalación sistema IoT de medición (WaterMind Node)**
+**Acción 1: Instalación sistema IoT de medición (Camaleón Node)**
 - Qué: 3 caudalímetros + 2 sensores nivel + 1 ESP32 + dashboard
 - Dónde: entrada PTAP, salida Tanque A, zona de riego cancha
 - Costo estimado: $4,500,000 COP (hardware + instalación)
@@ -398,7 +398,7 @@ Pérdida económica diaria:       9.07 m³ × $3,500 = $31,745 COP/día
 Pérdida económica anual:        $31,745 × 365   = $11,587,000 COP/año
 ```
 
-**Inversión WaterMind OS:**
+**Inversión Camaleón OS:**
 ```
 Hardware IoT (sensores + ESP32):    $4,500,000 COP
 Válvulas solenoides + controlador:  $2,800,000 COP
@@ -428,12 +428,12 @@ TIEMPO DE RECUPERACIÓN INVERSIÓN:     $8,500,000 / $11,503,705 = ~8.9 MESES
 | Tiempo | Sección | Contenido |
 |---|---|---|
 | 0:00–0:45 | **Problema** | La PTAP no tiene medición. 20-30% de pérdidas invisibles. Dato: $11.5M COP/año desperdiciados. |
-| 0:45–1:30 | **Solución** | WaterMind OS: agente IA + IoT + dashboard + Telegram. Demo en vivo: encender app. |
+| 0:45–1:30 | **Solución** | Camaleón OS: agente IA + IoT + dashboard + Telegram. Demo en vivo: encender app. |
 | 1:30–2:30 | **Demo vivo** | Mostrar dashboard → inyectar fuga → ver alerta en Telegram automáticamente. |
 | 2:30–3:15 | **Técnica** | Mostrar: diagrama UML (30s) + circuito ESP32 (30s) + diagrama proceso PTAP (15s). |
 | 3:15–4:00 | **Industrial** | KPIs en pantalla. Ishikawa. "Con $8.5M COP recuperamos en 9 meses." |
 | 4:00–4:45 | **Impacto** | ODS 6. Escalable a otras sedes. 50% cooperación = sistema sostenible (Vensim). |
-| 4:45–5:00 | **Cierre** | "WaterMind OS: datos + IA + acción. El agua de la UNIAJC bajo control." |
+| 4:45–5:00 | **Cierre** | "Camaleón OS: datos + IA + acción. El agua de la UNIAJC bajo control." |
 
 ### E2 · Lo que el jurado va a querer ver
 - ✅ **Funcionando en vivo** (no PPT, app real corriendo)

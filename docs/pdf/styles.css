@@ -1,4 +1,4 @@
-/* WaterMind OS — PDF Entregable Hackathon UNIAJC 2026
+/* Camaleón OS — PDF Entregable Hackathon UNIAJC 2026
    Estilos profesionales para WeasyPrint */
 
 @page {
@@ -6,7 +6,7 @@
   margin: 2cm 1.8cm 2cm 1.8cm;
 
   @bottom-center {
-    content: "WaterMind OS · Hackathon UNIAJC 2026 · Página " counter(page) " de " counter(pages);
+    content: "Camaleón OS · Hackathon UNIAJC 2026 · Página " counter(page) " de " counter(pages);
     font-size: 9pt;
     color: #64748b;
     border-top: 0.5pt solid #cbd5e1;
@@ -14,7 +14,7 @@
   }
 
   @top-right {
-    content: "WaterMind OS";
+    content: "Camaleón OS";
     font-size: 8pt;
     color: #64748b;
     font-weight: 600;

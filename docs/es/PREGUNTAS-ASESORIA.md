@@ -1,4 +1,4 @@
-# WaterMind OS — Preguntas para la Asesoría con el Jurado
+# Camaleón OS — Preguntas para la Asesoría con el Jurado
 
 > Preguntas estratégicas que el equipo puede hacer durante los espacios de
 > tutoría con los expertos del Hackathon UNIAJC 2026, organizadas por ingeniería.
@@ -8,7 +8,7 @@
 ## A. Preguntas de Estrategia General (todo el equipo)
 
 ### Validación de la propuesta
-1. ¿La propuesta de **WaterMind OS** se alinea con la visión de la universidad de convertirse en un **Smart Campus**?
+1. ¿La propuesta de **Camaleón OS** se alinea con la visión de la universidad de convertirse en un **Smart Campus**?
 2. ¿Existen restricciones presupuestales que debamos considerar para ser realistas con la inversión inicial de **$1,043,000 COP** propuesta?
 3. ¿Hay limitaciones contractuales con el proveedor actual de mantenimiento que afecten la instalación de los nodos IoT?
 4. ¿Qué procesos administrativos deberíamos considerar para una eventual implementación piloto post-hackathon?
@@ -107,13 +107,13 @@
 4. ¿Existe **convocatoria interna** para proyectos de innovación que pudiéramos aplicar?
 
 ### Modelo de negocio
-5. Si WaterMind OS funciona en UNIAJC, ¿podría **comercializarse** a otras universidades como producto/servicio?
+5. Si Camaleón OS funciona en UNIAJC, ¿podría **comercializarse** a otras universidades como producto/servicio?
 6. ¿Cómo balancear el **modelo open source** con potencial monetización (consultoría, soporte)?
 7. ¿La universidad tiene políticas de **propiedad intelectual** que debamos considerar?
 
 ### Equipo y continuidad
 8. ¿Cómo asegurar la **continuidad del proyecto** una vez termine el hackathon (estudiantes graduándose)?
-9. ¿Es viable convertir WaterMind OS en una **electiva** o **proyecto de grado** con el grupo de investigación?
+9. ¿Es viable convertir Camaleón OS en una **electiva** o **proyecto de grado** con el grupo de investigación?
 
 ---
 
@@ -121,7 +121,7 @@
 
 ### Defensa anticipada
 1. **"¿Por qué crear un nuevo sistema cuando hay SCADA industrial probado?"**
-   → *WaterMind OS no compite con SCADA — los complementa con IA, gamificación y costo accesible. SCADA cuesta $50M+, WaterMind $1M y abre datos a comunidad.*
+   → *Camaleón OS no compite con SCADA — los complementa con IA, gamificación y costo accesible. SCADA cuesta $50M+, Camaleón $1M y abre datos a comunidad.*
 
 2. **"¿La IA es realmente necesaria o están sobre-ingenierizando?"**
    → *Sin IA solo tenemos umbrales fijos. La IA correlaciona caudal+presión+vibración para detectar fugas que ningún umbral simple detectaría. Y aprende del histórico del campus.*
@@ -143,4 +143,4 @@
 
 ---
 
-*Lista de preguntas estratégicas · WaterMind OS · Hackathon UNIAJC 2026*
+*Lista de preguntas estratégicas · Camaleón OS · Hackathon UNIAJC 2026*
