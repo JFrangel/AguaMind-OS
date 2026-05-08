@@ -15,6 +15,12 @@ build/
 .env.local
 .env.*.local
 
+# Telegram bot credentials (NEVER commit — public repo)
+bot_secrets.json
+**/bot_secrets.json
+secrets.local.py
+**/secrets.local.py
+
 # Local test artifacts
 tmp/
 *.local.pdf

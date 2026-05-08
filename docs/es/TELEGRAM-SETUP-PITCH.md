@@ -34,16 +34,29 @@
 
 > Atajo si está corriendo el backend: `python apps/telegram/get_chat_id.py` te lo imprime después de mandarle un mensaje al bot.
 
-## Paso 3 · Pegar credenciales en `.env` (15 seg)
+## Paso 3 · Pegar credenciales en `bot_secrets.json` (15 seg)
 
-Abrí `D:\descargas\AguaMind OS\.env` y añadí (o reemplazá si ya están):
+Abrí **`D:\descargas\AguaMind OS\bot_secrets.json`** (en la raíz del repo) y reemplazá:
 
-```env
-TELEGRAM_BOT_TOKEN=1234567890:AAFn-XYZ-aBcDeFgHiJkLmNoPqRsTuVwX
-TELEGRAM_CHAT_ID=123456789
+```json
+{
+  "TELEGRAM_BOT_TOKEN": "1234567890:AAFn-XYZ-aBcDeFgHiJkLmNoPqRsTuVwX",
+  "TELEGRAM_CHAT_ID": "123456789",
+  "BACKEND_URL": "http://localhost:8000"
+}
 ```
 
-**Reemplazá** con tus valores reales. No commitees el `.env` (ya está en `.gitignore`).
+> **¿Por qué `bot_secrets.json` y no `.env`?** Más simple de copiar entre PCs (un solo archivo JSON), independiente del shell, y leído tanto por el backend (FastAPI) como por el bot (apps/telegram). Está en `.gitignore` — no se commitea.
+
+> **Para correr en otra PC**: copiá únicamente `bot_secrets.json` a la misma ruta del repo en el otro equipo. Listo.
+
+### Verificar de inmediato (10 seg)
+
+```bash
+python scripts/verify_telegram.py
+```
+
+Si todo está bien, vas a recibir en Telegram un mensaje "✅ *Credenciales validadas*" y el script imprime `[ok]` en cada paso. Si algún campo sigue siendo placeholder, el script te dice exactamente qué falta.
 
 ## Paso 4 · Reiniciar el backend (10 seg)
 
@@ -57,11 +70,17 @@ python demo_server.py
 
 ## Paso 5 · Probar el envío (10 seg)
 
+Opción A · directo (no requiere backend levantado):
+```bash
+python scripts/verify_telegram.py
+```
+
+Opción B · vía endpoint del backend (requiere que el backend esté corriendo):
 ```bash
 curl http://localhost:8000/water/notify/test
 ```
 
-Si configuraste bien las variables, recibís en Telegram:
+Si configuraste bien las credenciales, recibís en Telegram:
 
 > 🔔 **WaterMind OS — Prueba de conexión**
 > Hora: `12:34:56`
@@ -117,8 +136,8 @@ El bot se queda escuchando. Vas a ver: `Application started`.
 
 | Problema | Solución |
 |----------|----------|
-| `"sent": false, "reason": "no_token"` | El `.env` no tiene `TELEGRAM_BOT_TOKEN` o tiene el placeholder. Reemplazá con el real y reiniciá. |
-| `"sent": false, "reason": "no_chat_id"` | Falta `TELEGRAM_CHAT_ID`. Mandale `/start` al bot y volvé a `getUpdates`. |
+| `"sent": false, "reason": "no_token"` | `bot_secrets.json` tiene el placeholder. Reemplazá con el token real y reiniciá el backend. |
+| `"sent": false, "reason": "no_chat_id"` | Falta `TELEGRAM_CHAT_ID` en `bot_secrets.json`. Mandale `/start` al bot y volvé a `getUpdates`. |
 | Mensaje llega pero los botones no hacen nada | El bot (`apps/telegram/bot.py`) no está corriendo. Iniciálo en una terminal aparte. |
 | Click en "Activar plan" da error | El bot no puede llegar al backend. Verificá que el backend esté en `:8000` y `BACKEND_URL=http://localhost:8000` en el entorno donde corre el bot. |
 | El mensaje sale con caracteres raros | Es Markdown — verificá que `parse_mode` esté en "Markdown" en el código. |

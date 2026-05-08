@@ -1,9 +1,36 @@
+import json as _json
 import os
+from pathlib import Path
 
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
 from handlers.callback_handler import callback_handler
 from handlers.commands import ask, report, research, start, status
+
+
+def _load_secrets() -> dict:
+    """Lee bot_secrets.json subiendo desde este archivo hasta el repo root."""
+    here = Path(__file__).resolve()
+    for parent in [here, *here.parents]:
+        candidate = parent / "bot_secrets.json"
+        if candidate.is_file():
+            try:
+                with candidate.open("r", encoding="utf-8") as f:
+                    return _json.load(f)
+            except Exception:
+                return {}
+    return {}
+
+
+def _resolve(key: str) -> str | None:
+    """Prioridad: bot_secrets.json > variable de entorno."""
+    placeholders = {"", "REEMPLAZAR_CON_TOKEN_DE_BOTFATHER", "REEMPLAZAR_CON_TU_CHAT_ID", "changeme"}
+    secrets = _load_secrets()
+    v = str(secrets.get(key, "")).strip()
+    if v and v not in placeholders:
+        return v
+    v = (os.getenv(key) or "").strip()
+    return v if v and v not in placeholders else None
 from handlers.water_commands import (
     agente_start,
     agente_status,
@@ -24,9 +51,12 @@ from handlers.water_commands import (
 
 
 def main() -> None:
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    token = _resolve("TELEGRAM_BOT_TOKEN")
     if not token:
-        raise RuntimeError("TELEGRAM_BOT_TOKEN not set")
+        raise RuntimeError(
+            "TELEGRAM_BOT_TOKEN no configurado. Editá bot_secrets.json en la raíz del proyecto "
+            "con el token de @BotFather."
+        )
 
     app = ApplicationBuilder().token(token).build()
 

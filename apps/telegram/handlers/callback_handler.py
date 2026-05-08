@@ -13,12 +13,31 @@ import os
 import urllib.request
 import urllib.parse
 import json as _json
+from pathlib import Path
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
 
-BACKEND = os.getenv("BACKEND_URL", "http://localhost:8000")
+def _load_secrets() -> dict:
+    here = Path(__file__).resolve()
+    for parent in [here, *here.parents]:
+        candidate = parent / "bot_secrets.json"
+        if candidate.is_file():
+            try:
+                with candidate.open("r", encoding="utf-8") as f:
+                    return _json.load(f)
+            except Exception:
+                return {}
+    return {}
+
+
+_SECRETS = _load_secrets()
+BACKEND = (
+    _SECRETS.get("BACKEND_URL")
+    or os.getenv("BACKEND_URL")
+    or "http://localhost:8000"
+)
 
 
 def _post_json(path: str, body: dict) -> dict:

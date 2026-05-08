@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Literal, Optional
 
 import urllib.request
@@ -32,10 +33,50 @@ router = APIRouter()
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-_PLACEHOLDER = {"", "your-token", "changeme"}
+_PLACEHOLDER = {
+    "", "your-token", "changeme",
+    "REEMPLAZAR_CON_TOKEN_DE_BOTFATHER",
+    "REEMPLAZAR_CON_TU_CHAT_ID",
+}
+
+
+def _find_secrets_file() -> Optional[Path]:
+    """Busca bot_secrets.json subiendo desde este archivo hasta encontrar el repo root."""
+    here = Path(__file__).resolve()
+    for parent in [here, *here.parents]:
+        candidate = parent / "bot_secrets.json"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+_SECRETS_CACHE: Optional[dict] = None
+
+
+def _load_secrets() -> dict:
+    global _SECRETS_CACHE
+    if _SECRETS_CACHE is not None:
+        return _SECRETS_CACHE
+    path = _find_secrets_file()
+    if not path:
+        _SECRETS_CACHE = {}
+        return _SECRETS_CACHE
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            _SECRETS_CACHE = _json.load(f)
+    except Exception:
+        _SECRETS_CACHE = {}
+    return _SECRETS_CACHE
 
 
 def _real(env: str) -> Optional[str]:
+    """Resuelve credenciales: 1) bot_secrets.json (raíz repo), 2) variables de entorno."""
+    # 1) Archivo bot_secrets.json (gitignored, persistente entre PCs si lo copias)
+    secrets = _load_secrets()
+    v = str(secrets.get(env, "")).strip()
+    if v and v not in _PLACEHOLDER and not v.endswith("..."):
+        return v
+    # 2) Variables de entorno (.env / shell)
     v = (os.getenv(env) or "").strip()
     if not v or v in _PLACEHOLDER or v.endswith("..."):
         return None
