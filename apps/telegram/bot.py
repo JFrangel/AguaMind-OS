@@ -1,7 +1,8 @@
 import os
 
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
+from handlers.callback_handler import callback_handler
 from handlers.commands import ask, report, research, start, status
 from handlers.water_commands import (
     agente_start,
@@ -57,6 +58,9 @@ def main() -> None:
     app.add_handler(CommandHandler("mitigaciones", mitigaciones))
     app.add_handler(CommandHandler("ranking", ranking))
     app.add_handler(CommandHandler("reportar", reportar))
+
+    # ── Inline buttons (Activar plan / Ignorar / Ver evidencia) ─────────────
+    app.add_handler(CallbackQueryHandler(callback_handler))
 
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ask))
 

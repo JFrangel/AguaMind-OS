@@ -305,15 +305,91 @@
   } catch {}
   }
 
+  // Estado del último envío Telegram (para mostrar feedback en UI)
+  let telegramFeedback = $state<{visible: boolean; ok: boolean; msg: string}>({visible:false, ok:false, msg:""});
+
+  function flashTelegram(ok: boolean, msg: string) {
+    telegramFeedback = { visible: true, ok, msg };
+    setTimeout(() => telegramFeedback = { visible: false, ok: false, msg: "" }, 4500);
+  }
+
+  async function notifyTelegram(endpoint: string, body: any) {
+    try {
+      const res = await fetch(`/api/water?endpoint=notify/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      const sent = json.data?.sent;
+      flashTelegram(sent, sent
+        ? `Telegram → mensaje enviado al operador on-call`
+        : `Telegram desactivado · ${json.data?.hint ?? json.data?.reason ?? "configurar TELEGRAM_BOT_TOKEN"}`);
+      return sent;
+    } catch (e) {
+      flashTelegram(false, "Error contactando al servicio Telegram");
+      return false;
+    }
+  }
+
+  // Sugerencias por fenómeno (texto que viaja a Telegram)
+  const PHENOMENON_SUGGESTIONS: Record<string, { days: number; suggestion: string }> = {
+    drought_mode: {
+      days: 30,
+      suggestion: "IDEAM proyecta El Niño moderado en 30 días + freático bajando. Activar plan ahorra 10,400 L/día y protege el acuífero (-70% extracción).",
+    },
+    flood_mode: {
+      days: 7,
+      suggestion: "Pronóstico de lluvias intensas en 7 días. Activar plan corta riego innecesario y prepara colectores PTAR (5,500 L/día).",
+    },
+    quake_mode: {
+      days: 0,
+      suggestion: "Evento sísmico inminente o detectado. Activar plan cierra todas las EV y bomba a emergencia para evitar daños.",
+    },
+    contamination_mode: {
+      days: 0,
+      suggestion: "Turbidez >4 NTU o pH fuera de rango. Activar plan aísla los tanques y avisa INVIMA. Suspende distribución hasta toma de muestra.",
+    },
+    surge_mode: {
+      days: 1,
+      suggestion: "Pico de demanda >150% baseline previsto. Activar plan prioriza uso humano y refuerza la presión de bomba.",
+    },
+  };
+
   async function executeAutoMitigation(trigger: string) {
+  // 1. Ejecutar la mitigación en backend
+  let mitigationResult: any = null;
   try {
-  await fetch("/api/water?endpoint=mitigate/auto", {
+  const res = await fetch("/api/water?endpoint=mitigate/auto", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ trigger, severity: "critical" }),
   });
+  mitigationResult = (await res.json())?.data;
   await fetchMitigation();
   } catch {}
+
+  // 2. Disparar notificación Telegram
+  if (mitigationResult) {
+    await notifyTelegram("mitigation_executed", {
+      trigger,
+      impact_l: mitigationResult?.impact?.liters_saved ?? 0,
+      cop_saved: mitigationResult?.impact?.cop_saved ?? 0,
+      summary: mitigationResult?.detail ?? "",
+      ot_id: mitigationResult?.id ?? "",
+    });
+  }
+  }
+
+  async function notifyPhenomenon(phenomenon: string) {
+    // Aviso al operador SIN ejecutar todavía — el operador decide desde Telegram con el botón inline
+    const cfg = PHENOMENON_SUGGESTIONS[phenomenon] ?? { days: 30, suggestion: "El agente sugiere activar el plan." };
+    await notifyTelegram("phenomenon", {
+      phenomenon,
+      severity: "warning",
+      forecast_days: cfg.days,
+      suggestion: cfg.suggestion,
+    });
   }
 
   async function toggleValve(valveId: string, currentState: string) {
@@ -377,6 +453,14 @@
   await fetch("/api/water?endpoint=agent/cycle", { method: "POST" });
   await fetchAgent();
   await fetchReading();
+  // Notifica al operador on-call vía Telegram con el resultado del ciclo
+  if (agent) {
+    await notifyTelegram("agent_cycle", {
+      cycle: agent.cycle,
+      decision: agent.last_decision,
+      issues: agent.last_issues ?? [],
+    });
+  }
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -529,6 +613,24 @@
   {/each}
   </ul>
   </div>
+  </div>
+  {/if}
+
+  <!-- Toast feedback Telegram (flotante, esquina superior derecha) -->
+  {#if telegramFeedback.visible}
+  <div class="fixed top-4 right-4 z-50 max-w-sm rounded-lg border px-4 py-3 shadow-lg backdrop-blur-md transition-all"
+    style="background: {telegramFeedback.ok ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.10)'}; border-color: {telegramFeedback.ok ? '#10b981' : '#f59e0b'};">
+    <div class="flex items-start gap-2.5">
+      <span class="text-[16px]">{telegramFeedback.ok ? '✈️' : '⚠️'}</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-[11px] font-medium {telegramFeedback.ok ? 'text-emerald-300' : 'text-amber-300'}">
+          {telegramFeedback.ok ? 'Notificación enviada' : 'Telegram no configurado'}
+        </div>
+        <div class="text-[10px] text-slate-400 mt-0.5 leading-snug">{telegramFeedback.msg}</div>
+      </div>
+      <button onclick={() => telegramFeedback = {visible:false, ok:false, msg:""}}
+        class="text-slate-500 hover:text-slate-200 text-[14px] leading-none">×</button>
+    </div>
   </div>
   {/if}
 
@@ -1497,6 +1599,12 @@
   class="w-full text-[10px] py-1.5 rounded-md border transition-colors font-medium"
   style="border-color:{p.color}55;background:{p.color}15;color:{p.color}">
   Activar
+  </button>
+  <button
+  onclick={() => notifyPhenomenon(p.trigger)}
+  class="w-full text-[9px] py-1 mt-1 rounded-md border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] text-slate-400 hover:text-slate-200 transition-colors flex items-center justify-center gap-1"
+  title="Avisar al operador on-call vía Telegram para que confirme la activación">
+  ✈ Avisar operador
   </button>
   </div>
   {/each}

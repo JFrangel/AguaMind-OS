@@ -34,7 +34,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Importar SOLO los routers de WaterMind (sin LLM/RAG/etc)
-from app.routers import water, mitigation
+from app.routers import water, mitigation, telegram_notify
 from app.sensors.normalizer import normalize, normalize_payload
 from app.sensors.schemas import IngestPayload, IngestResult
 
@@ -157,8 +157,9 @@ async def root():
 
 
 # ── Routers principales del simulador ────────────────────────────────────
-app.include_router(water.router,      prefix="/water", tags=["water"])
-app.include_router(mitigation.router, prefix="/water", tags=["mitigation"])
+app.include_router(water.router,           prefix="/water", tags=["water"])
+app.include_router(mitigation.router,      prefix="/water", tags=["mitigation"])
+app.include_router(telegram_notify.router, prefix="/water", tags=["telegram"])
 
 
 # ── Normalizador universal de sensores ───────────────────────────────────
