@@ -41,6 +41,22 @@
   let impact = $state<any>(null);
   let leaderboard = $state<any[]>([]);
   let mapView3D = $state<boolean>(false);   // toggle vista isometrica del mapa
+
+  // Datos sintéticos para charts de Tendencias (stacked area consumo vs pérdidas 24h)
+  const STACK_DATA: { h: number; consumo: number; perdidas: number }[] = [
+    {h: 0,  consumo: 12, perdidas: 8}, {h: 1,  consumo: 10, perdidas: 8},
+    {h: 2,  consumo: 9,  perdidas: 9}, {h: 3,  consumo: 8,  perdidas: 9},
+    {h: 4,  consumo: 9,  perdidas: 8}, {h: 5,  consumo: 12, perdidas: 7},
+    {h: 6,  consumo: 28, perdidas: 7}, {h: 7,  consumo: 65, perdidas: 8},
+    {h: 8,  consumo: 78, perdidas: 9}, {h: 9,  consumo: 72, perdidas: 9},
+    {h: 10, consumo: 60, perdidas: 8}, {h: 11, consumo: 58, perdidas: 8},
+    {h: 12, consumo: 52, perdidas: 8}, {h: 13, consumo: 35, perdidas: 7},
+    {h: 14, consumo: 38, perdidas: 8}, {h: 15, consumo: 60, perdidas: 9},
+    {h: 16, consumo: 65, perdidas: 9}, {h: 17, consumo: 60, perdidas: 8},
+    {h: 18, consumo: 38, perdidas: 7}, {h: 19, consumo: 14, perdidas: 7},
+    {h: 20, consumo: 12, perdidas: 8}, {h: 21, consumo: 10, perdidas: 8},
+    {h: 22, consumo: 12, perdidas: 9}, {h: 23, consumo: 12, perdidas: 9},
+  ];
   let infoOpen = $state<string | null>(null);  // qué tooltip de "info" está abierto
 
   // Descripciones de cada apartado para los tooltips informativos
@@ -620,13 +636,15 @@
 
   <!-- 6 sensores compactos -->
   <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-4">6 Sensores · Tiempo real</div>
+  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500 mb-4">8 Sensores · Tiempo real</div>
   <div class="space-y-3">
   {#each [
-  { label: "Caudal total",  value: fmt(reading.total_flow_lmin, 1) + " L/min", pct: (reading.total_flow_lmin ?? 0) / 150 * 100, color: "#7dd3fc", code: "Q" },
-  { label: "Presión red",  value: fmt(reading.pressure_kpa, 0) + " kPa",  pct: (reading.pressure_kpa ?? 0) / 700 * 100,  color: "#a5b4fc", code: "P" },
-  { label: "Nivel freático",  value: fmt(reading.phreatic_m, 1) + " m",  pct: (reading.phreatic_m ?? 0) / 15 * 100,  color: "#86efac", code: "N" },
-  { label: "Turbidez",  value: fmt(reading.turbidity_ntu, 1) + " NTU",  pct: (reading.turbidity_ntu ?? 0) / 5 * 100,  color: (reading.turbidity_ntu ?? 0) > 4 ? "#f87171" : "#fbbf24", code: "T" },
+  { label: "Caudal total",      value: fmt(reading.total_flow_lmin, 1) + " L/min", pct: (reading.total_flow_lmin ?? 0) / 150 * 100, color: "#7dd3fc", code: "Q" },
+  { label: "Presión red",       value: fmt(reading.pressure_kpa, 0) + " kPa",      pct: (reading.pressure_kpa ?? 0) / 700 * 100,      color: "#a5b4fc", code: "P" },
+  { label: "Nivel freático",    value: fmt(reading.phreatic_m, 1) + " m",          pct: (reading.phreatic_m ?? 0) / 15 * 100,          color: "#86efac", code: "N" },
+  { label: "Turbidez",          value: fmt(reading.turbidity_ntu, 1) + " NTU",     pct: (reading.turbidity_ntu ?? 0) / 5 * 100,        color: (reading.turbidity_ntu ?? 0) > 4 ? "#f87171" : "#fbbf24", code: "T" },
+  { label: "Corriente bombas",  value: fmt(((reading as any).pump1_current_a ?? 0) + ((reading as any).pump2_current_a ?? 0), 1) + " A",  pct: (((reading as any).pump1_current_a ?? 0) + ((reading as any).pump2_current_a ?? 0)) / 50 * 100, color: "#fb923c", code: "I" },
+  { label: "Humedad suelo",     value: fmt((reading as any).soil_humidity_pct ?? 0, 0) + " %",   pct: (reading as any).soil_humidity_pct ?? 0,                color: "#34d399", code: "H" },
   ] as s}
   <div>
   <div class="flex justify-between items-center text-[11px] mb-1">
@@ -647,6 +665,13 @@
   <span class="text-slate-400">Vibración tubería</span>
   </span>
   <span class="font-mono {reading.vibration ? 'text-red-400' : 'text-emerald-400'}">{reading.vibration ? "anomalía" : "estable"}</span>
+  </div>
+  <div class="flex items-center justify-between text-[11px] pt-1">
+  <span class="flex items-center gap-2">
+  <span class="w-4 h-4 rounded-sm flex items-center justify-center text-[10px] font-mono font-bold" style="background:#a855f71A;color:#a855f7">E</span>
+  <span class="text-slate-400">kWh/m³ bombeo</span>
+  </span>
+  <span class="font-mono {((reading as any).kwh_per_m3 ?? 0) < 0.6 ? 'text-emerald-400' : ((reading as any).kwh_per_m3 ?? 0) < 1.0 ? 'text-amber-400' : 'text-red-400'}">{fmt((reading as any).kwh_per_m3 ?? 0, 3)}</span>
   </div>
   </div>
   </div>
@@ -770,20 +795,164 @@
   <!-- ════════════════════════════════════════════════════════════════════ -->
   {:else if tab === "history"}
 
-  <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 mb-5">
-  <div class="flex items-center justify-between mb-5">
+  <!-- ── HEATMAP día × hora (consumo principal) ─────────────────────────── -->
+  <div class="mb-4">
+  <h2 class="text-[14px] font-semibold text-white tracking-tight">Patrón de consumo · día × hora</h2>
+  <p class="text-[11px] text-slate-500 mt-0.5">Heatmap semana típica · cada celda = consumo promedio en esa franja · útil para identificar picos académicos vs noches y fines de semana</p>
+  </div>
+
+  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
+  <svg viewBox="0 0 900 320" class="w-full h-auto">
+  <!-- Eje Y · días -->
+  {#each ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"] as dia, dayI}
+  <text x="40" y={50 + dayI * 32 + 18} text-anchor="end" fill="rgba(255,255,255,0.65)" font-size="11" font-family="Inter">{dia}</text>
+  {/each}
+
+  <!-- Eje X · horas -->
+  {#each [0,4,8,12,16,20,23] as hLabel, i}
+  <text x={60 + (hLabel / 23) * 800} y="40" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="JetBrains Mono">{String(hLabel).padStart(2,'0')}h</text>
+  {/each}
+
+  <!-- Celdas heatmap (24 horas × 7 días) -->
+  {#each Array(7) as _, dayI}
+  {#each Array(24) as _, hour}
+  {@const isWeekend = dayI >= 5}
+  {@const isPeakMorning = hour >= 7 && hour <= 9}
+  {@const isPeakLunch = hour >= 12 && hour <= 13}
+  {@const isPeakAfternoon = hour >= 15 && hour <= 17}
+  {@const isOff = hour >= 22 || hour < 6}
+  {@const intensity = isWeekend
+    ? (isOff ? 0.05 : isPeakMorning || isPeakLunch || isPeakAfternoon ? 0.18 : 0.12)
+    : isOff ? 0.10
+    : isPeakMorning ? 0.95
+    : isPeakLunch ? 0.85
+    : isPeakAfternoon ? 0.80
+    : hour >= 6 && hour <= 18 ? 0.55
+    : 0.20}
+  <rect
+  x={60 + hour * 33}
+  y={50 + dayI * 32}
+  width="31"
+  height="29"
+  rx="2"
+  fill={`rgba(14,165,233,${intensity})`}
+  stroke="rgba(255,255,255,0.04)"
+  stroke-width="0.5"
+  />
+  {/each}
+  {/each}
+
+  <!-- Gradient legend -->
+  <text x="60" y="295" fill="rgba(255,255,255,0.5)" font-size="9" font-family="JetBrains Mono">consumo bajo</text>
+  {#each Array(20) as _, i}
+  <rect x={170 + i * 12} y="285" width="11" height="10" fill={`rgba(14,165,233,${0.05 + (i / 20) * 0.95})`}/>
+  {/each}
+  <text x="420" y="295" fill="rgba(255,255,255,0.5)" font-size="9" font-family="JetBrains Mono">consumo alto</text>
+
+  <!-- Anotaciones de patrones -->
+  <text x="640" y="295" fill="rgba(125,211,252,0.7)" font-size="10" font-family="JetBrains Mono">pico 7-9h · entrada estudiantes</text>
+  </svg>
+  </div>
+
+  <!-- ── Multi-variable sparklines ─────────────────────────────────────── -->
+  <div class="mb-4">
+  <h2 class="text-[14px] font-semibold text-white tracking-tight">Tendencias multi-variable · 24 h</h2>
+  <p class="text-[11px] text-slate-500 mt-0.5">Caudal · presión · nivel de tanque A · turbidez · freático · corriente bombas</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+  {#each [
+  { name: "Caudal entrada",  unit: "L/min",  color: "#0ea5e9", values: [16,17,17,18,18,18,22,28,30,29,27,26,24,18,17,25,26,25,21,16,15,15,15,16] },
+  { name: "Presión red",     unit: "kPa",    color: "#a855f7", values: [320,318,322,325,328,330,360,395,410,400,385,380,370,340,335,375,380,375,355,330,325,322,320,320] },
+  { name: "Nivel Tank A",    unit: "%",      color: "#10b981", values: [85,84,82,80,78,76,68,55,45,42,48,55,62,72,75,68,60,55,62,72,80,84,86,86] },
+  { name: "Turbidez",        unit: "NTU",    color: "#fbbf24", values: [0.8,0.9,0.9,1.1,1.2,1.3,1.5,1.8,2.1,1.9,1.6,1.4,1.5,1.7,1.8,2.2,2.0,1.7,1.4,1.2,1.0,0.9,0.8,0.8] },
+  { name: "Freático",        unit: "m",      color: "#7dd3fc", values: [8.2,8.2,8.1,8.1,8.0,8.0,7.9,7.8,7.7,7.7,7.8,7.9,7.9,8.0,8.1,8.0,7.9,7.9,8.0,8.1,8.1,8.2,8.2,8.2] },
+  { name: "Corriente bombas",unit: "A",      color: "#fb923c", values: [4,4,4,4,4,4,12,22,24,23,21,20,17,8,8,18,21,20,15,6,5,5,5,5] },
+  ] as v}
+  {@const min = Math.min(...v.values)}
+  {@const max = Math.max(...v.values)}
+  {@const range = max - min || 1}
+  <div class="rounded-2xl border border-white/[0.04] p-4" style="background: rgba(255,255,255,0.015)">
+  <div class="flex items-baseline justify-between mb-2">
   <div>
-  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Consumo</div>
-  <div class="text-[12px] text-slate-300 mt-0.5">Últimas 24 horas · {history.length} muestras</div>
+  <div class="text-[11px] text-slate-300 font-medium">{v.name}</div>
+  <div class="text-[9px] text-slate-500 font-mono">{v.unit}</div>
+  </div>
+  <div class="text-right">
+  <div class="text-[16px] font-semibold" style="color:{v.color}">{v.values[v.values.length-1]}</div>
+  <div class="text-[9px] text-slate-500 font-mono">min {min} · max {max}</div>
+  </div>
+  </div>
+  <svg viewBox="0 0 240 60" class="w-full h-auto">
+  <!-- Sparkline -->
+  <polyline
+  points={v.values.map((val, i) => `${(i / (v.values.length - 1)) * 240},${55 - ((val - min) / range) * 50}`).join(' ')}
+  fill="none" stroke={v.color} stroke-width="2"
+  />
+  <!-- Área bajo la curva -->
+  <polygon
+  points={`0,55 ${v.values.map((val, i) => `${(i / (v.values.length - 1)) * 240},${55 - ((val - min) / range) * 50}`).join(' ')} 240,55`}
+  fill={v.color} opacity="0.10"
+  />
+  <!-- Punto final destacado -->
+  <circle cx="240" cy={55 - ((v.values[v.values.length-1] - min) / range) * 50} r="3" fill={v.color}/>
+  </svg>
+  <div class="flex justify-between text-[8px] text-slate-600 font-mono mt-1">
+  <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>ahora</span>
+  </div>
+  </div>
+  {/each}
+  </div>
+
+  <!-- ── Stacked area: consumo vs pérdidas ────────────────────────────── -->
+  <div class="mb-4">
+  <h2 class="text-[14px] font-semibold text-white tracking-tight">Consumo vs pérdidas · stacked area</h2>
+  <p class="text-[11px] text-slate-500 mt-0.5">Visualización del agua que va al uso real (azul) versus la que se pierde antes de llegar (rojo)</p>
+  </div>
+
+  <div class="rounded-2xl border border-white/[0.04] p-4 mb-6" style="background: rgba(255,255,255,0.015)">
+  <svg viewBox="0 0 900 220" class="w-full h-auto">
+  <!-- Gridlines -->
+  {#each [0, 25, 50, 75, 100] as pct}
+  <line x1="60" y1={30 + (100 - pct) * 1.6} x2="880" y2={30 + (100 - pct) * 1.6} stroke="rgba(255,255,255,0.05)"/>
+  <text x="55" y={34 + (100 - pct) * 1.6} text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="9" font-family="JetBrains Mono">{pct}%</text>
+  {/each}
+
+  <!-- Área de pérdidas (abajo, rojo) -->
+  <path d="M 60 190 {STACK_DATA.map(d => `L ${60 + (d.h / 23) * 820} ${190 - d.perdidas * 1.6}`).join(' ')} L 880 190 Z"
+        fill="rgba(239,68,68,0.30)" stroke="#ef4444" stroke-width="1.5"/>
+
+  <!-- Área de consumo (arriba, azul) -->
+  <path d="M 60 190 {STACK_DATA.map(d => `L ${60 + (d.h / 23) * 820} ${190 - (d.consumo + d.perdidas) * 1.6}`).join(' ')} L 880 190 Z"
+        fill="rgba(14,165,233,0.30)" stroke="#0ea5e9" stroke-width="1.5"/>
+
+  <!-- Eje X labels -->
+  {#each [0, 6, 12, 18, 23] as h}
+  <text x={60 + (h / 23) * 820} y="208" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9" font-family="JetBrains Mono">{String(h).padStart(2,'0')}h</text>
+  {/each}
+
+  <!-- Leyenda -->
+  <rect x="700" y="35" width="14" height="10" fill="rgba(14,165,233,0.30)" stroke="#0ea5e9"/>
+  <text x="720" y="44" fill="rgba(255,255,255,0.7)" font-size="10" font-family="Inter">consumo real</text>
+  <rect x="700" y="55" width="14" height="10" fill="rgba(239,68,68,0.30)" stroke="#ef4444"/>
+  <text x="720" y="64" fill="rgba(255,255,255,0.7)" font-size="10" font-family="Inter">pérdidas técnicas</text>
+  </svg>
+  <div class="text-[10px] text-slate-500 mt-2">Las pérdidas representan ~10-15% del flujo total durante el día y crecen al ~50% del flujo nocturno (madrugada). Esto es justo lo que el método "tanques nocturnos" detecta y valida.</div>
+  </div>
+
+  <!-- ── Bar chart consumo histórico (existente · simplificado) ───────── -->
+  <div class="rounded-2xl border border-white/[0.04] p-4 mb-5" style="background: rgba(255,255,255,0.015)">
+  <div class="flex items-center justify-between mb-4">
+  <div>
+  <div class="text-[11px] font-medium tracking-wider uppercase text-slate-500">Consumo agregado por hora · barras</div>
+  <div class="text-[10px] text-slate-500 mt-0.5">{history.length} muestras del simulador en vivo</div>
   </div>
   </div>
   <div class="flex items-end gap-px h-32">
   {#each history as h}
   <div class="flex-1 min-w-0 group relative">
-  <div
-  class="w-full bg-gradient-to-t from-sky-600 to-sky-400 hover:from-sky-500 hover:to-sky-300 rounded-t transition-colors"
-  style="height:{(h.consumption_l / maxConsumption) * 100}%"
-  ></div>
+  <div class="w-full bg-gradient-to-t from-sky-600 to-sky-400 hover:from-sky-500 hover:to-sky-300 rounded-t transition-colors"
+  style="height:{(h.consumption_l / maxConsumption) * 100}%"></div>
   <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 text-[10px] bg-slate-900 border border-white/10 text-slate-200 px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none font-mono">
   {h.hour}: {(h.consumption_l ?? 0).toLocaleString()} L
   </div>
