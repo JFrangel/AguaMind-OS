@@ -169,6 +169,22 @@ SENSORS: dict[str, SensorSpec] = {
         notes="Sensor de conductividad analogico.",
         aliases=["dfr0300", "conductivity"],
     ),
+    # --- corriente electrica de bombas (AQUA-ROI Lite, electronica) ---
+    "SCT-013-030": SensorSpec(
+        model="SCT-013-030", type=SensorType.CURRENT, unit_si="A", raw_unit="V",
+        range_min=0.0, range_max=30.0,
+        convert=lambda v: v * 30.0,  # 1V de salida = 30A AC
+        notes="Transformador de corriente no invasivo (CT clamp). 3 unidades para bombas.",
+        aliases=["sct-013", "sct013", "ct-clamp", "current", "corriente-bomba"],
+    ),
+    # --- humedad de suelo (AQUA-ROI Lite, riego inteligente) ---
+    "CAPACITIVE-SOIL-V1.2": SensorSpec(
+        model="CAPACITIVE-SOIL-V1.2", type=SensorType.SOIL_HUMIDITY, unit_si="%",
+        raw_unit="V", range_min=0.0, range_max=100.0,
+        convert=lambda v: max(0.0, min(100.0, (3.0 - v) * 50.0)),
+        notes="Sensor capacitivo de humedad de suelo. 2 unidades en cancha + jardines.",
+        aliases=["soil-capacitive", "humedad-suelo", "soil-humidity", "soil"],
+    ),
     # --- generico para otros tipos ---
     "GENERIC": SensorSpec(
         model="GENERIC", type=SensorType.UNKNOWN, unit_si="", raw_unit="raw",

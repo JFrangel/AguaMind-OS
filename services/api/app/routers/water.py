@@ -106,6 +106,47 @@ THRESHOLDS = {
 }
 
 
+# ═══ AQUA-ROI Lite — integración compañero electrónica ════════════════════════
+
+# Inversión por escenario (3 niveles documentados)
+INVESTMENT_DEMO_COP        = 1_431_000   # demo backend mínimo (Fase 0)
+INVESTMENT_PILOT_AQUAROI   = 5_570_000   # piloto AQUA-ROI Lite (Fase 1, BOM electrónica)
+INVESTMENT_FULL_ARIAS_2024 = 37_376_807  # propuesta completa (Arias Montoya 2024)
+
+# Ahorros anuales por escenario (Tabla 19-20 AQUA-ROI Lite)
+ANNUAL_SAVINGS = {
+    "conservative": {
+        "total":            4_429_751,
+        "leaks":            2_129_751,
+        "smart_irrigation":   900_000,
+        "predictive_maint": 1_100_000,
+        "less_inspections":   300_000,
+        "payback_years":     1.26,
+    },
+    "medium": {
+        "total":            5_200_000,
+        "payback_years":     1.07,
+    },
+    "prudent": {
+        "total":            3_030_000,  # sin mantenimiento predictivo
+        "payback_years":     1.84,
+    },
+}
+
+# Métricas de mantenimiento predictivo (corriente bombas)
+PUMP_KWH_PER_M3_TARGET   = 0.6     # eficiencia objetivo
+PUMP_CYCLES_PER_HOUR_MAX = 8        # ciclos máximos sin alarma
+PUMP_CURRENT_NORMAL_A    = 18.0    # corriente nominal típica
+PUMP_CURRENT_HIGH_A      = 24.0    # umbral de sobrecorriente
+
+# Riego inteligente (humedad de suelo)
+SOIL_HUMIDITY_NO_IRRIGATION = 60.0  # ≥60% → no regar
+SOIL_HUMIDITY_DRY            = 30.0  # <30% → regar urgente
+
+# Disponibilidad PTAP target
+PTAP_AVAILABILITY_TARGET_PCT = 98.0
+
+
 # ── Helpers de simulación ───────────────────────────────────────────────────
 
 def _hour_factor(hour: int) -> float:
@@ -178,6 +219,25 @@ def _simulate_sensors(
     if inject_turbidity:
         turbidity_ntu = round(random.uniform(5.0, 8.0), 2)
 
+    # ── Sensores AQUA-ROI (compañero electrónica) ─────────────────────────
+    # Corriente bomba 1 (típica 18 A nominal · sobrecorriente >24 A)
+    base_current = PUMP_CURRENT_NORMAL_A if pump_active else 0.0
+    pump1_current_a = round(base_current + random.uniform(-0.8, 1.8), 2) if pump_active else 0.0
+    pump2_current_a = round(base_current * 0.45 + random.uniform(-0.4, 0.9), 2) if pump_active else 0.0
+
+    # Humedad de suelo (zona riego cancha) — varía con hora del día y aleatorio
+    soil_base = 55.0 + 15.0 * math.sin((hour - 6) * math.pi / 12)
+    soil_humidity_pct = round(max(20, min(85, soil_base + random.uniform(-5, 5))), 1)
+
+    # kWh/m3 derivado: corriente × voltaje (220V) × tiempo / volumen bombeado
+    kwh_per_m3 = 0.0
+    if total_flow > 0 and pump_active:
+        # Aproximación simple: ((I_total × 220V) / 1000) hora / (Q L/min × 60 / 1000 m3/h)
+        i_total = pump1_current_a + pump2_current_a
+        kw = (i_total * 220) / 1000
+        m3_per_h = total_flow * 60 / 1000
+        kwh_per_m3 = round(kw / m3_per_h, 3) if m3_per_h > 0 else 0
+
     return {
         "timestamp":      datetime.now().isoformat(),
         "hour":           hour,
@@ -199,6 +259,11 @@ def _simulate_sensors(
         "phreatic_m":     phreatic_m,
         # Sensor 6 — Turbidez
         "turbidity_ntu":  turbidity_ntu,
+        # Sensores AQUA-ROI (electrónica)
+        "pump1_current_a":  pump1_current_a,
+        "pump2_current_a":  pump2_current_a,
+        "soil_humidity_pct": soil_humidity_pct,
+        "kwh_per_m3":        kwh_per_m3,
         # Derivados
         "demand_l_min":   demand_l_min,
         "losses_l_min":   losses_l_min,
@@ -255,6 +320,21 @@ def _calc_kpis(r: dict) -> dict:
             "target":  "> 90 pts",
             "formula": "100 − (Turbidez_NTU / 4) × 30",
             "status":  "ok" if ica >= 90 else "warning" if ica >= 70 else "critical",
+        },
+        # ── KPIs AQUA-ROI Lite (compañero electrónica) ─────────────────────
+        "kWh_m3": {
+            "value":   round(r.get("kwh_per_m3", 0.0), 3),
+            "unit":    "kWh/m³",
+            "target":  f"< {PUMP_KWH_PER_M3_TARGET}",
+            "formula": "(I_bombas × 220V × tiempo) / volumen_bombeado_m³",
+            "status":  "ok" if r.get("kwh_per_m3", 0) < PUMP_KWH_PER_M3_TARGET else "warning" if r.get("kwh_per_m3", 0) < 1.0 else "critical",
+        },
+        "DPTAP": {
+            "value":   round(98.5 if not r.get("vibration") else 96.0, 1),  # simulación
+            "unit":    "%",
+            "target":  f"> {PTAP_AVAILABILITY_TARGET_PCT}",
+            "formula": "(Horas_disponible / Horas_programadas) × 100",
+            "status":  "ok" if not r.get("vibration") else "warning",
         },
     }
 
@@ -788,6 +868,93 @@ async def ingest_sensor_data(body: IngestRequest):
             "kpis":        kpis,
             "alerts":      alerts,
             "cost_benefit": cb,
+        },
+        "error": None,
+    }
+
+
+# ═══ ENDPOINTS AQUA-ROI Lite (Industrial) ═════════════════════════════════════
+
+@router.get("/industrial/scenarios")
+async def industrial_scenarios():
+    """3 escenarios costo-beneficio segun AQUA-ROI Lite (Tablas 19-20)."""
+    return {
+        "data": {
+            "investments": {
+                "demo_fase0":  {"cop": INVESTMENT_DEMO_COP,        "label": "Demo backend minimo"},
+                "pilot_aquaroi": {"cop": INVESTMENT_PILOT_AQUAROI,   "label": "Piloto AQUA-ROI Lite (BOM electronica)"},
+                "full_arias":  {"cop": INVESTMENT_FULL_ARIAS_2024, "label": "Propuesta completa Arias Montoya 2024"},
+            },
+            "scenarios": [
+                {
+                    "name": "Conservador",
+                    "annual_savings_cop": ANNUAL_SAVINGS["conservative"]["total"],
+                    "payback_years":      ANNUAL_SAVINGS["conservative"]["payback_years"],
+                    "breakdown": {
+                        "leaks":             ANNUAL_SAVINGS["conservative"]["leaks"],
+                        "smart_irrigation":  ANNUAL_SAVINGS["conservative"]["smart_irrigation"],
+                        "predictive_maint":  ANNUAL_SAVINGS["conservative"]["predictive_maint"],
+                        "less_inspections":  ANNUAL_SAVINGS["conservative"]["less_inspections"],
+                    },
+                },
+                {
+                    "name": "Medio",
+                    "annual_savings_cop": ANNUAL_SAVINGS["medium"]["total"],
+                    "payback_years":      ANNUAL_SAVINGS["medium"]["payback_years"],
+                },
+                {
+                    "name": "Prudente sin mantenimiento",
+                    "annual_savings_cop": ANNUAL_SAVINGS["prudent"]["total"],
+                    "payback_years":      ANNUAL_SAVINGS["prudent"]["payback_years"],
+                },
+            ],
+        },
+        "error": None,
+    }
+
+
+@router.get("/industrial/lean")
+async def industrial_lean():
+    """6 mudas Lean + 6M Ishikawa + 5 reglas del agente (AQUA-ROI Lite)."""
+    return {
+        "data": {
+            "mudas_6": [
+                {"id": 1, "name": "Defectos",            "manifestation": "Fugas, calidad variable, lectura tardia de problemas",
+                 "countermeasure": "Alertas por caudal nocturno, presion y turbidez"},
+                {"id": 2, "name": "Sobreprocesamiento",  "manifestation": "Tratar/bombear agua que luego se pierde o usa innecesariamente",
+                 "countermeasure": "Medicion de perdidas + riego por necesidad"},
+                {"id": 3, "name": "Esperas",             "manifestation": "Reaccionar cuando el equipo ya fallo",
+                 "countermeasure": "Mantenimiento predictivo por corriente y presion"},
+                {"id": 4, "name": "Movimiento",          "manifestation": "Inspecciones manuales sin priorizacion",
+                 "countermeasure": "Dashboard + rutas de revision por alerta"},
+                {"id": 5, "name": "Energia desperdiciada","manifestation": "Bombas con ciclos frecuentes / fuera de punto",
+                 "countermeasure": "Conteo de ciclos + kWh/m3"},
+                {"id": 6, "name": "Talento subutilizado","manifestation": "Operario sin datos para decidir",
+                 "countermeasure": "Interfaz semaforo + recomendaciones claras"},
+            ],
+            "ishikawa_6m": {
+                "main_effect": "Perdidas de agua y baja eficiencia economica-operativa de la PTAP",
+                "categories": [
+                    {"name": "Metodo",         "causes": ["Mantenimiento correctivo", "Riego sin criterio de humedad", "Registros manuales"]},
+                    {"name": "Medicion",       "causes": ["Falta de caudalimetros", "Sin medidor electrico", "Sin historicos de sensores"]},
+                    {"name": "Maquinaria",     "causes": ["Bombas con ciclos frecuentes", "Filtros sin retrolavado por condicion", "Hidroflo dependiente de presion"]},
+                    {"name": "Mano de obra",   "causes": ["Un solo operario", "Capacitacion limitada", "Carga compartida"]},
+                    {"name": "Materiales",     "causes": ["Tuberias con posibles fugas", "Valvulas sin inspeccion"]},
+                    {"name": "Medio ambiente", "causes": ["Variacion calidad agua cruda", "Lodo/turbidez", "Sequia/lluvia", "Presion sobre acuifero"]},
+                ],
+            },
+            "agent_rules": [
+                {"id": "leak_night",  "name": "Fuga nocturna",       "condition": "caudal > umbral entre 20:00-05:00 + presion estable",
+                 "action": "Alerta amarilla: revisar banos, pilas y red principal", "severity": "warning"},
+                {"id": "pump_fail",   "name": "Falla bomba",         "condition": "corriente alta + presion baja",
+                 "action": "Alerta naranja/roja: revisar bomba, filtros, valvulas o cavitacion", "severity": "critical"},
+                {"id": "filter_sat",  "name": "Filtro saturado",     "condition": "diferencial de presion creciente",
+                 "action": "Programar retrolavado por condicion real", "severity": "warning"},
+                {"id": "irr_unneed",  "name": "Riego innecesario",   "condition": "humedad >= 60% o tanque bajo",
+                 "action": "Bloquear riego automatico o avisar no regar", "severity": "info"},
+                {"id": "sensor_bad",  "name": "Sensor incoherente",  "condition": "lectura fuera de rango o sin cambio prolongado",
+                 "action": "Usar ultimo dato valido + marcar dudoso + pedir inspeccion", "severity": "warning"},
+            ],
         },
         "error": None,
     }

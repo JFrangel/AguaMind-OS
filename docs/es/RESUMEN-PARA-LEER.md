@@ -58,7 +58,9 @@ UNIAJC Sede Sur tiene una planta de tratamiento de agua del 2011 que **nunca tuv
 | Equivalencia tanque | **1 cm = 160 L** | Sánchez Sotelo 2021 |
 | Capacidad PTAR total | **4,000 est** (2×2×1,000) | RETO oficial PDF |
 | Sobrecapacidad PTAR | **2.06×** | 8,234 ÷ 4,000 |
-| Inversión Fase 1 | **$1,431,000 COP** | BOM detallado |
+| Demo Fase 0 (backend mínimo) | **$1,431,000 COP** | BOM AguaMind OS |
+| Piloto Fase 1 AQUA-ROI Lite | **$5,570,000 COP** | BOM compañero electrónica |
+| Propuesta completa | **$37,376,807 COP** | Arias Montoya 2024 |
 | Ahorro anual | **$20,536,425 COP** | Proyectado |
 | Período recuperación | **~25 días** | Conservador |
 | Relación B/C | **17.4×** | TIR > 1,000% |
@@ -123,6 +125,8 @@ Documento estilo tesis con 20 secciones formales. 30-40 minutos de lectura. Cubr
 **[ANALISIS-Y-CAPAS-VISUALES.md](ANALISIS-Y-CAPAS-VISUALES.md)** · Arquitectura por capas con diagramas Mermaid. Trinidad analítica del agente. Sequence diagrams del flujo end-to-end. Diagrama del flujo predictivo y prescriptivo. Mapa cruzado análisis × capas.
 
 **[IMPLEMENTACION-VISUAL-CAPAS.md](IMPLEMENTACION-VISUAL-CAPAS.md)** · Qué se ve en cada capa cuando la abrís: ASCII del campus, mockup OLED, pseudocódigo MicroPython, topic MQTT, schema SQL, mockups por persona (operador, estudiante, admin, inspector). Tabla de "implementado HOY vs proyectado en fases".
+
+**[AQUA-ROI-LITE.md](AQUA-ROI-LITE.md)** · Propuesta del compañero de Electrónica (versión piloto del proyecto). 5 capas, BOM detallado de 18 componentes ($5.57M COP), 3 escenarios costo-beneficio (1.07–1.84 años), 6 mudas Lean, 6M Ishikawa, 5 reglas del agente, plan a prueba de fallos, plan implementación 10 semanas. Integrado a AguaMind OS vía nuevos endpoints `/water/industrial/scenarios` y `/water/industrial/lean`.
 
 **[ALMACENAMIENTO-DE-DATOS.md](ALMACENAMIENTO-DE-DATOS.md)** · Las 5 capas de storage (Edge NVS 1k lecturas → RAM 1h → Postgres 90d → Parquet 5y → PDF auditable). Schema SQL canónico. Frecuencias de muestreo. Volumetría proyectada. Backup ante caídas. Acceso por rol.
 

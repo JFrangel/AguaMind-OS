@@ -299,6 +299,10 @@ def _model_hint_from_name(name: str) -> str:
         return "ORP"
     if any(s in n for s in ["conduct", "us/cm"]):
         return "DFR0300"
+    if any(s in n for s in ["current", "corriente", "ct-clamp", "sct"]):
+        return "SCT-013-030"
+    if any(s in n for s in ["soil", "humedad-suelo", "humedad_suelo", "ground-moist"]):
+        return "CAPACITIVE-SOIL-V1.2"
     return "GENERIC"
 
 

@@ -26,6 +26,8 @@ class SensorType(str, Enum):
     CHLORINE = "chlorine"
     TEMPERATURE = "temperature"
     HUMIDITY = "humidity"
+    CURRENT = "current"           # AQUA-ROI: corriente bombas (CT clamps)
+    SOIL_HUMIDITY = "soil_humidity"  # AQUA-ROI: humedad de suelo (riego)
     UNKNOWN = "unknown"
 
 
