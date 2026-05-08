@@ -810,11 +810,15 @@ async def agent_deliberate():
                 "vote": "critical" if is_critical else ("warning" if is_warning else "ok"),
                 "confidence": 0.85,
                 "reasoning": (
-                    f"Análisis de 7 mudas Lean. "
-                    + ("Patrón coincide con muda 'Defectos' (fuga oculta documentada en histórico). " if is_critical
-                       else "Sin patrones Lean activos. Eficiencia operativa dentro de rango. ")
-                    + f"Pérdida actual: {r['losses_l_min']:.1f} L/min "
-                    + f"(≈ {int(r['losses_l_min']*1440/14.04):,} estudiantes·día/jornada si no se actúa)."
+                    (f"Confirmo desperdicio operacional: el sistema está perdiendo "
+                     f"{r['losses_l_min']:.1f} L/min, equivalente al consumo diario de "
+                     f"{int(r['losses_l_min']*1440/14.04):,} estudiantes. "
+                     f"El patrón coincide con una fuga oculta ya documentada en histórico. "
+                     f"Esto es muda Lean tipo 'Defectos' — requiere acción correctiva.")
+                    if is_critical else
+                    (f"Sin desperdicios operacionales relevantes. Pérdida actual {r['losses_l_min']:.1f} L/min "
+                     f"(≈ {int(r['losses_l_min']*1440/14.04):,} estudiantes·día), dentro del rango esperable "
+                     f"por evaporación y consumo no contabilizado. Eficiencia operativa OK.")
                 ),
                 "lean_mudas_detected": ["Defectos", "Espera"] if is_critical else [],
             },
