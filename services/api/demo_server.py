@@ -811,9 +811,10 @@ async def agent_deliberate():
                 "confidence": 0.85,
                 "reasoning": (
                     f"Análisis de 7 mudas Lean. "
-                    + ("Patrón coincide con muda 'Defectos' (fuga oculta documentada en histórico)." if is_critical
-                       else "Sin patrones Lean activos. Eficiencia operativa dentro de rango.")
-                    + f" Costo por minuto si no se actúa: ${(r['losses_l_min'] * 3.5):.0f} COP."
+                    + ("Patrón coincide con muda 'Defectos' (fuga oculta documentada en histórico). " if is_critical
+                       else "Sin patrones Lean activos. Eficiencia operativa dentro de rango. ")
+                    + f"Pérdida actual: {r['losses_l_min']:.1f} L/min "
+                    + f"(≈ {int(r['losses_l_min']*1440/14.04):,} estudiantes·día/jornada si no se actúa)."
                 ),
                 "lean_mudas_detected": ["Defectos", "Espera"] if is_critical else [],
             },
@@ -825,7 +826,7 @@ async def agent_deliberate():
                 "confidence": 0.90,
                 "reasoning": (
                     "Acción seleccionada: cerrar electroválvula EV-A2 + bomba en standby. "
-                    "Impacto evitado proyectado: 14,500 L · $50,750 COP · 6.67 kg CO₂."
+                    "Impacto evitado proyectado: 14,500 L (≈ 1,033 estudiantes·día)."
                     if is_critical else "Sin acción requerida. Sistema autónomo en modo escucha."
                 ),
                 "actions_available": ["close_valve", "reduce_pressure", "pump_standby", "alert_only", "idle"],
@@ -840,11 +841,11 @@ async def agent_deliberate():
         },
         "telegram_msg": (
             "🛡️ HidroTech — Acción autónoma\n"
-            "Trigger: vibración + caída presión 28%\n"
+            "Trigger: caída de presión 28% + TPP crítica\n"
             "Decisión: cerrar EV-A2\n"
             "Tiempo deliberación: 3.2s\n"
             "Consenso: 5/5 agentes\n"
-            "Impacto evitado: 14,500 L · $50,750 COP" if is_critical else None
+            "Impacto evitado: 14,500 L (≈ 1,033 estudiantes·día)" if is_critical else None
         ),
     }
     return {"data": deliberation, "error": None}

@@ -98,12 +98,15 @@ def format_daily_report(report: dict) -> str:
     k = report.get("kpis", {})
     cb = report.get("cost_benefit", {})
 
+    daily_loss_l = s.get("total_losses_l", 0) or cb.get("daily_loss_l", 0)
+    students_equiv = int(daily_loss_l / 14.04) if daily_loss_l else 0
+
     lines = [
         "📊 *HidroTech — Reporte Diario*",
         f"_{report.get('report_date', '')}_  ·  {report.get('campus', '')}",
         "",
         f"✓ Consumo total: `{s.get('total_consumed_l', 0):,}` L",
-        f"⚠ Pérdidas: `{s.get('total_losses_l', 0):,}` L",
+        f"⚠ Pérdidas: `{daily_loss_l:,}` L  (≈ `{students_equiv:,}` estudiantes·día)",
         f"📈 Eficiencia: `{s.get('efficiency_pct', 0):.1f}%`",
         f"⏱ Hora pico: `{s.get('peak_hour', '—')}` (`{s.get('peak_consumption_l', 0):,}` L)",
         "",
@@ -112,10 +115,9 @@ def format_daily_report(report: dict) -> str:
         f"  TPP: `{k.get('TPP', {}).get('value', '?')}%` ({k.get('TPP', {}).get('status', '—')})",
         f"  CPE: `{k.get('CPE', {}).get('value', '?')}` L/est ({k.get('CPE', {}).get('status', '—')})",
         "",
-        "*Costo-beneficio:*",
-        f"  Pérdida diaria: `${cb.get('daily_loss_cop', 0):,}` COP",
-        f"  Ahorro proyectado anual: `${cb.get('annual_saving_cop', 0):,}` COP",
-        f"  ROI estimado: `{cb.get('roi_months', 0)}` meses",
+        "*Impacto hídrico:*",
+        f"  Recuperable al año: `{int((daily_loss_l*365)/1000):,}` m³",
+        f"  Acciones autónomas hoy: `{cb.get('actions_taken', 0)}`",
     ]
     return "\n".join(lines)
 

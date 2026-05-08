@@ -197,21 +197,23 @@ async def industrial_agent_node(state: WaterState) -> WaterState:
     tpp_value = kpis.get("TPP", {}).get("value", 15)
     cpe_value = kpis.get("CPE", {}).get("value", 14)
 
-    # Detectar mudas Lean activas
+    # Detectar mudas Lean activas (foco en eficiencia operativa, no en dinero)
     mudas_activas = []
     if tpp_value > 10:
         mudas_activas.append({"muda": "Defectos", "evidencia": f"TPP={tpp_value:.1f}% > 10%"})
-    if reading.get("vibration"):
-        mudas_activas.append({"muda": "Defectos", "evidencia": "Fuga activa en tuberías"})
     if reading.get("pump_active") and reading.get("tank_a_pct", 50) > 80:
         mudas_activas.append({"muda": "Sobreproducción", "evidencia": "Bomba activa con tanque > 80%"})
     irr_share  = reading.get("zones", {}).get("Riego/Cancha", 0)
-    if irr_share > 15:
-        mudas_activas.append({"muda": "Transporte", "evidencia": f"Riego alto: {irr_share:.1f} L/min"})
+    soil_h     = reading.get("soil_humidity_pct", 50)
+    if irr_share > 15 and soil_h > 60:
+        mudas_activas.append({"muda": "Sobreproducción", "evidencia": f"Riego activo con humedad H={soil_h:.0f}% (suelo no lo necesita)"})
+    if tpp_value > 5 and not reading.get("pump_active"):
+        mudas_activas.append({"muda": "Espera", "evidencia": "Pérdidas continuas sin acción correctiva"})
 
-    # Análisis costo-beneficio en tiempo real
-    daily_loss_cop  = losses * 1440 * 3.5
-    annual_loss_cop = daily_loss_cop * 365
+    # Impacto hídrico (en litros y equivalentes humanos, no en dinero)
+    daily_loss_l        = round(losses * 1440)
+    annual_loss_m3      = round(daily_loss_l * 365 / 1000)
+    students_day_equiv  = round(daily_loss_l / 14.04)   # 14.04 L/est/día línea base UNIAJC
 
     # Estado industrial global
     decision = "ok"
@@ -222,15 +224,16 @@ async def industrial_agent_node(state: WaterState) -> WaterState:
 
     return {
         "industrial_analysis": {
-            "decision":        decision,
-            "ieh_value":       ieh_value,
-            "tpp_value":       tpp_value,
-            "cpe_value":       cpe_value,
-            "mudas_activas":   mudas_activas,
-            "daily_loss_cop":  round(daily_loss_cop, 0),
-            "annual_loss_cop": round(annual_loss_cop, 0),
-            "ods_impact": ["ODS 6", "ODS 9", "ODS 13"],
-            "agent":           "IndustrialAgent",
+            "decision":            decision,
+            "ieh_value":           ieh_value,
+            "tpp_value":           tpp_value,
+            "cpe_value":           cpe_value,
+            "mudas_activas":       mudas_activas,
+            "daily_loss_l":        daily_loss_l,
+            "annual_loss_m3":      annual_loss_m3,
+            "students_day_equiv":  students_day_equiv,
+            "ods_impact":          ["ODS 6", "ODS 11", "ODS 12"],
+            "agent":               "IndustrialAgent",
         }
     }
 
