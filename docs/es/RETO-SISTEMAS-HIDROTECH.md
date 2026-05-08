@@ -55,11 +55,13 @@ Cada capa es **independiente y deletable** — borrar la capa de RAG no rompe el
 
 | Agente | Archivo | Responsabilidad |
 |---|---|---|
-| **Orchestrator** | `graphs/water_orchestrator.py` | Decide cuándo deliberar, consolida resultados, coordina notificaciones |
-| **Systems** | `graphs/water_orchestrator.py::systems_agent_node` | Calcula KPIs (IEH, TPP, CPE) y detecta anomalías con IsolationForest |
-| **Sensor** | `graphs/water_orchestrator.py::sensor_agent_node` | Valida la calidad de las señales (rango físico, congelamiento, drift) |
-| **Industrial** | `graphs/water_orchestrator.py::industrial_agent_node` | Identifica las 7 mudas Lean, calcula impacto monetario y proyección |
-| **Mitigation** | `routers/mitigation.py` + `graphs/water_orchestrator.py::alerting_node` | Ejecuta acciones (abrir/cerrar electroválvulas, reportar) |
+| **Orquestador** (Orchestrator) | `graphs/water_orchestrator.py` | Dirige al equipo: decide cuándo deliberar, escucha a los demás y consolida la decisión final con el criterio "la peor decisión gana" |
+| **Analista** (Systems) | `graphs/water_orchestrator.py::systems_agent_node` | Calcula los KPIs en vivo (IEH, TPP, CPE) y detecta anomalías estadísticas con IsolationForest sobre las últimas 50 lecturas |
+| **Técnico** (Sensor) | `graphs/water_orchestrator.py::sensor_agent_node` | Desconfía de los sensores: valida rango físico, detecta congelamiento y drift, y descarta lecturas mentirosas antes de que contaminen el análisis |
+| **Auditor** (Industrial) | `graphs/water_orchestrator.py::industrial_agent_node` | Traduce el problema a impacto operacional: cuantifica la pérdida en estudiantes·día equivalentes, clasifica de cuál de las 7 mudas Lean se trata, y justifica por qué hay que actuar comparando con patrones históricos |
+| **Mitigador** (Mitigation) | `routers/mitigation.py` + `graphs/water_orchestrator.py::alerting_node` | Es el que actúa: abre o cierra electroválvulas, dispara la notificación al Telegram del equipo y deja todo registrado en bitácora |
+
+> **Nota sobre el Auditor:** No es el agente que detecta la fuga (eso lo hace el Analista). Su rol es **ponerle nombre, tamaño y urgencia** a lo que el Analista descubre. Convierte una cifra técnica como "63 L/min de pérdida" en un mensaje accionable: "esto equivale al consumo diario de 6,500 estudiantes — es muda Lean tipo 'Defectos' — corresponde al patrón de fuga oculta ya documentado". Sin el Auditor, el equipo de mantenimiento recibiría números fríos; con él recibe contexto e impacto.
 
 ### 3.2 Estado compartido (`WaterState`)
 
@@ -104,7 +106,7 @@ class WaterState(TypedDict, total=False):
    │  ├───────────────┤  │
    │  │ SensorAgent   │  │  → calidad señales
    │  ├───────────────┤  │
-   │  │ IndustrialAg. │  │  → mudas + costos
+   │  │ IndustrialAg. │  │  → traduce a impacto + muda Lean
    │  └───────────────┘  │
    └────────┬────────────┘
             ▼
@@ -356,7 +358,7 @@ eventSource.onmessage = (e) => {
                              │
                   ┌──────────┼──────────┐
                   ▼          ▼          ▼
-              Systems    Sensor    Industrial    (en paralelo)
+             Analista  Técnico   Auditor      (en paralelo)
                   └──────────┼──────────┘
                              ▼
                        Deciding (consolida)
@@ -422,8 +424,9 @@ eventSource.onmessage = (e) => {
 │                  ┌─────────────┼─────────────┐     ▼                  │
 │                  │             │             │  ┌──────────────┐      │
 │                  ▼             ▼             ▼  │   Supabase   │      │
-│              Systems       Sensor      Industrial│  PostgreSQL  │      │
-│              (KPIs+ML)   (validación) (Lean+ROI) │  + pgvector  │      │
+│              Analista       Técnico      Auditor │  PostgreSQL  │      │
+│              (KPIs+ML)   (validación)  (impacto+ │  + pgvector  │      │
+│                                          muda)   │              │      │
 │                  │             │             │   └──────────────┘      │
 │                  └─────────────┼─────────────┘                         │
 │                                ▼                                       │
