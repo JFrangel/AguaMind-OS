@@ -1,83 +1,39 @@
 # Pitch — Reto Sistemas · HidroTech
 
-**Hackathon UNIAJC 2026 · 90 segundos**
+**Hackathon UNIAJC 2026 · 90 segundos · guion para hablar en voz alta**
 
 ---
 
-## El problema
+> *Buenas tardes. Les voy a contar cómo funciona el cerebro de **HidroTech**, nuestra propuesta para el reto de Sistemas.*
 
-La PTAP de UNIAJC Sede Sur (instalada en 2011) **no tiene sensores ni alertas**. Pierde entre el 20% y el 30% del agua que bombea. Nadie se entera hasta que la fuga es visible.
+> *El problema es claro: la planta de tratamiento de UNIAJC Sede Sur está instalada desde 2011 y **no tiene un solo sensor ni una sola alerta**. Pierde entre el 20% y el 30% del agua que bombea, y nadie se entera hasta que la fuga es visible.*
 
----
+> *Nuestra solución es un **sistema multi-agente con inteligencia artificial**. No es un agente, son cinco, y trabajan en equipo como si fueran un grupo de ingenieros virtuales.*
 
-## La solución: 5 agentes IA que piensan en equipo
+> *El primero es el **Orquestador**. Él es el jefe del equipo: decide cuándo hay que deliberar, escucha a los demás y consolida la decisión final con un criterio simple — la peor decisión gana, porque en gestión hídrica es mejor pecar de cauteloso.*
 
-**HidroTech** es un sistema multi-agente que detecta anomalías, delibera y notifica al equipo de mantenimiento por Telegram en menos de 5 segundos.
+> *El segundo es el **Analista**. Es el cerebro estadístico: calcula los indicadores en vivo —eficiencia hídrica, pérdidas y consumo por estudiante— y aplica un modelo de machine learning, IsolationForest, sobre las últimas cincuenta lecturas para detectar anomalías que el ojo humano no vería.*
 
-### Los 5 agentes
+> *El tercero es el **Técnico**. Su trabajo es desconfiar de los sensores: revisa que los valores sean físicamente posibles, detecta cuando un sensor se congeló o tiene drift, y descarta lecturas mentirosas antes de que contaminen el análisis.*
 
-| Agente | Qué hace |
-|---|---|
-| 🎯 **Orquestador** | Coordina al equipo. Decide cuándo deliberar y consolida la decisión final ("la peor decisión gana"). |
-| 📊 **Analista** | Calcula los KPIs en vivo (IEH · TPP · CPE) y detecta anomalías estadísticas con **IsolationForest** sobre las últimas 50 lecturas. |
-| 🔧 **Técnico** | Valida la calidad de las señales: rango físico, congelamiento, drift. Si un sensor miente, lo descarta. |
-| 📋 **Auditor** | Identifica las **7 mudas Lean**, calcula impacto monetario y proyección anual. Es el que justifica el ROI. |
-| 🚨 **Mitigador** | Ejecuta la acción: abre o cierra electroválvulas, notifica por Telegram y registra todo en bitácora. |
+> *El cuarto es el **Auditor**. Mira el sistema con ojos de ingeniero industrial: identifica las siete mudas Lean, calcula cuánta agua se está perdiendo y cuánto se ahorraría con cada acción. Es el que justifica el retorno de inversión.*
 
-### El ciclo (cada 30 segundos)
+> *Y el quinto es el **Mitigador**. Es el que actúa: abre o cierra electroválvulas, dispara la notificación al Telegram del equipo de mantenimiento, y deja todo registrado en bitácora.*
 
-```
-Detectar  →  Pensar en paralelo  →  Decidir  →  Notificar
-  📡            🎯 📊 🔧 📋             ✅           📱
-```
+> *El ciclo es muy simple y se repite cada treinta segundos: los sensores **detectan**, los tres agentes especializados **piensan en paralelo** usando LangGraph, el Orquestador **decide**, y el Mitigador **notifica**. Si hay una anomalía, en menos de cinco segundos llega un mensaje al teléfono del equipo con la alerta, los datos clave y la acción recomendada.*
 
-1. Lee los **5 sensores** (Q caudal, R riego, P presión, N nivel, H humedad).
-2. Los 3 agentes especializados (Analista, Técnico, Auditor) trabajan **en paralelo** con LangGraph.
-3. El Orquestador consolida sus análisis.
-4. Si hay anomalía → el Mitigador dispara una notificación push al Telegram del equipo.
+> *Pero queremos contarles tres cosas que, para nosotros, hacen que esta propuesta sea distinta.*
+
+> *La primera es el **Universal Adapter**. Los sensores reales no hablan todos el mismo idioma — algunos mandan JSON, otros CSV, otros Modbus, otros OPC-UA, otros formato compacto del ESP32. HidroTech tiene un normalizador que detecta el formato automáticamente y traduce todo a un lenguaje común. Conectar un sensor nuevo es plug-and-play, sin tocar una sola línea de código.*
+
+> *La segunda es el **sistema de LLMs en cascada**. El chat del agente intenta primero con Gemini 2.0, si falla se va a Groq con Llama 3.3, y si todo falla cae a un motor determinista local que entiende catorce intenciones distintas. El resultado es que el agente **siempre responde**, incluso sin internet, incluso sin API keys configuradas. Garantiza una demo robusta hoy y una operación veinticuatro siete en el campus mañana.*
+
+> *Y la tercera son los **planes ante fenómenos climáticos**. HidroTech tiene cinco protocolos pre-configurados que el Orquestador activa solo: ante una sequía o fenómeno del Niño, baja la presión nocturna y cierra el riego automáticamente; ante lluvias intensas o La Niña, captura agua lluvia y suspende el bombeo; ante un sismo, cierra todas las válvulas en modo seguro; ante contaminación, aísla el tanque afectado y reporta a la CVC; y ante un pico de demanda, balancea entre tanques. **El campus se adapta solo, sin que nadie tenga que estar pendiente.***
+
+> *Para cerrar: esto **funciona en vivo**, lo pueden ver ustedes ahora mismo en el dashboard, e incluso pueden recibir las notificaciones en su propio Telegram. La latencia desde sensor hasta alerta es menor a cinco segundos. El stack es cien por ciento gratuito —Vercel, Koyeb, Supabase, Gemini, Groq, HiveMQ— y cualquier universidad colombiana lo puede desplegar en una semana.*
+
+> *HidroTech caracteriza, delibera y actúa. Gracias.*
 
 ---
 
-## Tres innovaciones del reto Sistemas
-
-### 1. Universal Adapter — habla cualquier idioma de sensores
-
-Los sensores reales mandan datos en formatos distintos: JSON, CSV, NDJSON, Modbus, OPC-UA, MQTT, SCADA tag-based o el formato compacto del ESP32. HidroTech tiene un **normalizador universal** que detecta el formato automáticamente y entrega lecturas canónicas al sistema. **Conectar un sensor nuevo es plug-and-play, sin tocar código.**
-
-### 2. Cascada de LLMs — nunca falla
-
-```
-Gemini 2.0 Flash    (gratis · 1 M tokens/día)
-     ↓ (si falla o no hay key)
-Groq Llama 3.3 70B  (gratis · ultra rápido)
-     ↓ (si falla)
-Fallback determinista (14 intenciones · 0 ms · siempre disponible)
-```
-
-El chat del agente **siempre responde**, incluso sin internet o sin API keys configuradas. Garantiza demo robusta y operación 24/7 en el campus.
-
-### 3. Plan ante fenómenos climáticos
-
-HidroTech tiene **5 planes pre-configurados** que el Orquestador activa automáticamente:
-
-- 🌵 **El Niño / sequía** → reduce presión nocturna 38→25 PSI, cierra riego, broadcast a 8,234 usuarios.
-- 🌧️ **La Niña / lluvia intensa** → captura agua lluvia, suspende bombeo del aljibe.
-- 🌊 **Sismo** → cierre total de electroválvulas, modo seguro.
-- 🧪 **Contaminación** → aísla tanque afectado, reporta a la CVC.
-- 📈 **Pico de demanda** → balanceo automático entre tanques A y B.
-
-Cada plan es un trigger que combina hasta 6 acciones simultáneas. **El campus se adapta solo.**
-
----
-
-## Por qué nos van a creer
-
-✅ **Funciona en vivo:** dashboard `/agua` con datos en tiempo real, notificaciones Telegram que llegan al teléfono del jurado.
-✅ **Latencia medida:** sensor → notificación ≤ **5 segundos**.
-✅ **Stack 100% gratuito:** Vercel + Koyeb + Supabase + Gemini + Groq + HiveMQ free tier.
-✅ **Replicable:** cualquier universidad colombiana lo despliega en una semana.
-
----
-
-**HidroTech · UNIAJC Sede Sur · 2026**
-*Caracteriza · Delibera · Actúa.*
+**Equipo HidroTech · UNIAJC Sede Sur · 2026**
