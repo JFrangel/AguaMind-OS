@@ -4,11 +4,11 @@
 
 ---
 
-> *Para resolverlo, **se implementaría un sistema multi-agente con IA**: cinco agentes trabajando en equipo. El **Orquestador** coordina, el **Analista** detecta anomalías con machine learning, el **Técnico** valida los sensores, el **Auditor** justifica el ROI con análisis Lean, y el **Mitigador** actúa y notifica al Telegram del equipo.*
+> *Para resolverlo, **se implementaría un sistema con cinco agentes de inteligencia artificial trabajando en equipo, como si fueran ingenieros virtuales**. Uno coordina, otro detecta anomalías, otro revisa que los sensores no mientan, otro calcula cuánta agua y cuánto dinero se está perdiendo, y el último abre o cierra las válvulas y avisa al equipo de mantenimiento por Telegram.*
 
-> *Cada treinta segundos los sensores detectan, los agentes piensan en paralelo con LangGraph y, si hay una anomalía, en menos de cinco segundos llega la alerta al teléfono con la acción recomendada.*
+> *Todo el ciclo se repite cada treinta segundos. Si pasa algo raro, en menos de cinco segundos llega un mensaje al celular con la alerta y qué hacer.*
 
-> *Tres cosas lo hacen distinto: un **Universal Adapter** que entiende cualquier formato de sensor —JSON, Modbus, OPC-UA, MQTT— sin tocar código; un sistema de **LLMs en cascada** —Gemini, Groq y un motor local— para que el agente siempre responda; y **cinco planes ante fenómenos climáticos** —sequía, La Niña, sismo, contaminación y picos de demanda— que el Orquestador activa solo. El campus se adapta solo.*
+> *Tres cosas lo hacen distinto. Primero, **el sistema entiende cualquier sensor que se le conecte**, sin importar la marca o el formato — es plug-and-play. Segundo, **el agente nunca se queda sin responder**: usa varios cerebros de IA en cadena, y si todos fallan, tiene un respaldo local que funciona sin internet. Y tercero, **el sistema reacciona solo ante fenómenos climáticos** como sequía, lluvias intensas, sismos, contaminación o picos de demanda. El campus se adapta solo, sin que nadie tenga que estar pendiente.*
 
 ---
 
