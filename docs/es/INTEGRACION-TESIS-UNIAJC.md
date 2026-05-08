@@ -1,6 +1,6 @@
-# AguaMind OS — Integración con las Tesis UNIAJC sobre la PTAP
+# WaterMind OS — Integración con las Tesis UNIAJC sobre la PTAP
 
-> Documento que demuestra cómo AguaMind OS construye sobre 4 trabajos de
+> Documento que demuestra cómo WaterMind OS construye sobre 4 trabajos de
 > grado previos de UNIAJC, los respeta, los integra y los lleva al
 > siguiente nivel con IA + IoT + comunidad.
 
@@ -15,7 +15,7 @@
 | 3 | 2022 | **Gómez Mina** | Ing. Industrial | **Programa de mantenimiento** preventivo PTAP con fichas técnicas |
 | 4 | 2025 | **Aristizábal Torres & Largacha Perdomo** | (proyectado) | **Modelo dinámico de sistemas** Vensim — escenarios cooperación |
 
-> AguaMind OS **no compite** con estas tesis. Las **integra** como base de
+> WaterMind OS **no compite** con estas tesis. Las **integra** como base de
 > conocimiento institucional y agrega capa cognitiva (IA + IoT + comunidad).
 
 ---
@@ -58,7 +58,7 @@
 | % desperdicio sobre producción | 3.6% | Sánchez Sotelo (2021) |
 
 > 📌 Estas son las pérdidas **medidas físicamente** en una sola noche.
-> No son estimaciones. AguaMind OS detecta este patrón en < 5 minutos.
+> No son estimaciones. WaterMind OS detecta este patrón en < 5 minutos.
 
 ### 1.4 Calidad del agua — cumplimiento Resolución 2115/2007
 
@@ -88,7 +88,7 @@ Datos de las muestras tomadas por Sánchez Sotelo (2021):
 | Lavaplatos | 5 | Parquesoft 5 |
 | **TOTAL** | **161 fuentes** | **Alameda 33% + Parquesoft 67%** |
 
-> ✨ **Insight crítico para AguaMind OS:** Parquesoft consume el **67% del agua**.
+> ✨ **Insight crítico para WaterMind OS:** Parquesoft consume el **67% del agua**.
 > Es el primer lugar donde instalar nodos IoT. Plan ajustado.
 
 ### 1.6 Infraestructura ya identificada como problemática
@@ -109,29 +109,29 @@ De **Sánchez Sotelo (2021)** y **Caycedo & Jaramillo (2021)**:
 
 ---
 
-## 2. Lo que CADA tesis ya recomendó y AguaMind OS implementa
+## 2. Lo que CADA tesis ya recomendó y WaterMind OS implementa
 
 ### 2.1 Recomendaciones Caycedo & Jaramillo (2021) — Tablas 20-24
 
-| Equipo recomendado tesis | Tesis costo | AguaMind OS lo implementa |
+| Equipo recomendado tesis | Tesis costo | WaterMind OS lo implementa |
 |---------------------------|-------------|----------------------------|
 | Bomba dosificadora cloro | (variable) | ✅ Integrado en mantenimiento + monitoreo continuo |
 | Variador velocidad VFD | $700K – $1.2M | ✅ Endpoint /water/mitigate/pressure/reduce simula este control |
 | Medidor pH (Bluelab/Yieryi/HI 83399) | $300K – $1.2M | ✅ Sensor previsto Fase 3 + alerta automática |
 | Medidor turbidez (rango 0-200 NTU) | $400K | ✅ TSD-10 ya en arquitectura Fase 1 |
 | Medidor flujo digital (Rainwave RW-9FM) | $250K | ✅ YF-S201 + ADS1115 ya integrados |
-| Manual de funciones | $0 | ✅ Documentación auto-generada por AguaMind OS |
+| Manual de funciones | $0 | ✅ Documentación auto-generada por WaterMind OS |
 | Manual mantenimientos | $0 | ✅ Cronograma automático en cada nodo |
 | Capacitaciones | $1.5M | ✅ Bot Telegram = capacitación interactiva 24/7 |
-| **TOTAL TESIS recomendado** | **~$5M COP** | **AguaMind OS lo cubre + IA + acción autónoma** |
+| **TOTAL TESIS recomendado** | **~$5M COP** | **WaterMind OS lo cubre + IA + acción autónoma** |
 
 > 🎯 **Argumento contundente para el jurado:** la tesis Caycedo & Jaramillo
-> ya gastó dinero recomendando equipos. **AguaMind OS los integra todos en
+> ya gastó dinero recomendando equipos. **WaterMind OS los integra todos en
 > una plataforma cognitiva por menos del costo individual.**
 
 ### 2.2 Recomendaciones Sánchez Sotelo (2021) — Lean Manufacturing
 
-| Herramienta Lean | Aplicación tesis | AguaMind OS la implementa |
+| Herramienta Lean | Aplicación tesis | WaterMind OS la implementa |
 |-----------------|------------------|----------------------------|
 | VSM (Value Stream Mapping) | Mapeo del proceso PTAP | ✅ Pipeline LangGraph = VSM digital en vivo |
 | Takt Time | Ciclo 3-4 min bombeo | ✅ Métrica MTBF calculada automáticamente |
@@ -143,7 +143,7 @@ De **Sánchez Sotelo (2021)** y **Caycedo & Jaramillo (2021)**:
 
 ### 2.3 Recomendaciones Gómez Mina (2022) — Mantenimiento
 
-13 equipos con códigos UNIAJC ya integrados en AguaMind OS:
+13 equipos con códigos UNIAJC ya integrados en WaterMind OS:
 
 ```python
 # services/api/app/routers/water.py — PTAP_EQUIPMENT
@@ -164,7 +164,7 @@ De **Sánchez Sotelo (2021)** y **Caycedo & Jaramillo (2021)**:
 
 Tablas 11-15 de Gómez Mina (fallas conocidas) → cada una con sensor que la detecta:
 
-| Falla histórica | Sensor AguaMind | Acción agente |
+| Falla histórica | Sensor WaterMind | Acción agente |
 |----------------|-----------------|---------------|
 | Sistema no filtra | Caudal YF-S201 + Presión MPX5700 | Alerta + cierre EV |
 | Lechos colmatados | KPI "días desde retrolavado" | Programa OT |
@@ -175,9 +175,9 @@ Tablas 11-15 de Gómez Mina (fallas conocidas) → cada una con sensor que la de
 
 ---
 
-## 3. Lo que NINGUNA tesis hizo y AguaMind OS sí
+## 3. Lo que NINGUNA tesis hizo y WaterMind OS sí
 
-| Capacidad | Tesis previas | AguaMind OS |
+| Capacidad | Tesis previas | WaterMind OS |
 |-----------|---------------|-------------|
 | Caracterización proceso | ✅ Caycedo (2021) | ✅ Digitalizada en tiempo real |
 | Identificación mudas Lean | ✅ Sánchez (2021) | ✅ Detección automática mudas activas |
@@ -198,20 +198,20 @@ Tablas 11-15 de Gómez Mina (fallas conocidas) → cada una con sensor que la de
 
 ## 4. La Tabla 19 de Caycedo & Jaramillo (estado de cumplimiento normativo)
 
-Resumen de hallazgos en tesis 2021 vs cómo AguaMind OS resuelve cada uno:
+Resumen de hallazgos en tesis 2021 vs cómo WaterMind OS resuelve cada uno:
 
-| Criterio | Cumple norma? (2021) | Solución AguaMind |
+| Criterio | Cumple norma? (2021) | Solución WaterMind |
 |----------|---------------------|-------------------|
 | Toma de muestras | Parcial (frecuencia insuficiente) | Sensor en línea = monitoreo continuo |
 | Calidad del agua | Parcial (4 parámetros fuera de límite) | TSD-10 + alerta cierre automático |
 | Programas seguridad y salud | Parcial (sin demarcación) | Pantallas LED + Telegram avisan |
-| Manual de funcionamiento | Parcial | Auto-generado por AguaMind OS |
+| Manual de funcionamiento | Parcial | Auto-generado por WaterMind OS |
 | Personal | **No cumple** (1 operario sin capacitación) | Bot Telegram = capacitación 24/7 |
 | Insumos | **No cumple** (sin medidores) | 6 sensores + ADS1115 instalados |
 | Programas mantenimiento | Parcial (solo correctivo) | Predictivo con IsolationForest |
 | Equipos e infraestructura | Parcial (sistema obsoleto) | Modernización con IoT bajo costo |
 
-> 🎯 **8 hallazgos de la tesis Caycedo (2021). AguaMind OS resuelve los 8.**
+> 🎯 **8 hallazgos de la tesis Caycedo (2021). WaterMind OS resuelve los 8.**
 
 ---
 
@@ -234,11 +234,11 @@ Proyección lineal a 2030:
         ~75,000 L/día demanda
 
 ⚠️ Demanda 2030 supera capacidad PTAP actual.
-   AguaMind OS predice esto y permite planificación temprana.
+   WaterMind OS predice esto y permite planificación temprana.
 ```
 
 > 🎯 **Argumento clave para "Potencial de escalonamiento" (rúbrica criterio 7):**
-> AguaMind OS no es solo para el campus de hoy. Es para el campus de 2030.
+> WaterMind OS no es solo para el campus de hoy. Es para el campus de 2030.
 
 ---
 
@@ -255,7 +255,7 @@ Proyección lineal a 2030:
 | Costo indirecto (días sin servicio) | $294,575,342 COP |
 
 > Solo los costos **directos** (sin contar el riesgo de no poder prestar servicio)
-> ya superan **3 veces** la inversión inicial de un nodo AguaMind ($1.4M).
+> ya superan **3 veces** la inversión inicial de un nodo WaterMind ($1.4M).
 
 ### Inversión recomendada por las tesis (sumadas)
 
@@ -266,10 +266,10 @@ Gómez Mina (2022):           ~$2,500,000 COP (mantenimiento)
 ─────────────────────────────────────────────
 TOTAL recomendado tesis:     ~$11,000,000 COP
 
-AguaMind OS Fase 1:           $1,431,000 COP
-AguaMind OS Fase Completa:    $19,000,000 COP
+WaterMind OS Fase 1:           $1,431,000 COP
+WaterMind OS Fase Completa:    $19,000,000 COP
 
-→ AguaMind OS Fase 1 = 13% del costo recomendado por las tesis
+→ WaterMind OS Fase 1 = 13% del costo recomendado por las tesis
   + 100% de las funcionalidades + IA + comunidad + open source
 ```
 
@@ -287,7 +287,7 @@ AguaMind OS Fase Completa:    $19,000,000 COP
 >
 > *Cuatro tesis. Cuatro diagnósticos. Cero soluciones implementadas.*
 >
-> *AguaMind OS toma las cuatro y las pone en operación. Hoy."*
+> *WaterMind OS toma las cuatro y las pone en operación. Hoy."*
 
 ---
 
@@ -296,7 +296,7 @@ AguaMind OS Fase Completa:    $19,000,000 COP
 > **No estamos compitiendo con sus estudiantes graduados.**
 > **Estamos honrando su trabajo y llevándolo a producción.**
 >
-> AguaMind OS es la **continuación lógica** de 5 años de investigación
+> WaterMind OS es la **continuación lógica** de 5 años de investigación
 > académica en UNIAJC sobre la PTAP.
 >
 > Lo que ellos diagnosticaron, nosotros lo automatizamos.
@@ -305,5 +305,5 @@ AguaMind OS Fase Completa:    $19,000,000 COP
 
 ---
 
-*Documento de integración con tesis previas · AguaMind OS · Hackathon UNIAJC 2026*
+*Documento de integración con tesis previas · WaterMind OS · Hackathon UNIAJC 2026*
 *Fuentes verificadas: Caycedo & Jaramillo (2021), Sánchez Sotelo (2021), Gómez Mina (2022), Aristizábal & Largacha (2025)*

@@ -1,8 +1,8 @@
-# AguaMind OS - Reto oficial vs lo que entregamos
+# WaterMind OS - Reto oficial vs lo que entregamos
 
 > Este documento mapea **palabra por palabra** los requisitos del PDF oficial
 > *"HACKATHON-FACULTAD DE INGENIERIA UNIAJC-2026 - Gestion del agua en la sede sur"*
-> contra lo que AguaMind OS implementa.
+> contra lo que WaterMind OS implementa.
 >
 > Hackathon UNIAJC 2026 - v1.0
 
@@ -12,7 +12,7 @@
 
 ### Sistema de abastecimiento (potable)
 
-| Elemento | Cantidad | Capacidad / dato | Como lo modela AguaMind |
+| Elemento | Cantidad | Capacidad / dato | Como lo modela WaterMind |
 |----------|---------|------------------|--------------------------|
 | Aljibes | 2 | 113.56 L/min combinado | A1 + A2 en el mapa, conectados a YF-S201 |
 | PTAP | 1 | 3 etapas: grava+arena, antracita, carbon activado | Tres filtros SF-FT-01/02/03 catalogados |
@@ -38,7 +38,7 @@
 | **Capacidad total** | **4 modulos** | - | **4,000 est** | "Sobrecapacidad PTAR (2.06x): 4,000 est cap · 8,234 reales" |
 
 **Conclusion:** la sobrecapacidad real es **2.06 veces** (8,234 / 4,000), no 4x como suponian
-docs anteriores que usaban el dato erroneo de 2,000 cap. AguaMind ya esta corregido.
+docs anteriores que usaban el dato erroneo de 2,000 cap. WaterMind ya esta corregido.
 
 ---
 
@@ -46,7 +46,7 @@ docs anteriores que usaban el dato erroneo de 2,000 cap. AguaMind ya esta correg
 
 ### 2.1 Retos minimos de SISTEMAS
 
-| Requisito del reto | Implementacion AguaMind | Donde verificarlo |
+| Requisito del reto | Implementacion WaterMind | Donde verificarlo |
 |--------------------|--------------------------|---------------------|
 | Arquitectura de software con portabilidad, mantenibilidad, seguridad | Monorepo limpio: 1 frontend SvelteKit + 1 backend FastAPI + 1 bot Telegram. Pydantic en bordes, env vars para secretos | [package.json](../../package.json), [docs/es/ARQUITECTURA.md](ARQUITECTURA.md) |
 | Arquitectura presentada en UML | Diagrama UML de componentes + UML de estados del agente | [docs/es/DIAGRAMAS-Y-DISEÑO.md](DIAGRAMAS-Y-DISEÑO.md) y [ANALISIS-Y-CAPAS-VISUALES.md](ANALISIS-Y-CAPAS-VISUALES.md) |
@@ -55,7 +55,7 @@ docs anteriores que usaban el dato erroneo de 2,000 cap. AguaMind ya esta correg
 
 ### 2.2 Retos minimos de ELECTRONICA
 
-| Requisito del reto | Implementacion AguaMind |
+| Requisito del reto | Implementacion WaterMind |
 |--------------------|--------------------------|
 | Circuito de medicion + acondicionamiento (esquema sensado + acondicionamiento) | 6 sensores con acondicionamiento documentado: divisor 5V->3.3V (YF-S201, JSN-SR04T), shunt 150 ohm para 4-20 mA, ADS1115 16-bit I2C para analogos criticos. Especificado en [packages/sensors/registry.py](../../services/api/app/sensors/registry.py) y [docs/es/IMPLEMENTACION-TECNICA-SENSORES.md](IMPLEMENTACION-TECNICA-SENSORES.md) |
 | Interfaz local + comunicacion con interfaz remota | Local: OLED 0.96" + LED RGB + buzzer en el ESP32. Remota: MQTT 8883 TLS a HiveMQ + HTTP fallback POST `/water/ingest` |
@@ -64,15 +64,15 @@ docs anteriores que usaban el dato erroneo de 2,000 cap. AguaMind ya esta correg
 
 ### 2.3 Retos minimos INDUSTRIAL
 
-| Requisito del reto | Implementacion AguaMind | Resultado |
+| Requisito del reto | Implementacion WaterMind | Resultado |
 |--------------------|--------------------------|-----------|
 | **Diagrama de proceso (flujo)** entradas + procesos + usos | SVG interactivo en `/agua` -> "Mapa del Campus" muestra aljibes -> PTAP -> tanques -> 6 zonas de uso -> PTAR -> rio | Visible en vivo |
 | **Identificacion de variables clave** caudal, demanda, perdidas | 6 variables monitoreadas: caudal (YF-S201), presion (MPX5700AP), nivel (JSN-SR04T), vibracion (SW-420), freatico (4-20 mA), turbidez (TSD-10) | Endpoint `/water/reading` |
 | **3 indicadores con formula y proposito** | Implementados **4 KPIs** (excede el minimo): IEH, TPP, CPE, ICA | Endpoint `/water/status` -> KPIs |
-| Identificacion de mudas Lean (7 tipos) | Tabla completa en [TESIS-VS-AGUAMIND.md](TESIS-VS-AGUAMIND.md) seccion "Tesis 2" | Visible en tab "Gestion Industrial" |
-| Diagrama de Ishikawa (causa-efecto) | 5 categorias: Medicion, Infraestructura, Personas, Procesos, Gestion. Causa raiz: falta de instrumentacion desde 2011 | [docs/es/AGUAMIND-OS-DOCUMENTACION.md seccion 7.3](AGUAMIND-OS-DOCUMENTACION.md) |
+| Identificacion de mudas Lean (7 tipos) | Tabla completa en [TESIS-VS-WATERMIND.md](TESIS-VS-WATERMIND.md) seccion "Tesis 2" | Visible en tab "Gestion Industrial" |
+| Diagrama de Ishikawa (causa-efecto) | 5 categorias: Medicion, Infraestructura, Personas, Procesos, Gestion. Causa raiz: falta de instrumentacion desde 2011 | [docs/es/WATERMIND-OS-DOCUMENTACION.md seccion 7.3](WATERMIND-OS-DOCUMENTACION.md) |
 | **Minimo 2 acciones concretas + impacto** | Implementadas **5 estrategias automatizadas**: leak_response, peak_irrigation, turbidity, tank_overflow, phreatic_low | Botones interactivos en el dashboard |
-| **Costo-beneficio** cuanto cuesta + cuanto ahorra + recuperacion | Inversion $1.43M COP / Ahorro $20.5M COP/ano / Recuperacion 25 dias / TIR > 1,000% | [TESIS-VS-AGUAMIND.md seccion costo-beneficio](TESIS-VS-AGUAMIND.md) |
+| **Costo-beneficio** cuanto cuesta + cuanto ahorra + recuperacion | Inversion $1.43M COP / Ahorro $20.5M COP/ano / Recuperacion 25 dias / TIR > 1,000% | [TESIS-VS-WATERMIND.md seccion costo-beneficio](TESIS-VS-WATERMIND.md) |
 
 ### KPIs detallados con formula y proposito (>= 3 requeridos)
 
@@ -85,7 +85,7 @@ docs anteriores que usaban el dato erroneo de 2,000 cap. AguaMind ya esta correg
 
 ---
 
-## 3. Preguntas integradoras del reto - como las cubre AguaMind
+## 3. Preguntas integradoras del reto - como las cubre WaterMind
 
 ### "Como disenar un sistema inteligente que mida, analice y optimice el uso del agua?"
 
@@ -120,11 +120,11 @@ Ahorro: ~1,800 L/dia recuperados = 657 m^3/ano.
 
 ### "Como anticipar problemas de abastecimiento considerando crecimiento poblacional 2030?"
 
-**Cubierto.** Plan por fases a 15 anos en [AGUAMIND-OS-MASTER.md seccion 13](AGUAMIND-OS-MASTER.md). El modelo Vensim de Aristizabal & Largacha (2025) integrado: con cooperacion 0% colapsa en 2 anos; con cooperacion 50% es sostenible a largo plazo. Smart Water Ledger materializa la "cooperacion".
+**Cubierto.** Plan por fases a 15 anos en [WATERMIND-OS-MASTER.md seccion 13](WATERMIND-OS-MASTER.md). El modelo Vensim de Aristizabal & Largacha (2025) integrado: con cooperacion 0% colapsa en 2 anos; con cooperacion 50% es sostenible a largo plazo. Smart Water Ledger materializa la "cooperacion".
 
 ---
 
-## 4. Lo que el reto NO pide pero AguaMind aporta extra
+## 4. Lo que el reto NO pide pero WaterMind aporta extra
 
 | Plus | Por que importa |
 |------|-----------------|
@@ -151,11 +151,11 @@ Ahorro: ~1,800 L/dia recuperados = 657 m^3/ano.
 | Industrial | Diagrama proceso | Mapa SVG + ARQUITECTURA-POR-EDIFICIO.md | OK |
 | Industrial | Variables clave | water.py + endpoint /water/reading | OK |
 | Industrial | 3 indicadores | 4 KPIs (IEH, TPP, CPE, ICA) | OK |
-| Industrial | Mudas Lean | TESIS-VS-AGUAMIND.md | OK |
-| Industrial | Ishikawa | AGUAMIND-OS-DOCUMENTACION.md | OK |
+| Industrial | Mudas Lean | TESIS-VS-WATERMIND.md | OK |
+| Industrial | Ishikawa | WATERMIND-OS-DOCUMENTACION.md | OK |
 | Industrial | 2 acciones de mejora | 5 estrategias automatizadas en mitigation.py | OK |
-| Industrial | Costo-beneficio + ROI | Tabla en TESIS-VS-AGUAMIND.md | OK |
+| Industrial | Costo-beneficio + ROI | Tabla en TESIS-VS-WATERMIND.md | OK |
 
 ---
 
-*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/AguaMind-OS*
+*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/WaterMind-OS*

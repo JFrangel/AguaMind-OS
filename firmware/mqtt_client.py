@@ -1,5 +1,5 @@
 """
-AguaMind OS — Cliente MQTT para ESP32 (MicroPython).
+WaterMind OS — Cliente MQTT para ESP32 (MicroPython).
 Publica lecturas a HiveMQ Cloud o broker local cada 30 segundos.
 Si MQTT falla, hace fallback a HTTP POST /water/ingest.
 """
@@ -19,7 +19,7 @@ except ImportError:
     requests = None
 
 
-class AguaMindMQTT:
+class WaterMindMQTT:
     def __init__(self):
         self.client = None
         self.connected = False

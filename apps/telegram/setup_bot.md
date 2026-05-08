@@ -1,4 +1,4 @@
-# 🤖 AguaMind OS — Configuración del Bot de Telegram
+# 🤖 WaterMind OS — Configuración del Bot de Telegram
 
 ## Para José F. (+57 318 293 6639)
 
@@ -6,8 +6,8 @@
 
 1. Abre Telegram → busca **@BotFather**
 2. Envía `/newbot`
-3. Nombre del bot: `AguaMind OS UNIAJC`
-4. Username: `aguamind_uniajc_bot` (o el que esté disponible)
+3. Nombre del bot: `WaterMind OS UNIAJC`
+4. Username: `watermind_uniajc_bot` (o el que esté disponible)
 5. **@BotFather te dará un TOKEN** (formato: `1234567890:ABCdefGhIJKlmnOpQrStUvWxYz`)
 6. Copia ese token y pégalo en `.env`:
 
@@ -17,7 +17,7 @@ TELEGRAM_BOT_TOKEN=1234567890:ABCdefGhIJKlmnOpQrStUvWxYz
 
 ### Paso 2 — Obtener tu Chat ID
 
-1. Busca tu bot recién creado en Telegram (@aguamind_uniajc_bot)
+1. Busca tu bot recién creado en Telegram (@watermind_uniajc_bot)
 2. Envíale `/start`
 3. Abre en tu navegador (reemplazando `<TOKEN>` con tu token):
    ```
@@ -87,7 +87,7 @@ for u in data.get('result', []):
 ### Push de alerta crítica (cuando hay fuga)
 
 ```
-🚨 AguaMind OS — UNIAJC Sede Sur
+🚨 WaterMind OS — UNIAJC Sede Sur
 Estado: CRITICAL | 14:32
 
 💧 Caudal: 78.4 L/min
@@ -106,7 +106,7 @@ Estado: CRITICAL | 14:32
 ### Reporte diario automático (18:00)
 
 ```
-📊 AguaMind OS — Reporte Diario
+📊 WaterMind OS — Reporte Diario
 07/05/2026
 
 ✓ Consumo total: 45,367 L

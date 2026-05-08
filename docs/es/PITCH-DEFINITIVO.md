@@ -1,4 +1,4 @@
-# AguaMind OS — Pitch Definitivo (5 minutos)
+# WaterMind OS — Pitch Definitivo (5 minutos)
 
 > Versión final del pitch tras feedback del jurado.
 > Foco: **agentes IA cognitivos + acción autónoma + economía circular**.
@@ -48,7 +48,7 @@ Tres datos que el jurado debe recordar:
 
 > *"Lo que vamos a mostrarles ahora no es un dashboard. Es un cerebro.*
 >
-> *AguaMind OS no tiene 'una IA'. Tiene cinco. Y cada una hace algo
+> *WaterMind OS no tiene 'una IA'. Tiene cinco. Y cada una hace algo
 > diferente. Y deliberan entre ellas antes de actuar. Como un comité
 > técnico de mantenimiento que nunca duerme."*
 
@@ -111,8 +111,8 @@ Cinco diferenciadores irrepetibles:
 > de sanción."*
 
 ### 5. Hablamos. Literalmente.
-> *"El jefe de mantenimiento no usa pantallas. Usa voz. 'AguaMind, ¿cómo
-> está el tanque A?' Y AguaMind responde por audio en Telegram. En español.
+> *"El jefe de mantenimiento no usa pantallas. Usa voz. 'WaterMind, ¿cómo
+> está el tanque A?' Y WaterMind responde por audio en Telegram. En español.
 > En tiempo real."*
 
 ---
@@ -130,7 +130,7 @@ Cinco diferenciadores irrepetibles:
         4 universidades en cola para replicar (proyecciones equipo)
 ```
 
-> *"Y el dato que más nos importa: en seis meses, AguaMind OS protege a
+> *"Y el dato que más nos importa: en seis meses, WaterMind OS protege a
 > UNIAJC de una exposición legal de DIECISIETE MIL MILLONES DE PESOS por
 > incumplimiento normativo. Esa es la pregunta que sus auditores de
 > calidad les van a hacer mañana."*
@@ -162,7 +162,7 @@ Cinco diferenciadores irrepetibles:
 
 ## 4:45 – 5:00 · CIERRE QUE QUEDA EN LA CABEZA
 
-> *"AguaMind OS no es un proyecto. Es un manifiesto.*
+> *"WaterMind OS no es un proyecto. Es un manifiesto.*
 >
 > *Decimos que las universidades públicas pueden ser laboratorios de
 > Smart Cities. Decimos que un equipo de tres ingenierías puede construir
@@ -171,7 +171,7 @@ Cinco diferenciadores irrepetibles:
 >
 > *Y decimos: gracias por dejarnos demostrarlo.*
 >
-> *AguaMind OS. Tecnología con Propósito. Inteligencia con Conciencia.*
+> *WaterMind OS. Tecnología con Propósito. Inteligencia con Conciencia.*
 >
 > *El agua de UNIAJC, bajo control. Hoy. Mañana. Y en cada universidad
 > colombiana que copie nuestro repositorio."*
@@ -207,4 +207,4 @@ Cinco diferenciadores irrepetibles:
 
 ---
 
-*Pitch versión 2.0 · Post-feedback jurado · AguaMind OS*
+*Pitch versión 2.0 · Post-feedback jurado · WaterMind OS*

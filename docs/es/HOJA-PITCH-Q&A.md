@@ -1,4 +1,4 @@
-# AguaMind OS - Hoja de pitch · Q&A anticipado
+# WaterMind OS - Hoja de pitch · Q&A anticipado
 
 > Hoja para llevar al pitch. Cada pregunta tiene:
 > - **Respuesta corta** (15-25s) para decir en voz alta
@@ -12,12 +12,12 @@
 ## P1 · "¿Por qué no usaron un SCADA tradicional?"
 
 **Respuesta corta:**
-> *"Un SCADA cuesta $50M+ COP, es cerrado, no aprende, no cumple normativa por sí solo y no involucra a la comunidad. AguaMind OS cuesta $1.4M COP, es open source, multi-agente y replicable a cualquier universidad pública."*
+> *"Un SCADA cuesta $50M+ COP, es cerrado, no aprende, no cumple normativa por sí solo y no involucra a la comunidad. WaterMind OS cuesta $1.4M COP, es open source, multi-agente y replicable a cualquier universidad pública."*
 
 **Datos de respaldo:**
 - SCADA Wonderware/Ignition: $50-150M COP licencia + integradores
-- AguaMind OS Fase 1: $1,431,000 COP hardware (BOM detallado en master doc §14)
-- Open source MIT en `github.com/JFrangel/AguaMind-OS`
+- WaterMind OS Fase 1: $1,431,000 COP hardware (BOM detallado en master doc §14)
+- Open source MIT en `github.com/JFrangel/WaterMind-OS`
 - Multi-agente con 5 agentes coordinados (no un solo controlador)
 
 **Demo:** Mostrar la pestaña Inteligencia → panel "Razonamiento en vivo" con los 5 agentes deliberando.
@@ -55,10 +55,10 @@
 ## P4 · "¿Y si los estudiantes que crearon esto se gradúan?"
 
 **Respuesta corta:**
-> *"El código está en GitHub público con licencia MIT. La documentación está en español, son 30+ documentos versionados. El Semillero SEGESTOP de UNIAJC puede continuar el desarrollo. La universidad gradúa más de 50 ingenieros al año que pueden mantenerlo. Y como AguaMind OS está construido sobre AgentOS — un framework reutilizable — el conocimiento se preserva más allá de un equipo."*
+> *"El código está en GitHub público con licencia MIT. La documentación está en español, son 30+ documentos versionados. El Semillero SEGESTOP de UNIAJC puede continuar el desarrollo. La universidad gradúa más de 50 ingenieros al año que pueden mantenerlo. Y como WaterMind OS está construido sobre AgentOS — un framework reutilizable — el conocimiento se preserva más allá de un equipo."*
 
 **Datos de respaldo:**
-- Repo: `github.com/JFrangel/AguaMind-OS`
+- Repo: `github.com/JFrangel/WaterMind-OS`
 - 31 archivos `.md` en `docs/es/`
 - Stack documentado: SvelteKit, FastAPI, ESP32, MicroPython — tecnologías estándar
 - Roles definidos en master doc §18 para handoff a próximos equipos
@@ -107,7 +107,7 @@
 ## P8 · "Pueden haber soluciones costo-beneficio más económicas" *(comentario directo del jurado del 7 de mayo)*
 
 **Respuesta corta:**
-> *"Totalmente de acuerdo, y de hecho UNIAJC ya tiene un método de costo cero que respetamos: dejan los tanques llenos al final del día, abren la escotilla superior en la mañana, y leen las marcas grabadas en la pared del tanque. La diferencia entre la marca de las 6 PM y la de las 7 AM es la pérdida nocturna. Eso ya funciona. AguaMind OS no lo reemplaza — lo digitaliza y lo cruza con los sensores. Si la medición visual y el sensor JSN-SR04T no coinciden, hay un problema (sensor descalibrado, marca borrada, fuga nueva). Triangulación de datos = más confianza, no menos."*
+> *"Totalmente de acuerdo, y de hecho UNIAJC ya tiene un método de costo cero que respetamos: dejan los tanques llenos al final del día, abren la escotilla superior en la mañana, y leen las marcas grabadas en la pared del tanque. La diferencia entre la marca de las 6 PM y la de las 7 AM es la pérdida nocturna. Eso ya funciona. WaterMind OS no lo reemplaza — lo digitaliza y lo cruza con los sensores. Si la medición visual y el sensor JSN-SR04T no coinciden, hay un problema (sensor descalibrado, marca borrada, fuga nueva). Triangulación de datos = más confianza, no menos."*
 
 **Detalle del método actual de UNIAJC (costo cero):**
 
@@ -120,9 +120,9 @@
 | 5 | **Diferencia (cm) × área del tanque** = pérdida nocturna en litros | inmediato |
 | 6 | Anota la pérdida en la bitácora — sirve para detectar fugas anormales | continuo |
 
-**Por qué AguaMind OS lo complementa, no lo reemplaza:**
+**Por qué WaterMind OS lo complementa, no lo reemplaza:**
 
-| Métrica | Método actual UNIAJC | AguaMind OS | Resultado al combinar |
+| Métrica | Método actual UNIAJC | WaterMind OS | Resultado al combinar |
 |---------|----------------------|-------------|------------------------|
 | Costo | $0 (escotilla + marcas + bitácora) | $30K por sensor JSN-SR04T | $0 mantiene + sensor agrega |
 | Frecuencia | 1 lectura cada 12 horas | 1 cada 30 segundos | Detección 1,440 veces más rápida |
@@ -137,7 +137,7 @@
 - El sensor JSN-SR04T mide la misma magnitud (nivel cm) con la misma equivalencia → comparación directa
 
 **Mensaje a transmitir:**
-> *"Escuchamos al jurado del 7 de mayo. La propuesta es híbrida y respetuosa: el método actual sigue, AguaMind OS lo digitaliza y lo cruza. Si la marca del operario y el sensor no coinciden, sabemos que algo cambió. Es un piso de bajo costo cubierto por dos métodos independientes."*
+> *"Escuchamos al jurado del 7 de mayo. La propuesta es híbrida y respetuosa: el método actual sigue, WaterMind OS lo digitaliza y lo cruza. Si la marca del operario y el sensor no coinciden, sabemos que algo cambió. Es un piso de bajo costo cubierto por dos métodos independientes."*
 
 **Demo opcional:** mostrar la pestaña Operación → niveles de tanques A 73% y B 78% en vivo, y explicar: *"esto es lo que el operario ve cada mañana al abrir la escotilla, pero ahora con datos cada 30 segundos para detectar fugas durante el día también."*
 
@@ -149,7 +149,7 @@
 
 ## Cierre textual del pitch (memorizar)
 
-> *"AguaMind OS no es un proyecto. Es la culminación de 5 años de investigación en UNIAJC sobre la PTAP, llevada a operación. Caycedo y Jaramillo caracterizaron en 2021. Sánchez Sotelo midió las pérdidas en 2021. Gómez Mina diseñó mantenimiento en 2022. Aristizábal y Largacha modelaron en 2025. Cuatro tesis. Cuatro diagnósticos. Cero soluciones implementadas. AguaMind OS las toma todas y las pone en operación. Hoy."*
+> *"WaterMind OS no es un proyecto. Es la culminación de 5 años de investigación en UNIAJC sobre la PTAP, llevada a operación. Caycedo y Jaramillo caracterizaron en 2021. Sánchez Sotelo midió las pérdidas en 2021. Gómez Mina diseñó mantenimiento en 2022. Aristizábal y Largacha modelaron en 2025. Cuatro tesis. Cuatro diagnósticos. Cero soluciones implementadas. WaterMind OS las toma todas y las pone en operación. Hoy."*
 
 ---
 
@@ -163,7 +163,7 @@
 | 2:30–3:30 | Diferenciadores | Estrategias derivadas de datos · 5 fenómenos cubiertos | tab Inteligencia (5 cards) |
 | 3:30–4:15 | Impacto | $1.4M inversión · 25 días ROI · 5 ODS · 16.5M L recuperados | panel monetización en vivo |
 | 4:15–4:45 | Validación académica | 4 tesis UNIAJC integradas | tab Arquitectura · trinidad analítica |
-| 4:45–5:00 | Cierre | "4 tesis · 4 diagnósticos · 0 soluciones implementadas · AguaMind OS las pone en operación · hoy" | — |
+| 4:45–5:00 | Cierre | "4 tesis · 4 diagnósticos · 0 soluciones implementadas · WaterMind OS las pone en operación · hoy" | — |
 
 ---
 
@@ -172,7 +172,7 @@
 - [ ] Laptop con backend `:8000` corriendo (verificar `curl http://localhost:8000/water/agent/status`)
 - [ ] Laptop con frontend `:5173` corriendo (verificar `curl http://localhost:5173/agua`)
 - [ ] Conexión a internet estable (para el LLM si configuramos GROQ_API_KEY real)
-- [ ] BOM impreso ([master doc §14.1](AGUAMIND-OS-MASTER.md))
+- [ ] BOM impreso ([master doc §14.1](WATERMIND-OS-MASTER.md))
 - [ ] Esta hoja Q&A impresa
 - [ ] Cable HDMI/USB-C para proyector
 - [ ] Adaptador VGA por si acaso

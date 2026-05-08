@@ -1,5 +1,5 @@
 """
-AguaMind OS — Endpoints del agente autónomo multi-sistema.
+WaterMind OS — Endpoints del agente autónomo multi-sistema.
 Controla el WaterMonitorAgent (start / stop / status / stream).
 """
 
@@ -11,7 +11,7 @@ from typing import AsyncGenerator
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
-logger = logging.getLogger("aguamind.agent_water")
+logger = logging.getLogger("watermind.agent_water")
 router = APIRouter()
 
 # ── Instancia global del agente (singleton por proceso) ────────────────────

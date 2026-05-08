@@ -1,7 +1,7 @@
-# AguaMind OS — Cumplimiento Normativo y Soluciones a Cada Problema
+# WaterMind OS — Cumplimiento Normativo y Soluciones a Cada Problema
 
 > Documento maestro que mapea cada problema PTAP/PTAR con la normativa colombiana
-> aplicable, las consecuencias por incumplimiento y la forma exacta como AguaMind OS
+> aplicable, las consecuencias por incumplimiento y la forma exacta como WaterMind OS
 > evita las sanciones y resuelve cada falla.
 
 > **Fuentes oficiales del proyecto:**
@@ -16,7 +16,7 @@
 
 ### 1.1 Calidad del Agua Potable y PTAP
 
-| Norma | Contenido | Aplicación a AguaMind |
+| Norma | Contenido | Aplicación a WaterMind |
 |-------|-----------|------------------------|
 | **Decreto 1575 de 2007** (Min. Protección Social) | Sistema para protección y control de calidad del agua para consumo humano | Lavado y desinfección tanques **mínimo 2 veces/año** · monitoreo IRCA |
 | **Resolución 2115 de 2007** (Min. Protección + Min. Ambiente + Min. Vivienda) | Características, instrumentos y frecuencias del sistema de control y vigilancia para calidad de agua | Define Índice de Riesgo de Calidad del Agua (IRCA), parámetros físico-químicos y microbiológicos |
@@ -25,15 +25,15 @@
 
 ### 1.2 Vertimientos y PTAR
 
-| Norma | Contenido | Aplicación a AguaMind |
+| Norma | Contenido | Aplicación a WaterMind |
 |-------|-----------|------------------------|
 | **Resolución 0631 de 2015** (Min. Ambiente) | Valores límite máximos permisibles en vertimientos puntuales a cuerpos de agua superficiales | DBO5 ≤ 90 mg/L · pH 6–9 · SST ≤ 90 mg/L · grasas y aceites ≤ 20 mg/L |
 | **Decreto 050 de 2018** | Modificación del Decreto 3930 sobre vertimientos | Obligación de Plan de Cumplimiento |
 | **Resolución 1207 de 2014** | Reúso de agua tratada para riego | Habilita reúso PTAR → riego cancha |
 
-### 1.3 Seguridad de la Información (aplicable a AguaMind como sistema digital)
+### 1.3 Seguridad de la Información (aplicable a WaterMind como sistema digital)
 
-| Norma | Contenido | Aplicación a AguaMind |
+| Norma | Contenido | Aplicación a WaterMind |
 |-------|-----------|------------------------|
 | **Ley 1581 de 2012** (Habeas Data) | Marco general de protección de datos personales | Si registramos chat_id Telegram → manejo responsable |
 | **Ley 1928 de 2018 + Decreto 338 de 2022** | Ciberseguridad y gestión de riesgos cibernéticos | Backend autenticado · cifrado HTTPS · logs auditables |
@@ -84,7 +84,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Resolución 2115/2007 exige sistema de control y vigilancia. Sin medición no hay vigilancia → **incumplimiento parcial Capítulo IV-V** |
 | **Sanción potencial** | Min. Salud puede ordenar suspensión de uso · multa hasta 1,000 SMMLV |
-| **Solución AguaMind** | Nodo PTAP con YF-S201 (entrada + salida cada filtro), JSN-SR04T (tanques), MPX5700AP (presión), TSD-10 (turbidez) |
+| **Solución WaterMind** | Nodo PTAP con YF-S201 (entrada + salida cada filtro), JSN-SR04T (tanques), MPX5700AP (presión), TSD-10 (turbidez) |
 | **Cómo evita la sanción** | Genera reportes IRCA automáticos exportables a Min. Salud · cumplimiento Capítulo IV de Res 2115 |
 | **Costo solución** | Nodo PTAP $1.4M COP · ROI 21 días |
 
@@ -96,7 +96,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Decreto 3930/2010 exige uso eficiente del recurso hídrico. **Pérdidas > 25% violan principio de eficiencia** |
 | **Sanción potencial** | CVC puede revocar concesión de aguas subterráneas |
-| **Solución AguaMind** | Balance IN-OUT por edificio + IsolationForest + hidrófono acústico SW-420 |
+| **Solución WaterMind** | Balance IN-OUT por edificio + IsolationForest + hidrófono acústico SW-420 |
 | **Cómo evita la sanción** | TPP medible permite plan de reducción auditable y reportable a CVC |
 | **Costo solución** | $2.4M COP por edificio (par IN+OUT) |
 
@@ -108,7 +108,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Resolución 1207/2014 habilita reúso de agua para riego, pero el agua tratada potable usada directamente para riego **viola principio de eficiencia** |
 | **Sanción potencial** | Multa por uso ineficiente del recurso |
-| **Solución AguaMind** | Solenoide EV-RC1 + higrómetros HW-080 → riego solo desde aljibe 2 (sin tratar) cuando humedad < 60% y horario nocturno |
+| **Solución WaterMind** | Solenoide EV-RC1 + higrómetros HW-080 → riego solo desde aljibe 2 (sin tratar) cuando humedad < 60% y horario nocturno |
 | **Cómo evita la sanción** | Demuestra plan de reúso documentado (Resolución 1207/2014) |
 | **Costo solución** | $2.5M COP nodo Cancha + Jardines |
 
@@ -120,7 +120,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Ley 1931/2018 exige eficiencia energética en infraestructuras. Bombeo innecesario = consumo eléctrico injustificable |
 | **Sanción potencial** | Reportabilidad ambiental institucional · pierde puntos en acreditación |
-| **Solución AguaMind** | Relay SSR + lógica del agente: bomba solo si Tanque A < 24,000 L Y demanda proyectada > 0 |
+| **Solución WaterMind** | Relay SSR + lógica del agente: bomba solo si Tanque A < 24,000 L Y demanda proyectada > 0 |
 | **Cómo evita la sanción** | Reporte mensual de eficiencia energética con datos auditables |
 | **Costo solución** | $33K COP (relay + driver) |
 
@@ -132,7 +132,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | **Decreto 1076 de 2015** (Único Reglamentario Ambiental) obliga a **monitoreo de niveles piezométricos** en concesiones de agua subterránea |
 | **Sanción potencial** | CVC puede revocar concesión + multa hasta 5,000 SMMLV |
-| **Solución AguaMind** | Transductor sumergible 4-20 mA en cada aljibe → nivel freático en tiempo real con histórico |
+| **Solución WaterMind** | Transductor sumergible 4-20 mA en cada aljibe → nivel freático en tiempo real con histórico |
 | **Cómo evita la sanción** | Reporte automático de niveles a CVC (cumplimiento art. 2.2.3.2.7.3 Decreto 1076/2015) |
 | **Costo solución** | $360K COP (2 transductores + cableado) |
 
@@ -144,7 +144,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | RAS 2000 Capítulo G establece vida útil tuberías PVC 30-50 años pero requiere inspección anual |
 | **Sanción potencial** | Infraestructura no mantenida → riesgo de afectación calidad |
-| **Solución AguaMind** | SW-420 vibración + hidrófono ESP32 + EV automática para corte preventivo |
+| **Solución WaterMind** | SW-420 vibración + hidrófono ESP32 + EV automática para corte preventivo |
 | **Cómo evita la sanción** | Bitácora digital de inspecciones y eventos auditable |
 | **Costo solución** | $30K COP por punto crítico |
 
@@ -156,7 +156,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Decreto 1575/2007 exige garantizar continuidad del suministro. Desbordes o vaciados violan |
 | **Sanción potencial** | Multa hasta 500 SMMLV por interrupción del servicio |
-| **Solución AguaMind** | JSN-SR04T impermeable en cada tanque + alerta automática + corte EV salida |
+| **Solución WaterMind** | JSN-SR04T impermeable en cada tanque + alerta automática + corte EV salida |
 | **Cómo evita la sanción** | Continuidad garantizada + bitácora de eventos |
 | **Costo solución** | $60K COP (par sensores) |
 
@@ -168,7 +168,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | **Resolución 2115/2007** exige medición continua de parámetros físico-químicos (Cap. IV) y microbiológicos (Cap. V). **Turbidez ≤ 2 NTU** para agua segura |
 | **Sanción potencial** | IRCA inviable · suspensión de uso · multa hasta 1,000 SMMLV |
-| **Solución AguaMind** | TSD-10 turbidez en tiempo real + alerta crítica si NTU > 4 + cierre EV-OUT-A automático |
+| **Solución WaterMind** | TSD-10 turbidez en tiempo real + alerta crítica si NTU > 4 + cierre EV-OUT-A automático |
 | **Cómo evita la sanción** | Reporte IRCA mensual al INVIMA con datos auditables · cumplimiento total Capítulos IV-V Res 2115 |
 | **Costo solución** | $55K COP (TSD-10) + futuras extensiones (pH, conductividad, cloro residual) |
 
@@ -180,7 +180,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Decreto 1008/2018 (Gobierno Digital) requiere transformación digital · Ley 1712/2014 obliga a entidades públicas a publicar datos |
 | **Sanción potencial** | Hallazgo en auditoría institucional |
-| **Solución AguaMind** | Dashboard público con IEH, TPP, CPE, ICA + alertas Telegram + reporte PDF diario |
+| **Solución WaterMind** | Dashboard público con IEH, TPP, CPE, ICA + alertas Telegram + reporte PDF diario |
 | **Cómo evita la sanción** | Cumple Ley de Transparencia + política Gobierno Digital |
 | **Costo solución** | $0 (open source) |
 
@@ -192,7 +192,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Concesión CVC pudo asignar caudal específico para riego sin control |
 | **Sanción potencial** | Sobreuso = revocatoria parcial de concesión |
-| **Solución AguaMind** | EV-RC1 con T-junction permite cortar riego sin afectar resto + medición exacta del caudal usado |
+| **Solución WaterMind** | EV-RC1 con T-junction permite cortar riego sin afectar resto + medición exacta del caudal usado |
 | **Cómo evita la sanción** | Reporte trimestral de uso real vs. concesión |
 | **Costo solución** | $220K COP (electroválvula 1") |
 
@@ -206,7 +206,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Decreto 1575/2007 + Resolución 0631/2015 exigen tratamiento adecuado antes de vertimiento. Sobrecarga = tratamiento deficiente |
 | **Sanción potencial** | Multa Resolución 0631 hasta 5,000 SMMLV + cierre temporal del campus |
-| **Solución AguaMind** | Balance hídrico institucional → reporta uso real vs capacidad → justifica ampliación de PTAR ante CVC |
+| **Solución WaterMind** | Balance hídrico institucional → reporta uso real vs capacidad → justifica ampliación de PTAR ante CVC |
 | **Cómo evita la sanción** | Reporte trimestral demuestra trazabilidad y plan de cumplimiento |
 | **Costo solución** | $0 (con datos del balance ya implementado) |
 
@@ -218,7 +218,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Resolución 0631/2015 fija límites obligatorios de vertimiento (DBO5, pH, SST, grasas, aceites) |
 | **Sanción potencial** | Multa por exceso · pago por daños ambientales art. 31 Ley 99/1993 |
-| **Solución AguaMind** | Sensores de calidad en salida PTAR: turbidez, pH, conductividad (Fase 3) |
+| **Solución WaterMind** | Sensores de calidad en salida PTAR: turbidez, pH, conductividad (Fase 3) |
 | **Cómo evita la sanción** | Reporte mensual a CVC con datos en tiempo real · alerta automática si parámetro fuera de norma |
 | **Costo solución** | $1.8M COP por PTAR (par Alameda + Entrada) |
 
@@ -230,7 +230,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 |---------|---------|
 | **Riesgo normativo** | Política Nacional para Gestión Integral del Recurso Hídrico · POMCA río Cauca |
 | **Sanción potencial** | Pérdida de licencia ambiental institucional |
-| **Solución AguaMind** | Dashboard público "Pulso del río Pance" mostrando descargas tratadas vs límites |
+| **Solución WaterMind** | Dashboard público "Pulso del río Pance" mostrando descargas tratadas vs límites |
 | **Cómo evita la sanción** | Transparencia comunitaria + reporte trimestral a comunidad académica |
 | **Costo solución** | $0 (con dashboard ya implementado) |
 
@@ -241,7 +241,7 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 | Aspecto | Detalle |
 |---------|---------|
 | **Riesgo normativo** | Decreto 1076/2015 exige uso eficiente y plan de cumplimiento ambiental |
-| **Solución AguaMind** | Comparación automática Σ entradas edificios vs Σ entradas PTAR → ratio mensual |
+| **Solución WaterMind** | Comparación automática Σ entradas edificios vs Σ entradas PTAR → ratio mensual |
 | **Costo solución** | $0 |
 
 ---
@@ -251,18 +251,18 @@ Inventario verificado del proyecto de mantenimiento (códigos UNIAJC oficiales):
 | Aspecto | Detalle |
 |---------|---------|
 | **Riesgo normativo** | RAS 2000 Capítulo E exige plan de mantenimiento preventivo |
-| **Solución AguaMind** | Sensor turbidez en cámara de lodos PTAR + alerta automática para purgas programadas |
+| **Solución WaterMind** | Sensor turbidez en cámara de lodos PTAR + alerta automática para purgas programadas |
 | **Costo solución** | $55K COP por PTAR |
 
 ---
 
 ## 5. Soluciones por Equipo PTAP (basado en proyecto Gómez Mina 2022)
 
-El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada equipo. AguaMind OS las atiende digitalmente:
+El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada equipo. WaterMind OS las atiende digitalmente:
 
 ### 5.1 Filtros (SF-FT-01, 02, 03)
 
-| Falla identificada en tesis | Síntoma | Solución AguaMind |
+| Falla identificada en tesis | Síntoma | Solución WaterMind |
 |----------------------------|---------|-------------------|
 | Sistema no filtra | Caudal bajo · presión anómala | YF-S201 detecta caudal anómalo + MPX5700AP detecta presión → alerta automática |
 | Lechos colmatados | Necesidad de retrolavado | KPI específico "días desde último retrolavado" + alerta si > 14 días |
@@ -272,7 +272,7 @@ El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada
 
 ### 5.2 Bombas dosificadoras de cloro (SD-BD-01)
 
-| Falla identificada | Solución AguaMind |
+| Falla identificada | Solución WaterMind |
 |---------------------|-------------------|
 | Caudal insuficiente | Sensor flujo en línea de cloro + alerta |
 | Bomba no arranca | Monitoreo eléctrico (corriente vía sensor SCT-013) |
@@ -281,7 +281,7 @@ El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada
 
 ### 5.3 Tanques hidroneumáticos (SB-TH-01, 02)
 
-| Falla identificada | Solución AguaMind |
+| Falla identificada | Solución WaterMind |
 |---------------------|-------------------|
 | No bombea / motor parado | Sensor presión MPX5700AP detecta caída |
 | Membrana con fuga | Caída anormal de presión registrada |
@@ -290,7 +290,7 @@ El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada
 
 ### 5.4 Bombas centrífugas (SB-BC-03, 04)
 
-| Falla identificada | Solución AguaMind |
+| Falla identificada | Solución WaterMind |
 |---------------------|-------------------|
 | Motor no arranca | Sensor corriente SCT-013 + alerta |
 | Rendimiento no constante | KPI variabilidad caudal |
@@ -300,14 +300,14 @@ El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada
 
 ### 5.5 Tableros eléctricos
 
-| Falla identificada | Solución AguaMind |
+| Falla identificada | Solución WaterMind |
 |---------------------|-------------------|
 | Sobrecarga (fusibles quemados) | Sensor corriente + alerta antes de quema |
 | Falsos contactos | Monitoreo continuo de patrones eléctricos |
 
 ### 5.6 Bombas sumergibles aljibes (CP-BS-01, 02)
 
-| Falla identificada | Solución AguaMind |
+| Falla identificada | Solución WaterMind |
 |---------------------|-------------------|
 | Bomba arranca sin agua | Sensor freático 4-20mA + corte automático |
 | Fuga lubricante (contamina agua) | TSD-10 detecta turbidez anómala |
@@ -317,12 +317,12 @@ El proyecto de grado de Paula Gómez (2022) identificó fallas concretas en cada
 
 ## 6. Plan de Cumplimiento Normativo Trimestral
 
-AguaMind OS genera automáticamente el siguiente reporte cada trimestre:
+WaterMind OS genera automáticamente el siguiente reporte cada trimestre:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  REPORTE DE CUMPLIMIENTO NORMATIVO — TRIMESTRE Q1 2026            │
-│  UNIAJC Sede Sur · Generado por AguaMind OS · Fecha: 2026-03-31  │
+│  UNIAJC Sede Sur · Generado por WaterMind OS · Fecha: 2026-03-31  │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                    │
 │  CALIDAD DE AGUA (Resolución 2115/2007)                           │
@@ -390,11 +390,11 @@ Empresa certificada valida los datos cada 6 meses · sello "PTAP Inteligente Cer
 | Multa Resolución 0631/2015 | 5,000 SMMLV ≈ $6,500 millones COP |
 | Multa Ley 1581/2012 (datos) | 2,000 SMMLV ≈ $2,600 millones COP |
 | **TOTAL EXPOSICIÓN** | **$16,900 millones COP** |
-| **Inversión AguaMind para evitarlo** | **$5–19 millones COP** (escalonable) |
+| **Inversión WaterMind para evitarlo** | **$5–19 millones COP** (escalonable) |
 
-> AguaMind OS no es solo una solución técnica — es **gestión de riesgo institucional** que protege a UNIAJC de exposición legal millonaria con una inversión < 0.1% del riesgo evitado.
+> WaterMind OS no es solo una solución técnica — es **gestión de riesgo institucional** que protege a UNIAJC de exposición legal millonaria con una inversión < 0.1% del riesgo evitado.
 
 ---
 
-*Documento maestro de cumplimiento normativo · AguaMind OS · Hackathon UNIAJC 2026*
+*Documento maestro de cumplimiento normativo · WaterMind OS · Hackathon UNIAJC 2026*
 *Basado en proyecto Gómez Mina (2022), Plano técnico PTAP UNIAJC, Resolución 055 UNIAJC 2025*

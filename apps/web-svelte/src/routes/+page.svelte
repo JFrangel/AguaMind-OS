@@ -54,7 +54,7 @@
           A
         </div>
         <div>
-          <h1 class="font-display text-sm font-semibold text-text-primary">AguaMind OS</h1>
+          <h1 class="font-display text-sm font-semibold text-text-primary">WaterMind OS</h1>
           <p class="text-[11px] text-text-secondary">UNIAJC Sede Sur · Gestión hídrica IA</p>
         </div>
       </div>

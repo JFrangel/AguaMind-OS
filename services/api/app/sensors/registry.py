@@ -1,5 +1,5 @@
 """
-AguaMind OS - Registro de sensores fisicos: calibracion, unidades, rangos.
+WaterMind OS - Registro de sensores fisicos: calibracion, unidades, rangos.
 
 Cada sensor del mercado entrega su senal en una unidad/escala distinta. El
 registry traduce esa senal cruda a unidades SI canonicas con calibracion

@@ -1,6 +1,6 @@
-# AguaMind OS — Innovación Radical
+# WaterMind OS — Innovación Radical
 
-> Documento de diferenciación definitiva. Por qué AguaMind OS no es "otra app
+> Documento de diferenciación definitiva. Por qué WaterMind OS no es "otra app
 > de monitoreo" sino una **plataforma cognitiva de gestión hídrica** que
 > redefine la relación entre infraestructura, datos y comunidad.
 
@@ -8,9 +8,9 @@
 
 ## La pregunta que el jurado va a hacer
 
-> *"¿Por qué AguaMind OS y no un SCADA tradicional o un Excel con sensores?"*
+> *"¿Por qué WaterMind OS y no un SCADA tradicional o un Excel con sensores?"*
 
-La respuesta corta: **porque AguaMind OS aprende, decide, actúa y enseña.**
+La respuesta corta: **porque WaterMind OS aprende, decide, actúa y enseña.**
 Lo demás solo mide.
 
 ---
@@ -28,15 +28,15 @@ Antes de explicar la innovación, reconocemos que NO somos:
 - ❌ Una app móvil para reportar fugas
 
 **Cualquiera de esos puede medir agua. Ninguno puede hacer las 10 cosas
-que AguaMind OS hace simultáneamente.**
+que WaterMind OS hace simultáneamente.**
 
 ---
 
-## 2. Las 10 innovaciones que solo AguaMind OS tiene
+## 2. Las 10 innovaciones que solo WaterMind OS tiene
 
 ### 🧠 Innovación 1 — Sistema Multi-Agente Cognitivo (no un solo bot)
 
-Mientras todos hacen "un sistema de monitoreo con alertas", AguaMind OS tiene
+Mientras todos hacen "un sistema de monitoreo con alertas", WaterMind OS tiene
 **5 agentes IA especializados** que deliberan entre ellos antes de actuar:
 
 ```
@@ -54,7 +54,7 @@ Mientras todos hacen "un sistema de monitoreo con alertas", AguaMind OS tiene
 ```
 
 **Por qué importa:** un sensor solo dice "vibración=true". Un sistema con un
-solo modelo dice "fuga probable". **AguaMind OS dice:** "vibración + caída
+solo modelo dice "fuga probable". **WaterMind OS dice:** "vibración + caída
 presión 28% + caudal 30% sobre línea base + horario nocturno = fuga crítica
 en sub-circuito Bloque A piso 2 con 87% de confianza, cierro EV-A2 ahora,
 genero OT-2026-0142, notifico mantenimiento, calculo impacto evitado de
@@ -62,7 +62,7 @@ genero OT-2026-0142, notifico mantenimiento, calculo impacto evitado de
 
 ### 🌐 Innovación 2 — Gemelo Digital (Digital Twin) con Simulación Predictiva
 
-Todos miden el "ahora". AguaMind OS predice el "después":
+Todos miden el "ahora". WaterMind OS predice el "después":
 
 - Modelo Vensim integrado de la tesis Aristizábal/Largacha (2025)
 - Simulación de escenarios "what-if" en vivo:
@@ -109,7 +109,7 @@ A medida que crecen los nodos (Fase 1 → Fase 5), cada uno aprende:
 **Lo más importante para el jurado:**
 
 Cuando los demás dicen "te aviso, tú actúas":
-- AguaMind OS **cierra electroválvulas**
+- WaterMind OS **cierra electroválvulas**
 - Reduce presión de bombeo
 - Pone bombas en standby
 - Genera órdenes de trabajo automáticamente
@@ -138,9 +138,9 @@ Token generado: AGUA-2026-0142 (hash criptográfico)
 
 El operario de mantenimiento NO USA dashboards. Usa voz:
 
-- "AguaMind, ¿cómo está el tanque A?" → respuesta hablada
-- "AguaMind, cierra la válvula del Bloque A" → confirmación + ejecución
-- "AguaMind, dame el reporte de hoy" → PDF + audio resumen
+- "WaterMind, ¿cómo está el tanque A?" → respuesta hablada
+- "WaterMind, cierra la válvula del Bloque A" → confirmación + ejecución
+- "WaterMind, dame el reporte de hoy" → PDF + audio resumen
 - Idiomas: español + inglés (extensible al futuro)
 - Stack: LLM cascade Groq → OpenRouter → Gemini (cero costo en plan free)
 
@@ -177,19 +177,19 @@ Lo que ningún competidor automatiza:
                        ┌──────────────────────────┐
                        │  Nivel 5 — Cognitivo     │
                        │  Aprende y enseña a otros │
-                       │   ★ AguaMind OS aquí ★   │
+                       │   ★ WaterMind OS aquí ★   │
                        └─────────────┬─────────────┘
                                      │
                        ┌─────────────┴─────────────┐
                        │  Nivel 4 — Autónomo       │
                        │  Decide y actúa solo      │
-                       │   ★ AguaMind OS aquí ★   │
+                       │   ★ WaterMind OS aquí ★   │
                        └─────────────┬─────────────┘
                                      │
                        ┌─────────────┴─────────────┐
                        │  Nivel 3 — Predictivo     │
                        │  Anticipa problemas       │
-                       │   ★ AguaMind OS aquí ★   │
+                       │   ★ WaterMind OS aquí ★   │
                        └─────────────┬─────────────┘
                                      │
                        ┌─────────────┴─────────────┐
@@ -211,14 +211,14 @@ Lo que ningún competidor automatiza:
                        └──────────────────────────┘
 ```
 
-**AguaMind OS opera simultáneamente en los niveles 3, 4 y 5. Cualquier
+**WaterMind OS opera simultáneamente en los niveles 3, 4 y 5. Cualquier
 otra propuesta de hackathon se queda en el nivel 0–2.**
 
 ---
 
 ## 4. Comparación honesta vs alternativas
 
-| Característica | SCADA industrial | Grafana + sensores | App de reportes | **AguaMind OS** |
+| Característica | SCADA industrial | Grafana + sensores | App de reportes | **WaterMind OS** |
 |----------------|------------------|---------------------|------------------|------------------|
 | Mide variables | ✅ | ✅ | ❌ | ✅ |
 | Visualiza dashboards | ✅ | ✅ | parcial | ✅ |
@@ -244,13 +244,13 @@ otra propuesta de hackathon se queda en el nivel 0–2.**
 > fuga, gana puntos canjeables a sus estudiantes por cuidar el agua, y
 > envía automáticamente los reportes que la CVC le exige.*
 >
-> *No es un sueño futurista. Es AguaMind OS, corriendo desde hoy en su
+> *No es un sueño futurista. Es WaterMind OS, corriendo desde hoy en su
 > campus, por menos de lo que cuesta un computador.*
 >
 > *Y lo más importante: aprende. Cada día sabe más sobre su agua que el
 > mejor ingeniero de mantenimiento. Y cuando UNIAJC tenga 12,000 estudiantes
 > en 2030, ya estará listo. Cuando la sequía golpee la cuenca del Pance,
-> AguaMind ya redujo la extracción autónomamente. Cuando otros campus
+> WaterMind ya redujo la extracción autónomamente. Cuando otros campus
 > quieran replicar el modelo, basta un git clone.*
 >
 > *Eso es Tecnología con Propósito. Eso es Inteligencia con Conciencia."*
@@ -271,10 +271,10 @@ PROCESO ACTUAL (caracterizado en 2021):
    sin medir   sin medir   3 ppm fijo   sin medir    sin medir
 ```
 
-### Lo que AguaMind OS añade
+### Lo que WaterMind OS añade
 
 ```
-PROCESO COGNITIVO (AguaMind OS 2026):
+PROCESO COGNITIVO (WaterMind OS 2026):
   Captación → Filtración → Cloración → Almacenamiento → Distribución
        │           │           │            │              │
    ┌───┴────┐ ┌────┴────┐ ┌────┴────┐ ┌────┴────┐ ┌────┴────┐
@@ -293,7 +293,7 @@ PROCESO COGNITIVO (AguaMind OS 2026):
 
 ### Indicadores que el proyecto original no contempló
 
-| Indicador | Aporte AguaMind |
+| Indicador | Aporte WaterMind |
 |-----------|-----------------|
 | **MTBF** (tiempo medio entre fallos) | Calculado por equipo automáticamente |
 | **MTTR** (tiempo medio de reparación) | Reducido de horas a minutos |
@@ -308,17 +308,17 @@ PROCESO COGNITIVO (AguaMind OS 2026):
 
 Si solo te quedas con 5 ideas del pitch, que sean estas:
 
-1. **AguaMind OS escucha las tuberías** — detección acústica con TinyML
-2. **AguaMind OS no avisa, ACTÚA** — cierra válvulas en 5 segundos
-3. **AguaMind OS gamifica el ahorro** — créditos hídricos canjeables
-4. **AguaMind OS cumple la ley sin esfuerzo** — reportes automáticos a CVC e INVIMA
-5. **AguaMind OS aprende y enseña** — federated learning + open source replicable
+1. **WaterMind OS escucha las tuberías** — detección acústica con TinyML
+2. **WaterMind OS no avisa, ACTÚA** — cierra válvulas en 5 segundos
+3. **WaterMind OS gamifica el ahorro** — créditos hídricos canjeables
+4. **WaterMind OS cumple la ley sin esfuerzo** — reportes automáticos a CVC e INVIMA
+5. **WaterMind OS aprende y enseña** — federated learning + open source replicable
 
 ---
 
 ## 8. Por qué este proyecto va más allá del hackathon
 
-Después del 8 de mayo de 2026, AguaMind OS puede:
+Después del 8 de mayo de 2026, WaterMind OS puede:
 
 - Ser proyecto de grado de los integrantes del equipo (3 carreras)
 - Ser semillero de investigación SEGESTOP UNIAJC
@@ -333,7 +333,7 @@ Después del 8 de mayo de 2026, AguaMind OS puede:
 
 ## 9. La diferencia clave entre "innovación" e "innovación radical"
 
-| Innovación incremental | Innovación radical (AguaMind OS) |
+| Innovación incremental | Innovación radical (WaterMind OS) |
 |------------------------|-----------------------------------|
 | "Le agregamos sensores a la PTAP" | "Hacemos que la PTAP piense por sí sola" |
 | "Mostramos los datos en pantalla" | "Convertimos los datos en decisiones autónomas" |
@@ -350,7 +350,7 @@ UNIAJC no necesita una solución que mida agua.
 Necesita una **plataforma que piense, decida, actúe, enseñe y replique
 sostenibilidad** en cada campus de Colombia.
 
-Eso es AguaMind OS.
+Eso es WaterMind OS.
 
 > **Tecnología con Propósito.**
 > **Inteligencia con Conciencia.**
@@ -358,6 +358,6 @@ Eso es AguaMind OS.
 
 ---
 
-*Documento de innovación radical · AguaMind OS · Hackathon UNIAJC 2026*
+*Documento de innovación radical · WaterMind OS · Hackathon UNIAJC 2026*
 *Inspirado en propuestas de Caracterización Técnico-Operativa PTAP UNIAJC*
 *y proyecto Diseño Programa de Mantenimiento PTAP — Gómez Mina (2022)*

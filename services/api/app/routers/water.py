@@ -1,5 +1,5 @@
 """
-AguaMind OS — Water management router.
+WaterMind OS — Water management router.
 UNIAJC Sede Sur · Hackathon 2026
 
 Sistema de 6 sensores:
@@ -464,7 +464,7 @@ def _calc_cost_benefit(r: dict) -> dict:
     daily_loss_cop = round(daily_loss_l * water_cost_cop, 0)
     annual_loss_cop = round(daily_loss_cop * 365, 0)
 
-    # Inversión AguaMind OS (hardware + instalación)
+    # Inversión WaterMind OS (hardware + instalación)
     investment_cop = 1_043_000
 
     # Ahorro proyectado si TPP baja a 10%
@@ -567,7 +567,7 @@ async def system_status():
     alerts = _generate_alerts(r, kpis)
     return {
         "data": {
-            "system":    "AguaMind OS",
+            "system":    "WaterMind OS",
             "campus":    "UNIAJC Sede Sur",
             "timestamp": r["timestamp"],
             # Sensor 1
@@ -626,7 +626,7 @@ async def daily_report():
         "data": {
             "report_date": datetime.now().strftime("%Y-%m-%d"),
             "campus":      "UNIAJC Sede Sur — Cali",
-            "system":      "AguaMind OS v2.0",
+            "system":      "WaterMind OS v2.0",
             "population":  {"students": STUDENT_POPULATION, "total_users": TOTAL_USERS},
             "summary": {
                 "total_consumed_l":  round(total_consumed, 0),
@@ -833,7 +833,7 @@ class IngestRequest(BaseModel):
 @router.post("/ingest")
 async def ingest_sensor_data(body: IngestRequest):
     """
-    Recibe datos reales del nodo ESP32 AguaMind Node v1.
+    Recibe datos reales del nodo ESP32 WaterMind Node v1.
     Calcula KPIs y genera alertas en tiempo real.
     """
     r = {

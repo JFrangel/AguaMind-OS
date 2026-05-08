@@ -1,5 +1,5 @@
 """
-AguaMind OS — Simulador PC del nodo ESP32
+WaterMind OS — Simulador PC del nodo ESP32
 Permite probar el flujo completo SIN hardware físico:
 
   [Simulador PC] ──HTTP POST /water/ingest──▶ [FastAPI] ──▶ [Dashboard] + [Telegram]
@@ -116,7 +116,7 @@ def fmt_status(level: str) -> str:
 
 # ── Loop principal ─────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(description="AguaMind OS — Simulador PC del ESP32")
+    parser = argparse.ArgumentParser(description="WaterMind OS — Simulador PC del ESP32")
     parser.add_argument("--scenario", choices=["normal", "leak", "peak", "turbidity"],
                         default="normal", help="Escenario a simular")
     parser.add_argument("--interval", type=int, default=INTERVAL_S,
@@ -131,7 +131,7 @@ def main():
     INGEST_URL = f"{args.backend}/water/ingest"
 
     print("╔══════════════════════════════════════════════════════════╗")
-    print("║   AguaMind OS — Simulador ESP32 (Modo PC)               ║")
+    print("║   WaterMind OS — Simulador ESP32 (Modo PC)               ║")
     print("║   UNIAJC Sede Sur · Hackathon 2026                       ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print(f"  Backend:   {args.backend}")

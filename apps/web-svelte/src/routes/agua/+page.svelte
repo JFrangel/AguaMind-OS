@@ -384,7 +384,7 @@
 </script>
 
 <svelte:head>
-  <title>AguaMind OS · UNIAJC</title>
+  <title>WaterMind OS · UNIAJC</title>
 </svelte:head>
 
 <div class="min-h-screen am-root" style="font-family: 'Inter', -apple-system, system-ui, sans-serif;">
@@ -403,7 +403,7 @@
   </div>
   <div class="leading-tight">
   <h1 class="text-[15px] font-semibold tracking-tight text-white flex items-center gap-1.5">
-  AguaMind <span class="text-sky-400 font-light">OS</span>
+  WaterMind <span class="text-sky-400 font-light">OS</span>
   </h1>
   <p class="text-[11px] text-slate-500 mt-0.5 tracking-wide">UNIAJC Sede Sur · Gestión Hídrica Inteligente</p>
   </div>
@@ -682,7 +682,7 @@
   <div class="flex items-baseline justify-between mb-3">
   <div>
   <div class="text-[11px] font-medium tracking-wider uppercase text-emerald-400">Método tradicional UNIAJC · validación cruzada</div>
-  <div class="text-[11px] text-slate-300 mt-1">Respetamos el método de costo cero del operario. AguaMind OS lo digitaliza y lo cruza con el sensor para máxima confianza.</div>
+  <div class="text-[11px] text-slate-300 mt-1">Respetamos el método de costo cero del operario. WaterMind OS lo digitaliza y lo cruza con el sensor para máxima confianza.</div>
   </div>
   <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">$0 · híbrido</span>
   </div>
@@ -1482,7 +1482,7 @@
   </div>
 
   <div class="text-[10px] text-slate-500 mt-3 pt-3 border-t border-white/[0.06]">
-  Cada plan ejecuta acciones físicas reales (cierre EV vía MQTT + ajuste VFD bomba) + reporte auditable. Documentación: <span class="text-amber-400 font-mono">docs/es/AGUAMIND-OS-MASTER.md §9</span>
+  Cada plan ejecuta acciones físicas reales (cierre EV vía MQTT + ajuste VFD bomba) + reporte auditable. Documentación: <span class="text-amber-400 font-mono">docs/es/WATERMIND-OS-MASTER.md §9</span>
   </div>
 
   <!-- Fuentes de datos meteorológicos en tiempo real -->
@@ -2864,7 +2864,7 @@
   <div class="text-[10px] text-purple-400 uppercase tracking-wider mb-2">Capa 3 · OLED 0.96"</div>
   <pre class="text-[9px] text-purple-200 leading-tight whitespace-pre overflow-hidden">
 +-------------------+
-|AguaMind Node 01   |
+|WaterMind Node 01   |
 |PTAP UNIAJC        |
 +-------------------+
 |Q:    28.92 L/min  |
@@ -2990,10 +2990,10 @@ INDEX (quality) WHERE
   </svg>
   </div>
 
-  <!-- ═══ MAPEO 7-capas AguaMind vs 5-capas AQUA-ROI Lite (compañero electrónica) ═══ -->
+  <!-- ═══ MAPEO 7-capas WaterMind vs 5-capas AQUA-ROI Lite (compañero electrónica) ═══ -->
   <div class="mt-6 mb-3">
   <h2 class="text-[15px] font-semibold text-white tracking-tight">Equivalencia con AQUA-ROI Lite</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Las 7 capas de AguaMind <span class="text-emerald-400">incluyen</span> las 5 capas del piloto AQUA-ROI Lite (compañero de electrónica). Mismo backbone, AguaMind agrega Capa Física (planos hidráulicos) e Inteligencia multi-agente.</p>
+  <p class="text-[11px] text-slate-500 mt-1">Las 7 capas de WaterMind <span class="text-emerald-400">incluyen</span> las 5 capas del piloto AQUA-ROI Lite (compañero de electrónica). Mismo backbone, WaterMind agrega Capa Física (planos hidráulicos) e Inteligencia multi-agente.</p>
   </div>
 
   <div class="rounded-2xl border border-white/[0.04] p-5 mb-6" style="background: rgba(255,255,255,0.015)">
@@ -3005,10 +3005,10 @@ INDEX (quality) WHERE
   </defs>
 
   <!-- Encabezados -->
-  <text x="180" y="30" text-anchor="middle" fill="#7dd3fc" font-size="13" font-family="Inter" font-weight="bold">AguaMind OS · 7 capas</text>
+  <text x="180" y="30" text-anchor="middle" fill="#7dd3fc" font-size="13" font-family="Inter" font-weight="bold">WaterMind OS · 7 capas</text>
   <text x="700" y="30" text-anchor="middle" fill="#fbbf24" font-size="13" font-family="Inter" font-weight="bold">AQUA-ROI Lite · 5 capas</text>
 
-  <!-- 7 capas AguaMind (izquierda) -->
+  <!-- 7 capas WaterMind (izquierda) -->
   {#each [
   { y: 45,  num: "07", name: "Aplicación",    color: "#7dd3fc", aqua: "5 · Interfaz" },
   { y: 88,  num: "06", name: "Inteligencia",  color: "#a5b4fc", aqua: "Agente Aqua-ROI" },
@@ -3018,7 +3018,7 @@ INDEX (quality) WHERE
   { y: 260, num: "02", name: "Sensado",       color: "#fca5a5", aqua: "1 · Sensado" },
   { y: 303, num: "01", name: "Física",        color: "#0ea5e9", aqua: null },
   ] as l, i}
-  <!-- AguaMind capa -->
+  <!-- WaterMind capa -->
   <rect x="40" y={l.y} width="280" height="38" rx="6" fill={l.color + '15'} stroke={l.color} stroke-width="1"/>
   <text x="55" y={l.y + 17} fill={l.color} font-size="10" font-family="JetBrains Mono" font-weight="bold">{l.num}</text>
   <text x="85" y={l.y + 17} fill="white" font-size="11" font-family="Inter" font-weight="600">{l.name}</text>
@@ -3038,14 +3038,14 @@ INDEX (quality) WHERE
   {/each}
 
   <!-- Footer explicativo -->
-  <text x="450" y="365" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10.5" font-family="Inter">AguaMind OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi-agente (5 agentes deliberan vs 1 agente reglas)</text>
+  <text x="450" y="365" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10.5" font-family="Inter">WaterMind OS = AQUA-ROI Lite + Capa Física (planos UNIAJC) + Inteligencia multi-agente (5 agentes deliberan vs 1 agente reglas)</text>
   </svg>
   </div>
 
   <!-- ═══ MATRIZ DE CUMPLIMIENTO RÚBRICA OFICIAL ═══ -->
   <div class="mt-6 mb-3">
   <h2 class="text-[15px] font-semibold text-white tracking-tight">Cumplimiento de la rúbrica oficial · 11 criterios</h2>
-  <p class="text-[11px] text-slate-500 mt-1">Auto-evaluación del proyecto integrado AguaMind + AQUA-ROI Lite contra los criterios del jurado UNIAJC 2026</p>
+  <p class="text-[11px] text-slate-500 mt-1">Auto-evaluación del proyecto integrado WaterMind + AQUA-ROI Lite contra los criterios del jurado UNIAJC 2026</p>
   </div>
 
   <div class="rounded-2xl border border-white/[0.04] overflow-hidden mb-6">
@@ -3107,7 +3107,7 @@ INDEX (quality) WHERE
   <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
   </svg>
   </div>
-  <span class="text-[12px] font-semibold text-white">AguaMind OS</span>
+  <span class="text-[12px] font-semibold text-white">WaterMind OS</span>
   <span class="text-[10px] text-slate-500 ml-1">v1.0</span>
   </div>
   <p class="text-[10px] text-slate-500 max-w-md leading-relaxed">

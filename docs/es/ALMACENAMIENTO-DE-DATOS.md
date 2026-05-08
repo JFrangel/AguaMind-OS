@@ -1,4 +1,4 @@
-# AguaMind OS - Donde se almacenan los datos
+# WaterMind OS - Donde se almacenan los datos
 
 > Responde la pregunta del jurado: *"Cada cuanto toman datos? Como los almacenan?"*
 > Hackathon UNIAJC 2026 - v1.0
@@ -58,7 +58,7 @@ Las tablas relacionadas (`alerts`, `kpis_hourly`, `mitigation_actions`, `valves_
 
 ## 3. Frecuencias de muestreo y transmision
 
-Definidas en `docs/es/AGUAMIND-OS-MASTER.md` seccion 6.1, repetidas aqui para referencia:
+Definidas en `docs/es/WATERMIND-OS-MASTER.md` seccion 6.1, repetidas aqui para referencia:
 
 | Variable | Muestreo (Hz) | Transmision (cada) | Formato | Justificacion |
 |----------|--------------|---------------------|---------|---------------|
@@ -163,4 +163,4 @@ seccion 2 para los 10 formatos soportados).
 
 ---
 
-*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/AguaMind-OS*
+*v1.0 - Hackathon UNIAJC 2026 - github.com/JFrangel/WaterMind-OS*

@@ -1,4 +1,4 @@
-# AguaMind OS
+# WaterMind OS
 
 ## Sistema Inteligente Multi-Agente para la Caracterización Hídrica y Mitigación Activa de la Planta de Tratamiento de Agua Potable de la Institución Universitaria Antonio José Camacho — Sede Sur
 
@@ -13,7 +13,7 @@
 
 La Planta de Tratamiento de Agua Potable (PTAP) de la Institución Universitaria Antonio José Camacho — Sede Sur, instalada en 2011, abastece a 8,234 usuarios pero opera **sin sistema de medición** desde su instalación. Las tesis previas de la institución (Caycedo & Jaramillo 2021, Sánchez Sotelo 2021, Gómez Mina 2022, Aristizábal & Largacha 2025, Arias Montoya et al. 2024, Mosquera Zapata & Lozano Beltrán 2024) caracterizaron el problema, midieron pérdidas de 1,587 L/día y modelaron el sistema, pero **ninguna pasó a operación**.
 
-Este trabajo presenta **AguaMind OS**, un sistema interdisciplinario que combina (i) instrumentación IoT con 6 sensores comerciales sobre microcontrolador ESP32, (ii) un sistema multi-agente de inteligencia artificial coordinado mediante LangGraph que opera en tres niveles de análisis (descriptivo, predictivo, prescriptivo), (iii) un dashboard web con visualización 3D del campus y bot de Telegram para operadores, y (iv) un esquema de cumplimiento normativo automatizado con reportes auditables al INVIMA, CVC y Ministerio de Vivienda. La inversión Fase 1 es de $1,431,000 COP con un ahorro proyectado de $20.5M COP/año, alcanzando un período de recuperación de aproximadamente 25 días, una TIR superior al 1,000% y una relación beneficio/costo de 17.4×.
+Este trabajo presenta **WaterMind OS**, un sistema interdisciplinario que combina (i) instrumentación IoT con 6 sensores comerciales sobre microcontrolador ESP32, (ii) un sistema multi-agente de inteligencia artificial coordinado mediante LangGraph que opera en tres niveles de análisis (descriptivo, predictivo, prescriptivo), (iii) un dashboard web con visualización 3D del campus y bot de Telegram para operadores, y (iv) un esquema de cumplimiento normativo automatizado con reportes auditables al INVIMA, CVC y Ministerio de Vivienda. La inversión Fase 1 es de $1,431,000 COP con un ahorro proyectado de $20.5M COP/año, alcanzando un período de recuperación de aproximadamente 25 días, una TIR superior al 1,000% y una relación beneficio/costo de 17.4×.
 
 El sistema implementa **5 estrategias automáticas de mitigación** ante fenómenos (sequía/El Niño, lluvias/La Niña, sismo, contaminación química, pico de demanda) y un **método híbrido de validación cruzada** que respeta y amplifica el método tradicional de UNIAJC ("tanques nocturnos"). Aporta a 5 ODS (Objetivos de Desarrollo Sostenible) con métricas cuantificadas: 16.5 millones de litros recuperables en 5 años, 7.6 toneladas de CO₂ evitadas y reducción del 60% en pérdidas técnicas. La arquitectura de 7 capas, el normalizador universal de sensores (acepta 10 formatos de entrada distintos) y el código completamente abierto bajo licencia MIT garantizan la replicabilidad a las 50+ universidades públicas del Valle del Cauca.
 
@@ -25,7 +25,7 @@ El sistema implementa **5 estrategias automáticas de mitigación** ante fenóme
 
 The Drinking Water Treatment Plant (PTAP) at the Institución Universitaria Antonio José Camacho — Southern Headquarters, installed in 2011, serves 8,234 users but has operated **without measurement systems** since its inception. Previous institutional theses (Caycedo & Jaramillo 2021; Sánchez Sotelo 2021; Gómez Mina 2022; Aristizábal & Largacha 2025; Arias Montoya et al. 2024; Mosquera Zapata & Lozano Beltrán 2024) characterized the problem, quantified losses at 1,587 L/day and modeled system dynamics, but **none reached operational deployment**.
 
-This work presents **AguaMind OS**, an interdisciplinary system combining (i) IoT instrumentation with six commercial sensors on an ESP32 microcontroller, (ii) a multi-agent artificial intelligence system coordinated via LangGraph operating across three analytical tiers (descriptive, predictive, prescriptive), (iii) a web dashboard with 3D campus visualization and Telegram bot for operators, and (iv) automated regulatory compliance with auditable reports to INVIMA, CVC and the Ministry of Housing. Phase 1 investment is COP $1,431,000 with projected annual savings of COP $20.5M, achieving a payback period of approximately 25 days, an IRR exceeding 1,000% and a benefit/cost ratio of 17.4×.
+This work presents **WaterMind OS**, an interdisciplinary system combining (i) IoT instrumentation with six commercial sensors on an ESP32 microcontroller, (ii) a multi-agent artificial intelligence system coordinated via LangGraph operating across three analytical tiers (descriptive, predictive, prescriptive), (iii) a web dashboard with 3D campus visualization and Telegram bot for operators, and (iv) automated regulatory compliance with auditable reports to INVIMA, CVC and the Ministry of Housing. Phase 1 investment is COP $1,431,000 with projected annual savings of COP $20.5M, achieving a payback period of approximately 25 days, an IRR exceeding 1,000% and a benefit/cost ratio of 17.4×.
 
 The system implements **five automated mitigation strategies** for environmental phenomena (drought/El Niño, heavy rainfall/La Niña, seismic events, chemical contamination, demand surge) and a **hybrid cross-validation method** that respects and amplifies UNIAJC's traditional "nightly tanks" measurement protocol. It contributes to five SDGs with quantified metrics: 16.5 million liters recoverable over five years, 7.6 tons of CO₂ avoided, and a 60% reduction in technical losses. The 7-layer architecture, universal sensor normalizer (accepting 10 distinct input formats), and fully open-source MIT-licensed codebase ensure replicability across the 50+ public universities of Valle del Cauca.
 
@@ -64,7 +64,7 @@ El acceso a agua potable de calidad es uno de los servicios fundamentales para e
 
 La PTAP, sin embargo, presenta una **debilidad estructural crítica**: desde su instalación opera sin un sistema integral de medición. No cuenta con caudalímetros en los puntos de entrada y salida, sensores de nivel en los tanques de almacenamiento, ni instrumentación para monitorear la calidad del agua distribuida. Esta falta de instrumentación, identificada formalmente por las tesis institucionales desde 2021, impide controlar el uso del recurso, detectar fugas en tiempo real y optimizar los costos operativos. Adicionalmente, el sistema de tratamiento de aguas residuales del campus, conformado por dos PTAR físicas (Alameda y Entrada) con dos módulos cada una de 1,000 estudiantes de capacidad —totalizando 4,000 estudiantes—, opera con una **sobrecapacidad de 2.06×** frente a los 8,234 usuarios reales, generando vertimientos sin caracterización formal hacia el río Pance y, eventualmente, al río Cauca.
 
-Existe en la literatura institucional un contraste notable: cuatro trabajos de grado distintos han diagnosticado el problema, han propuesto mejoras y han modelado dinámicamente el sistema, pero **ninguno ha pasado a operación efectiva**. La presente investigación se propone cerrar esa brecha mediante un sistema integral, abierto y de bajo costo, denominado **AguaMind OS**, que toma los hallazgos de las tesis previas como base de validación y los implementa operacionalmente.
+Existe en la literatura institucional un contraste notable: cuatro trabajos de grado distintos han diagnosticado el problema, han propuesto mejoras y han modelado dinámicamente el sistema, pero **ninguno ha pasado a operación efectiva**. La presente investigación se propone cerrar esa brecha mediante un sistema integral, abierto y de bajo costo, denominado **WaterMind OS**, que toma los hallazgos de las tesis previas como base de validación y los implementa operacionalmente.
 
 ---
 
@@ -117,7 +117,7 @@ Mosquera Zapata & Lozano Beltrán (2024) modelaron el comportamiento de las PTAR
 
 ### 3.1 Objetivo general
 
-Diseñar, desarrollar y validar un sistema inteligente multi-agente, denominado **AguaMind OS**, que caracterice operacionalmente la Planta de Tratamiento de Agua Potable de UNIAJC Sede Sur mediante instrumentación IoT, análisis con inteligencia artificial y automatización de la mitigación, integrando los hallazgos de los trabajos de grado previos de la institución y garantizando el cumplimiento de la normativa colombiana.
+Diseñar, desarrollar y validar un sistema inteligente multi-agente, denominado **WaterMind OS**, que caracterice operacionalmente la Planta de Tratamiento de Agua Potable de UNIAJC Sede Sur mediante instrumentación IoT, análisis con inteligencia artificial y automatización de la mitigación, integrando los hallazgos de los trabajos de grado previos de la institución y garantizando el cumplimiento de la normativa colombiana.
 
 ### 3.2 Objetivos específicos
 
@@ -137,7 +137,7 @@ Diseñar, desarrollar y validar un sistema inteligente multi-agente, denominado 
 
 ### 4.1 Justificación técnica
 
-Las tesis previas de UNIAJC documentan el problema con rigor académico pero no han pasado a operación por **tres barreras técnicas**: (i) costo elevado de soluciones SCADA tradicionales ($50–150 millones COP), (ii) ausencia de personal especializado para operación continua, y (iii) integración compleja con la infraestructura institucional existente. AguaMind OS supera estas barreras mediante hardware comercial de bajo costo (BOM Fase 1 = $1,431,000 COP), automatización por agentes de IA que reducen la dependencia de personal humano del 100% al ~20%, y arquitectura modular en capas independientemente reemplazables.
+Las tesis previas de UNIAJC documentan el problema con rigor académico pero no han pasado a operación por **tres barreras técnicas**: (i) costo elevado de soluciones SCADA tradicionales ($50–150 millones COP), (ii) ausencia de personal especializado para operación continua, y (iii) integración compleja con la infraestructura institucional existente. WaterMind OS supera estas barreras mediante hardware comercial de bajo costo (BOM Fase 1 = $1,431,000 COP), automatización por agentes de IA que reducen la dependencia de personal humano del 100% al ~20%, y arquitectura modular en capas independientemente reemplazables.
 
 ### 4.2 Justificación social
 
@@ -145,7 +145,7 @@ Garantizar la calidad del agua potable distribuida a 8,234 usuarios es responsab
 
 ### 4.3 Justificación ambiental
 
-La cuenca del río Pance es un afluente directo del río Cauca, segundo río más importante de Colombia. Las pérdidas no contabilizadas y los vertimientos sin caracterización formal de UNIAJC contribuyen a la presión hídrica regional. AguaMind OS proyecta recuperar **16.5 millones de litros en cinco años** y evitar **7.6 toneladas de CO₂** (asociadas al bombeo eficiente y al tratamiento de aguas que de otra forma serían potabilizadas innecesariamente), aportando directamente a los ODS 6 (Agua Limpia), 12 (Producción Responsable) y 13 (Acción por el Clima).
+La cuenca del río Pance es un afluente directo del río Cauca, segundo río más importante de Colombia. Las pérdidas no contabilizadas y los vertimientos sin caracterización formal de UNIAJC contribuyen a la presión hídrica regional. WaterMind OS proyecta recuperar **16.5 millones de litros en cinco años** y evitar **7.6 toneladas de CO₂** (asociadas al bombeo eficiente y al tratamiento de aguas que de otra forma serían potabilizadas innecesariamente), aportando directamente a los ODS 6 (Agua Limpia), 12 (Producción Responsable) y 13 (Acción por el Clima).
 
 ### 4.4 Justificación económica
 
@@ -153,7 +153,7 @@ Con ahorros proyectados de $20,536,425 COP anuales contra una inversión Fase 1 
 
 ### 4.5 Justificación legal
 
-UNIAJC opera actualmente con **incumplimientos sistémicos** de la Resolución 2115 de 2007 (parámetros químicos), Resolución 0631 de 2015 (vertimientos) y Decreto 1076 de 2015 (monitoreo piezométrico). La exposición potencial alcanza **$16,900 millones COP** considerando suspensión por IRCA, revocatoria de concesión CVC y multas por vertimientos. Cada peso invertido en AguaMind OS protege entre $890 y $3,380 en exposición legal evitada.
+UNIAJC opera actualmente con **incumplimientos sistémicos** de la Resolución 2115 de 2007 (parámetros químicos), Resolución 0631 de 2015 (vertimientos) y Decreto 1076 de 2015 (monitoreo piezométrico). La exposición potencial alcanza **$16,900 millones COP** considerando suspensión por IRCA, revocatoria de concesión CVC y multas por vertimientos. Cada peso invertido en WaterMind OS protege entre $890 y $3,380 en exposición legal evitada.
 
 ---
 
@@ -214,7 +214,7 @@ Aportó la validación dinámica de tres escenarios prospectivos:
 - Cooperación 15%: sostenibilidad parcial
 - Cooperación 50%: sistema sostenible a largo plazo
 
-Estos escenarios alimentan el sub-agente Mitigation de AguaMind OS para activación de campañas Smart Water Ledger.
+Estos escenarios alimentan el sub-agente Mitigation de WaterMind OS para activación de campañas Smart Water Ledger.
 
 #### 5.1.5 Arias Montoya, Montiel Angel & Osorio Hernández (2024) — Sistema de ahorro
 
@@ -236,9 +236,9 @@ Aportó la caracterización de las descargas al río Pance y modelo del impacto 
 | **MIT Water Project** | 2018 | EE.UU. | IoT distribuido + ML | Foco residencial, no campus |
 | **Aguas de Barrancabermeja** | 2017 | Colombia | Macromedidores | No campus universitarios |
 | **Lean Manufacturing PTAP** Chocontá | 2015 | Colombia | Diagnóstico técnico | Sin instrumentación |
-| **AguaMind OS** | 2026 | Colombia | Multi-agente IA + IoT bajo costo + open source | — |
+| **WaterMind OS** | 2026 | Colombia | Multi-agente IA + IoT bajo costo + open source | — |
 
-AguaMind OS llena un vacío específico: sistema multi-agente de inteligencia artificial aplicado a gestión hídrica en campus universitario público latinoamericano, completamente abierto, replicable y de costo significativamente menor que las alternativas comerciales.
+WaterMind OS llena un vacío específico: sistema multi-agente de inteligencia artificial aplicado a gestión hídrica en campus universitario público latinoamericano, completamente abierto, replicable y de costo significativamente menor que las alternativas comerciales.
 
 ---
 
@@ -257,11 +257,11 @@ La PTAP de UNIAJC opera con cuatro etapas secuenciales:
 
 ### 6.2 Internet de las Cosas (IoT) industrial
 
-El paradigma IoT aplicado a sistemas hídricos se compone de cuatro elementos: **percepción** (sensores), **transporte** (protocolos como MQTT, HTTP), **procesamiento** (edge + cloud) y **aplicación** (interfaces humanas). AguaMind OS adopta esta estructura con una particularidad: la capa de inteligencia se materializa como sistema multi-agente, no como un controlador único.
+El paradigma IoT aplicado a sistemas hídricos se compone de cuatro elementos: **percepción** (sensores), **transporte** (protocolos como MQTT, HTTP), **procesamiento** (edge + cloud) y **aplicación** (interfaces humanas). WaterMind OS adopta esta estructura con una particularidad: la capa de inteligencia se materializa como sistema multi-agente, no como un controlador único.
 
 ### 6.3 Sistemas multi-agente
 
-Un sistema multi-agente es un conjunto de entidades autónomas (agentes) que interactúan entre sí en un entorno compartido para resolver problemas que excederían la capacidad individual. AguaMind OS implementa cinco agentes coordinados mediante el framework **LangGraph** (extensión de LangChain para grafos de estados):
+Un sistema multi-agente es un conjunto de entidades autónomas (agentes) que interactúan entre sí en un entorno compartido para resolver problemas que excederían la capacidad individual. WaterMind OS implementa cinco agentes coordinados mediante el framework **LangGraph** (extensión de LangChain para grafos de estados):
 
 - **Orchestrator**: coordina la deliberación
 - **SystemsAgent**: análisis estadístico y KPIs
@@ -287,7 +287,7 @@ Aplicado al contexto hídrico, las siete mudas de Toyota/Ohno se traducen como:
 
 ### 6.5 Análisis descriptivo, predictivo y prescriptivo
 
-La trinidad analítica de AguaMind OS distingue tres niveles de análisis:
+La trinidad analítica de WaterMind OS distingue tres niveles de análisis:
 
 1. **Descriptivo** (¿qué pasó?): tendencias, promedios, frecuencias, comportamientos comunes.
 2. **Predictivo** (¿qué va a pasar?): regresión, redes neuronales, árboles de decisión.
@@ -309,7 +309,7 @@ El ciclo Planear-Hacer-Verificar-Actuar de Deming guía la operación cíclica d
 
 ### 7.1 Normativas de calidad del agua potable
 
-| Normativa | Aspecto regulado | Aplicabilidad AguaMind OS |
+| Normativa | Aspecto regulado | Aplicabilidad WaterMind OS |
 |-----------|------------------|----------------------------|
 | **Decreto 1575 de 2007** | Sistema para protección y control de calidad agua humana | Reportes IRCA mensuales automatizados |
 | **Resolución 2115 de 2007** | Características y valores admisibles físico-químicos | Monitoreo turbidez, pH, cloro residual en línea |
@@ -353,7 +353,7 @@ El ciclo Planear-Hacer-Verificar-Actuar de Deming guía la operación cíclica d
 | Multa por vertimientos Res. 0631/2015 | 5,000 SMMLV ≈ $6,500M COP |
 | Multa Habeas Data Ley 1581/2012 | 2,000 SMMLV ≈ $2,600M COP |
 | **TOTAL EXPOSICIÓN POTENCIAL** | **$16,900M COP** |
-| **Inversión AguaMind OS Fase 1** | **$1.43M COP** |
+| **Inversión WaterMind OS Fase 1** | **$1.43M COP** |
 | **Ratio protección legal / inversión** | **11,818×** |
 
 ---
@@ -426,7 +426,7 @@ Cuatro sprints documentados con entregables claros y demos al final de cada uno.
 
 ### 9.1 Arquitectura de siete capas
 
-AguaMind OS se estructura en siete capas verticales, cada una con responsabilidad clara y borde técnico explícito:
+WaterMind OS se estructura en siete capas verticales, cada una con responsabilidad clara y borde técnico explícito:
 
 ```
 +-----------------------------------------------------------+
@@ -633,7 +633,7 @@ Ejecutado por Orchestrator + MitigationAgent con voto consensual:
 
 ### 11.1 Plan ante fenómenos (cinco escenarios)
 
-AguaMind OS implementa cinco triggers compuestos correspondientes a cinco fenómenos cuya activación es automática según señales del sistema:
+WaterMind OS implementa cinco triggers compuestos correspondientes a cinco fenómenos cuya activación es automática según señales del sistema:
 
 | Fenómeno | Condición de disparo | Acciones automáticas | Impacto cuantificado |
 |----------|----------------------|----------------------|------------------------|
@@ -688,7 +688,7 @@ Reportes ciudadanos vía QR en cada baño otorgan 20 puntos al estudiante por re
 
 Equivalencia validada: **1 cm de altura del tanque = 160 L** (Sánchez Sotelo, 2021).
 
-### 12.2 Cómo AguaMind OS lo cruza
+### 12.2 Cómo WaterMind OS lo cruza
 
 ```
 Lectura sensor JSN-SR04T cada 30s → nivel digital cm
@@ -702,7 +702,7 @@ Triangulación:
 
 ### 12.3 Tabla comparativa
 
-| Métrica | Solo manual | Solo sensor | Híbrido AguaMind |
+| Métrica | Solo manual | Solo sensor | Híbrido WaterMind |
 |---------|-------------|-------------|---------------------|
 | Frecuencia | 2 lecturas/día | 2,880 lecturas/día | 2,880 + validación humana programada |
 | Detección de fuga diurna | — (solo nocturna) | hora exacta | hora exacta + confirmación visual |
@@ -760,7 +760,7 @@ Triangulación:
 
 ### 14.1 ODS impactados directamente (con métricas)
 
-| ODS | Meta específica | Aporte AguaMind OS |
+| ODS | Meta específica | Aporte WaterMind OS |
 |-----|------------------|-----------------------|
 | **ODS 6** Agua Limpia y Saneamiento | Meta 6.4 — eficiencia uso agua | TPP 25% → 10% (60% reducción) |
 | **ODS 12** Producción/Consumo Responsables | Meta 12.5 — reducción desperdicios | 7 mudas Lean atacadas |
@@ -793,7 +793,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo decente · OD
 
 ## 16. Validación contra tesis previas
 
-| Hallazgo histórico (tesis) | Confirmado por AguaMind OS | Evidencia técnica |
+| Hallazgo histórico (tesis) | Confirmado por WaterMind OS | Evidencia técnica |
 |----------------------------|------------------------------|--------------------|
 | Caudal 113.56 L/min (Caycedo & Jaramillo, 2021) | ✓ | constante `ALJIBE_INFLOW_L_MIN` en water.py |
 | 161 fuentes, 67% Parquesoft (Caycedo & Jaramillo) | ✓ | distribución `ZONE_SHARES` |
@@ -811,7 +811,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo decente · OD
 
 1. La PTAP de UNIAJC Sede Sur, instalada en 2011 sin instrumentación, presenta deficiencias documentadas en cuatro dimensiones: calidad del agua fuera de norma (4 parámetros), pérdidas hídricas no contabilizadas (1,587 L/día), mantenimiento exclusivamente correctivo y sobrecapacidad de las dos PTAR (2.06×). Estas deficiencias exponen a la institución a sanciones potenciales de hasta $16,900M COP.
 
-2. AguaMind OS responde a estas deficiencias mediante una arquitectura de siete capas verticales independientemente reemplazables, integrando seis sensores comerciales calibrados, microcontrolador ESP32 con firmware embebido, comunicación MQTT con respaldo HTTP, persistencia escalonada (RAM → Postgres → Parquet → PDF auditable), sistema multi-agente coordinado con LangGraph, y aplicaciones de usuario (dashboard, bot Telegram, reportes).
+2. WaterMind OS responde a estas deficiencias mediante una arquitectura de siete capas verticales independientemente reemplazables, integrando seis sensores comerciales calibrados, microcontrolador ESP32 con firmware embebido, comunicación MQTT con respaldo HTTP, persistencia escalonada (RAM → Postgres → Parquet → PDF auditable), sistema multi-agente coordinado con LangGraph, y aplicaciones de usuario (dashboard, bot Telegram, reportes).
 
 3. La trinidad analítica del agente (descriptivo, predictivo, prescriptivo) opera con voto consensual de cinco sub-agentes especializados, completando la deliberación en aproximadamente 5 segundos versus 2-4 horas del proceso humano tradicional.
 
@@ -821,9 +821,9 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo decente · OD
 
 6. El sistema aporta a 5 Objetivos de Desarrollo Sostenible directamente (6, 9, 11, 12, 13) con métricas cuantificadas: 16.5M litros recuperados en 5 años, 7.6 ton CO₂ evitadas, 60% reducción de pérdidas técnicas.
 
-7. AguaMind OS valida los hallazgos de seis trabajos de grado UNIAJC previos (Caycedo & Jaramillo 2021, Sánchez Sotelo 2021, Gómez Mina 2022, Aristizábal & Largacha 2025, Arias Montoya et al. 2024, Mosquera Zapata & Lozano Beltrán 2024) y los lleva a operación efectiva, cerrando una brecha de cinco años entre el diagnóstico institucional y la implementación real.
+7. WaterMind OS valida los hallazgos de seis trabajos de grado UNIAJC previos (Caycedo & Jaramillo 2021, Sánchez Sotelo 2021, Gómez Mina 2022, Aristizábal & Largacha 2025, Arias Montoya et al. 2024, Mosquera Zapata & Lozano Beltrán 2024) y los lleva a operación efectiva, cerrando una brecha de cinco años entre el diagnóstico institucional y la implementación real.
 
-8. El código fuente completo, documentación versionada en español (31 archivos `.md`), y planos hidráulicos extraídos de las tesis institucionales se publican bajo licencia MIT en `github.com/JFrangel/AguaMind-OS`, garantizando replicabilidad a las sedes Norte y Centro de UNIAJC y a las 50+ universidades públicas del Valle del Cauca.
+8. El código fuente completo, documentación versionada en español (31 archivos `.md`), y planos hidráulicos extraídos de las tesis institucionales se publican bajo licencia MIT en `github.com/JFrangel/WaterMind-OS`, garantizando replicabilidad a las sedes Norte y Centro de UNIAJC y a las 50+ universidades públicas del Valle del Cauca.
 
 ---
 
@@ -837,7 +837,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo decente · OD
 
 4. **Integración con Bienestar Universitario**: definir el catálogo de canjes del Smart Water Ledger en términos de mejoras tangibles para los edificios participantes, con presupuesto institucional respaldado.
 
-5. **Continuidad institucional**: vincular el desarrollo de AguaMind OS al Semillero SEGESTOP de UNIAJC y a los programas de Ingeniería Industrial, Sistemas y Electrónica como proyectos de aula y trabajos de grado, garantizando actualización continua y formación práctica.
+5. **Continuidad institucional**: vincular el desarrollo de WaterMind OS al Semillero SEGESTOP de UNIAJC y a los programas de Ingeniería Industrial, Sistemas y Electrónica como proyectos de aula y trabajos de grado, garantizando actualización continua y formación práctica.
 
 6. **Certificación ICONTEC e ISO 14001**: utilizar los reportes auditables generados automáticamente como base para certificación ambiental institucional, agregando valor diferencial frente a otras universidades públicas.
 
@@ -908,7 +908,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo decente · OD
 ## 20. Anexos
 
 ### Anexo A · BOM detallado Fase 1
-Disponible en `docs/es/AGUAMIND-OS-MASTER.md §14.1`.
+Disponible en `docs/es/WATERMIND-OS-MASTER.md §14.1`.
 
 ### Anexo B · Schemas API y endpoints
 Documentación interactiva auto-generada en `http://localhost:8000/docs` (Swagger/OpenAPI).
@@ -937,9 +937,9 @@ Imágenes extraídas:
 
 ### Anexo G · Documentación complementaria
 31 archivos `.md` en `docs/es/`, incluyendo:
-- `AGUAMIND-OS-MASTER.md` — documento maestro post-asesoría
-- `RETO-VS-AGUAMIND.md` — mapeo línea por línea contra el PDF oficial
-- `TESIS-VS-AGUAMIND.md` — validación contra las 6 tesis institucionales
+- `WATERMIND-OS-MASTER.md` — documento maestro post-asesoría
+- `RETO-VS-WATERMIND.md` — mapeo línea por línea contra el PDF oficial
+- `TESIS-VS-WATERMIND.md` — validación contra las 6 tesis institucionales
 - `AUDITORIA-RUBRICA.md` — auditoría honesta vs rúbrica oficial
 - `HOJA-PITCH-Q&A.md` — hoja de respuestas a 8 preguntas anticipadas
 - `IMPLEMENTACION-VISUAL-CAPAS.md` — manifestación física por capa
@@ -950,7 +950,7 @@ Imágenes extraídas:
 
 ## Cierre
 
-> **AguaMind OS** = Caracterización inteligente + Estrategias accionables + Comunidad empoderada
+> **WaterMind OS** = Caracterización inteligente + Estrategias accionables + Comunidad empoderada
 >
 > No predecimos. **Caracterizamos.**
 > No avisamos. **Actuamos.**
@@ -961,4 +961,4 @@ Imágenes extraídas:
 ---
 
 *Documento estilo tesis · v1.0 · 8 de mayo de 2026 · UNIAJC Sede Sur · Cali, Colombia*
-*Repositorio público bajo licencia MIT: github.com/JFrangel/AguaMind-OS*
+*Repositorio público bajo licencia MIT: github.com/JFrangel/WaterMind-OS*

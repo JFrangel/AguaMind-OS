@@ -11,7 +11,7 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "💧 AguaMind OS — UNIAJC Sede Sur\n"
+        "💧 WaterMind OS — UNIAJC Sede Sur\n"
         "Sistema inteligente de gestión hídrica\n\n"
         "── Agua ──\n"
         "/agua · /estado — estado del sistema en tiempo real\n"

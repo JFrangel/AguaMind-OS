@@ -1,4 +1,4 @@
-# AguaMind OS - Auditoría de cumplimiento (rúbrica + reto oficial)
+# WaterMind OS - Auditoría de cumplimiento (rúbrica + reto oficial)
 
 > Revisión honesta contra los 2 documentos que definen la calificación:
 > 1. **HACKATHON-RETO.pdf** — los 3 retos mínimos por carrera (Sistemas, Electrónica, Industrial)
@@ -45,10 +45,10 @@
 | I1 | Diagrama de proceso con entradas + procesos + usos | OK | SVG interactivo `/agua` → "Mapa del Campus" muestra aljibes → PTAP → tanques → 6 zonas de uso → 2 PTAR → río Pance |
 | I2 | Identificación variables clave (caudal, demanda, pérdidas) | OK | 6 variables monitoreadas vía endpoint `GET /water/reading`: caudal (YF-S201), presión (MPX5700AP), nivel (JSN-SR04T), vibración (SW-420), freático (4-20mA), turbidez (TSD-10) |
 | I3 | **3 indicadores con fórmula y propósito** | **EXCEDE** (4 KPIs) | IEH (eficiencia hídrica), TPP (pérdidas), CPE (consumo per est.), ICA (calidad) — todos con fórmula + meta + estado en vivo |
-| I4 | Mudas Lean (7 tipos) | OK | Tabla completa en [docs/es/AGUAMIND-OS-DOCUMENTACION.md §7.2](AGUAMIND-OS-DOCUMENTACION.md) y [docs/es/TESIS-VS-AGUAMIND.md](TESIS-VS-AGUAMIND.md) |
-| I5 | Diagrama de Ishikawa | OK | 5 categorías (Medición, Infraestructura, Personas, Procesos, Gestión). Causa raíz: falta de instrumentación desde 2011. Documentado en [docs/es/AGUAMIND-OS-DOCUMENTACION.md §7.3](AGUAMIND-OS-DOCUMENTACION.md) |
+| I4 | Mudas Lean (7 tipos) | OK | Tabla completa en [docs/es/WATERMIND-OS-DOCUMENTACION.md §7.2](WATERMIND-OS-DOCUMENTACION.md) y [docs/es/TESIS-VS-WATERMIND.md](TESIS-VS-WATERMIND.md) |
+| I5 | Diagrama de Ishikawa | OK | 5 categorías (Medición, Infraestructura, Personas, Procesos, Gestión). Causa raíz: falta de instrumentación desde 2011. Documentado en [docs/es/WATERMIND-OS-DOCUMENTACION.md §7.3](WATERMIND-OS-DOCUMENTACION.md) |
 | I6 | **Mínimo 2 acciones de mejora con impacto** | **EXCEDE** (5+1=6) | 5 estrategias automatizadas (`leak`, `peak_irrigation`, `turbidity`, `tank_overflow`, `phreatic_low`) + 5 planes ante fenómenos (drought, flood, quake, contamination, surge) — total **10 acciones** ejecutables desde el dashboard con impacto cuantificado |
-| I7 | Costo-beneficio (cuánto cuesta + cuánto ahorra + recuperación) | OK | Inversión $1.43M COP · Ahorro $20.5M COP/año · Recuperación 25 días · TIR > 1,000% · B/C 17.4× — documentado en [docs/es/TESIS-VS-AGUAMIND.md](TESIS-VS-AGUAMIND.md) y [docs/es/AGUAMIND-OS-MASTER.md §14](AGUAMIND-OS-MASTER.md) |
+| I7 | Costo-beneficio (cuánto cuesta + cuánto ahorra + recuperación) | OK | Inversión $1.43M COP · Ahorro $20.5M COP/año · Recuperación 25 días · TIR > 1,000% · B/C 17.4× — documentado en [docs/es/TESIS-VS-WATERMIND.md](TESIS-VS-WATERMIND.md) y [docs/es/WATERMIND-OS-MASTER.md §14](WATERMIND-OS-MASTER.md) |
 | I8 | Justificación económica + ahorro | OK | Mismos números arriba + monetización en vivo en pestaña Inteligencia (panel "Cómo se traduce en plata") |
 
 **Reto Industrial: 8/8 cumplido** (excede en I3 e I6)
@@ -115,7 +115,7 @@
 | "Multi-agente IA" suena buzzword | baja | -1 pt | Mostrar deliberación real con confianza por agente (panel Razonamiento en vivo) + monetización en vivo |
 | Plan de comercialización débil | baja | -1 pt | Tener referentes (Red Hat, MIT Water Project, PUB Singapur) listos para citar |
 | Falta de hardware físico instalado | baja | -1 a -2 pts | El simulador + plan Fase 2 cubre. Backend está listo a recibir datos reales el día que se monten los sensores |
-| BOM no impreso para mostrar | baja | -1 pt | Imprimir [docs/es/AGUAMIND-OS-MASTER.md §14](AGUAMIND-OS-MASTER.md) tabla de inversión |
+| BOM no impreso para mostrar | baja | -1 pt | Imprimir [docs/es/WATERMIND-OS-MASTER.md §14](WATERMIND-OS-MASTER.md) tabla de inversión |
 
 ### C.2 Lo que está incompleto pero el RETO no exige
 
@@ -157,8 +157,8 @@ Cambios reales aplicados (verificables en commits y dashboard):
 1. Ensayar pitch 5 minutos cronometrado
 2. Imprimir BOM en COP
 3. Tener laptop con backend + frontend + simulador corriendo en paralelo
-4. Hoja de respuestas a las 7 preguntas anticipadas (en [docs/es/AGUAMIND-OS-MASTER.md §17](AGUAMIND-OS-MASTER.md))
+4. Hoja de respuestas a las 7 preguntas anticipadas (en [docs/es/WATERMIND-OS-MASTER.md §17](WATERMIND-OS-MASTER.md))
 
 ---
 
-*v1.0 - 2026-05-08 · Auditoría honesta vs rúbrica oficial · github.com/JFrangel/AguaMind-OS*
+*v1.0 - 2026-05-08 · Auditoría honesta vs rúbrica oficial · github.com/JFrangel/WaterMind-OS*

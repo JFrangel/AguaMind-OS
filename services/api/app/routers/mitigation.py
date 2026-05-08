@@ -1,5 +1,5 @@
 """
-AguaMind OS — Endpoints de Mitigación Activa.
+WaterMind OS — Endpoints de Mitigación Activa.
 
 El sistema no solo monitorea, ACTÚA. Este módulo expone los endpoints
 que controlan electroválvulas, bombas y acciones comunitarias.
@@ -106,7 +106,7 @@ def _telegram_format(action: dict) -> str:
     icon = {"close": "🛡️", "open": "🔓", "standby": "⏸", "reduce": "📉",
             "auto": "🤖"}.get(action.get("type", ""), "•")
     return (
-        f"{icon} *AguaMind OS — Mitigación ejecutada*\n"
+        f"{icon} *WaterMind OS — Mitigación ejecutada*\n"
         f"Tipo: `{action['type']}`\n"
         f"Detalle: {action.get('detail', '—')}\n"
         f"Hora: `{action['timestamp'][:19]}`\n"
@@ -318,7 +318,7 @@ async def auto_mitigate(body: AutoMitigation):
         "reason":   f"agente_ia_{body.severity}",
     })
     action["telegram_msg"] = (
-        f"🛡️ *AguaMind OS — Mitigación automática ejecutada*\n"
+        f"🛡️ *WaterMind OS — Mitigación automática ejecutada*\n"
         f"Trigger: `{body.trigger}` ({body.severity})\n"
         f"Acción: {action_summary}\n\n"
         f"Impacto evitado:\n"
@@ -552,7 +552,7 @@ LEVELS = [
     (2500,  "Centinela Hídrico"),
     (4000,  "Maestro del Caudal"),
     (6000,  "Líder Eco-Campus"),
-    (10000, "Leyenda AguaMind"),
+    (10000, "Leyenda WaterMind"),
 ]
 
 

@@ -36,7 +36,7 @@ def main() -> None:
     app.add_handler(CommandHandler("report", report))
     app.add_handler(CommandHandler("status", status))
 
-    # ── AguaMind OS — water management commands ────────────────────────────
+    # ── WaterMind OS — water management commands ────────────────────────────
     app.add_handler(CommandHandler("agua", agua_status))
     app.add_handler(CommandHandler("estado", agua_status))
     app.add_handler(CommandHandler("zonas", zonas))
@@ -47,12 +47,12 @@ def main() -> None:
     app.add_handler(CommandHandler("riego", demo_riego))
     app.add_handler(CommandHandler("normal", demo_normal))
 
-    # ── AguaMind OS — agente IA autónomo ───────────────────────────────────
+    # ── WaterMind OS — agente IA autónomo ───────────────────────────────────
     app.add_handler(CommandHandler("agente_start", agente_start))
     app.add_handler(CommandHandler("agente_stop", agente_stop))
     app.add_handler(CommandHandler("agente_status", agente_status))
 
-    # ── AguaMind OS — mitigación + gamificación ────────────────────────────
+    # ── WaterMind OS — mitigación + gamificación ────────────────────────────
     app.add_handler(CommandHandler("mitigar", mitigar))
     app.add_handler(CommandHandler("mitigaciones", mitigaciones))
     app.add_handler(CommandHandler("ranking", ranking))

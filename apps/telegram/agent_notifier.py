@@ -1,5 +1,5 @@
 """
-AguaMind OS — Notificador push del agente IA hacia Telegram.
+WaterMind OS — Notificador push del agente IA hacia Telegram.
 
 Usado por el WaterMonitorAgent para enviar alertas críticas
 automáticamente al chat configurado en TELEGRAM_CHAT_ID.
@@ -14,7 +14,7 @@ from datetime import datetime
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-logger = logging.getLogger("aguamind.notifier")
+logger = logging.getLogger("watermind.notifier")
 
 TELEGRAM_API = "https://api.telegram.org"
 
@@ -68,7 +68,7 @@ def format_alert(reading: dict, kpis: dict, alerts: list[dict], decision: str) -
     warnings = [a for a in alerts if a.get("level") == "warning"]
 
     lines = [
-        f"{icon} *AguaMind OS — UNIAJC Sede Sur*",
+        f"{icon} *WaterMind OS — UNIAJC Sede Sur*",
         f"Estado: *{decision.upper()}* · {ts}",
         "",
         f"💧 Caudal: `{reading.get('total_flow_lmin', 0):.1f}` L/min",
@@ -99,7 +99,7 @@ def format_daily_report(report: dict) -> str:
     cb = report.get("cost_benefit", {})
 
     lines = [
-        "📊 *AguaMind OS — Reporte Diario*",
+        "📊 *WaterMind OS — Reporte Diario*",
         f"_{report.get('report_date', '')}_  ·  {report.get('campus', '')}",
         "",
         f"✓ Consumo total: `{s.get('total_consumed_l', 0):,}` L",
@@ -135,7 +135,7 @@ def notify_daily_report(report: dict) -> bool:
 # ── Test directo ─────────────────────────────────────────────────────────
 if __name__ == "__main__":
     msg = (
-        "🔔 *Test AguaMind OS*\n\n"
+        "🔔 *Test WaterMind OS*\n\n"
         "Si recibes este mensaje, el bot está configurado correctamente.\n"
         f"Hora: {datetime.now().strftime('%H:%M:%S')}\n"
         f"Bot listo para recibir alertas del agente IA."

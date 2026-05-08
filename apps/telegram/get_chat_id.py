@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AguaMind OS — Helper para obtener tu Chat ID de Telegram.
+WaterMind OS — Helper para obtener tu Chat ID de Telegram.
 
 Uso:
     1. Crea tu bot con @BotFather y guarda el TOKEN

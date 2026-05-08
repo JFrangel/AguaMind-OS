@@ -1,5 +1,5 @@
 """
-AguaMind OS - Adaptadores de formato de entrada.
+WaterMind OS - Adaptadores de formato de entrada.
 
 Cada funcion acepta un payload en un formato distinto y devuelve una lista
 de dicts con los campos minimos: sensor_id, model, value_raw, timestamp,
@@ -128,7 +128,7 @@ def from_csv(payload: str, node_id: str | None = None) -> list[dict]:
 
 
 def from_esp32_compact(payload: dict, node_id: str | None = None) -> list[dict]:
-    """Formato del firmware ESP32 actual de AguaMind. Mapea claves a sensores."""
+    """Formato del firmware ESP32 actual de WaterMind. Mapea claves a sensores."""
     nid = payload.get("node_id") or node_id or "esp32-1"
     ts = payload.get("timestamp") or _now_iso()
     mapping = {

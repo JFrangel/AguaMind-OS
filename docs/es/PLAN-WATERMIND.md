@@ -1,4 +1,4 @@
-# AguaMind OS — Plan Maestro por Fases
+# WaterMind OS — Plan Maestro por Fases
 ## Hackathon UNIAJC 2026 · Gestión del Agua Sede Sur
 
 ---
@@ -113,7 +113,7 @@ Contexto inyectado: datos del campus, KPIs actuales, historial.
 ### 2A. Diagrama de Arquitectura UML — Componentes
 Crear diagrama (PlantUML / draw.io) con:
 ```
-<<component>> AguaMind OS
+<<component>> WaterMind OS
   <<subsystem>> Frontend (SvelteKit)
     <<component>> Dashboard /agua
     <<component>> Chat IA /
@@ -179,7 +179,7 @@ Ruta `/agua/info` — descripción del campus, infra, datos reales. Cumple UCD (
 ### 3B. Arquitectura sistema embebido
 ```
 ┌─────────────────────────────────────────────┐
-│           ESP32 — AguaMind Node              │
+│           ESP32 — WaterMind Node              │
 │                                              │
 │  ┌────────────┐   ┌────────────────────────┐ │
 │  │  SENSADO   │   │      PROCESAMIENTO     │ │
@@ -335,7 +335,7 @@ Total: ~45,367 L/día · Pérdidas estimadas: 20-30%
 ### 5A. Script del demo (flujo recomendado)
 ```
 1. [0:00] Abrir dashboard /agua → mostrar KPIs en verde (escenario normal)
-   "Este es AguaMind OS, sistema inteligente de gestión hídrica para UNIAJC"
+   "Este es WaterMind OS, sistema inteligente de gestión hídrica para UNIAJC"
 
 2. [0:45] Clic en "Fuga" → KPIs cambian a rojo, alertas aparecen
    "Detectamos anomalía — el agente ya tomó acción"
