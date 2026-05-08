@@ -66,3 +66,6 @@ docker-compose.override.yml
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Local settings (do not commit)
+.claude/settings.local.json

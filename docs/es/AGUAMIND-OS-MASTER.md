@@ -89,17 +89,17 @@
 ### Datos del campus UNIAJC Sede Sur
 
 ```
-Población:           3,230 estudiantes/día · 8,234 usuarios totales
-Crecimiento:         +59% entre 2015-2019 (Caycedo & Jaramillo 2021)
-Proyección 2030:     ~5,800 estudiantes / ~12,000 usuarios totales
-Área:                38,755.88 m² (zonas Alameda + Parquesoft)
-Fuentes de agua:     161 puntos (51 sanitarios + 53 lavamanos + ...)
-Distribución:        Parquesoft 67% · Alameda 33%
-PTAP instalada:      2011 — sin instrumentación
-Caudal entrada:      113.56 L/min combinado · 5.56 L/seg validado
-Producción diaria:   43,819 L medidos (Sánchez Sotelo 2021)
-Pérdidas medidas:    1,587 L/día = 579.5 m³/año
-Costo desperdicio:   $1.1M COP/año en agua + $1.1M operario + $0.8M cloro
+Población:  3,230 estudiantes/día · 8,234 usuarios totales
+Crecimiento:  +59% entre 2015-2019 (Caycedo & Jaramillo 2021)
+Proyección 2030:  ~5,800 estudiantes / ~12,000 usuarios totales
+Área:  38,755.88 m² (zonas Alameda + Parquesoft)
+Fuentes de agua:  161 puntos (51 sanitarios + 53 lavamanos + ...)
+Distribución:  Parquesoft 67% · Alameda 33%
+PTAP instalada:  2011 — sin instrumentación
+Caudal entrada:  113.56 L/min combinado · 5.56 L/seg validado
+Producción diaria:  43,819 L medidos (Sánchez Sotelo 2021)
+Pérdidas medidas:  1,587 L/día = 579.5 m³/año
+Costo desperdicio:  $1.1M COP/año en agua + $1.1M operario + $0.8M cloro
 ```
 
 ### Problemas críticos diagnosticados
@@ -107,9 +107,9 @@ Costo desperdicio:   $1.1M COP/año en agua + $1.1M operario + $0.8M cloro
 ```
 PTAP (Planta Tratamiento Agua Potable):
   P1. Calidad del agua FUERA de norma (Resolución 2115/2007):
-        - Nitratos hasta 22.5 mg/L (límite 10) → 2.25× sobre
-        - Fosfatos hasta 1.91 mg/L (límite 0.5) → 3.82× sobre
-        - Cloro residual variable 0.28-2.10 ppm
+  - Nitratos hasta 22.5 mg/L (límite 10) → 2.25× sobre
+  - Fosfatos hasta 1.91 mg/L (límite 0.5) → 3.82× sobre
+  - Cloro residual variable 0.28-2.10 ppm
   P2. Sin sistema de medición (desde 2011)
   P3. Pérdidas no contabilizadas (medidas: 1,587 L/día)
   P4. Bombeo sin demanda real (ciclos 3-4 min innecesarios)
@@ -119,7 +119,7 @@ PTAP (Planta Tratamiento Agua Potable):
   P8. Sin alertas, sin KPIs, sin trazabilidad
 
 PTAR (Planta Tratamiento Aguas Residuales):
-  R1. Capacidad 2,000 estudiantes vs 8,234 usuarios actuales
+  R1. Capacidad 4,000 estudiantes (2 PTAR x 2 modulos x 1,000) vs 8,234 usuarios reales = 2.06x sobre
   R2. Sin monitoreo Resolución 0631/2015 (DBO5, pH, SST)
   R3. Sale más agua que la que entra (DESBORDE confirmado)
   R4. Vertimientos sin caracterizar al río Pance/Cauca
@@ -184,53 +184,53 @@ PTAR (Planta Tratamiento Aguas Residuales):
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                    CAMPUS UNIAJC SEDE SUR                          │
-│                                                                     │
-│   Aljibes ─→ PTAP ─→ Tanques ─→ Edificios ─→ PTAR ─→ Río Pance    │
-│      │         │         │           │           │                 │
-│      ▼         ▼         ▼           ▼           ▼                 │
-│   [Sensores distribuidos en cada etapa]                           │
+│  CAMPUS UNIAJC SEDE SUR  │
+│  │
+│  Aljibes ─→ PTAP ─→ Tanques ─→ Edificios ─→ PTAR ─→ Río Pance  │
+│  │  │  │  │  │  │
+│  ▼  ▼  ▼  ▼  ▼  │
+│  [Sensores distribuidos en cada etapa]  │
 └──────────────────────────────────────┬─────────────────────────────┘
-                                        │ MQTT/HTTP
-                                        ▼
+  │ MQTT/HTTP
+  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     AGUAMIND OS — Backend                        │
-│                                                                   │
-│   ┌────────────────────────────────────────────────────────┐    │
-│   │  CARACTERIZACIÓN DE DATOS                               │    │
-│   │  · Caudales por edificio (entrada+salida)               │    │
-│   │  · Calidad del agua (turbidez, pH, cloro)               │    │
-│   │  · Niveles de tanques + acuífero                        │    │
-│   │  · Patrones temporales (hora, día, semana, mes)         │    │
-│   └─────────────────────────┬───────────────────────────────┘    │
-│                              │                                     │
-│   ┌──────────────────────────▼───────────────────────────────┐   │
-│   │  INTELIGENCIA OPERATIVA (5 agentes especializados)        │   │
-│   │  · Detección de anomalías (IsolationForest)               │   │
-│   │  · Análisis Lean (7 mudas)                                │   │
-│   │  · Validación de calidad de señales                       │   │
-│   │  · Coordinación + reportes                                │   │
-│   │  · Decisión de acciones de mitigación                     │   │
-│   └─────────────────────────┬───────────────────────────────┘    │
-│                              │                                     │
-│   ┌──────────────────────────▼───────────────────────────────┐   │
-│   │  ESTRATEGIAS DE MITIGACIÓN (lo que el jurado pidió)       │   │
-│   │  · Cierre automático de electroválvulas                   │   │
-│   │  · Reducción de presión nocturna                          │   │
-│   │  · Plan diferenciado potable/riego                        │   │
-│   │  · Concientización por edificio (Smart Water Ledger)      │   │
-│   │  · Respuesta automática ante fenómeno del Niño            │   │
-│   │  · Reporte automático a INVIMA, CVC, Min. Vivienda        │   │
-│   └─────────────────────────┬───────────────────────────────┘    │
+│  AGUAMIND OS — Backend  │
+│  │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │  CARACTERIZACIÓN DE DATOS  │  │
+│  │  · Caudales por edificio (entrada+salida)  │  │
+│  │  · Calidad del agua (turbidez, pH, cloro)  │  │
+│  │  · Niveles de tanques + acuífero  │  │
+│  │  · Patrones temporales (hora, día, semana, mes)  │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
+│  │  │
+│  ┌──────────────────────────▼───────────────────────────────┐  │
+│  │  INTELIGENCIA OPERATIVA (5 agentes especializados)  │  │
+│  │  · Detección de anomalías (IsolationForest)  │  │
+│  │  · Análisis Lean (7 mudas)  │  │
+│  │  · Validación de calidad de señales  │  │
+│  │  · Coordinación + reportes  │  │
+│  │  · Decisión de acciones de mitigación  │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
+│  │  │
+│  ┌──────────────────────────▼───────────────────────────────┐  │
+│  │  ESTRATEGIAS DE MITIGACIÓN (lo que el jurado pidió)  │  │
+│  │  · Cierre automático de electroválvulas  │  │
+│  │  · Reducción de presión nocturna  │  │
+│  │  · Plan diferenciado potable/riego  │  │
+│  │  · Concientización por edificio (Smart Water Ledger)  │  │
+│  │  · Respuesta automática ante fenómeno del Niño  │  │
+│  │  · Reporte automático a INVIMA, CVC, Min. Vivienda  │  │
+│  └─────────────────────────┬───────────────────────────────┘  │
 └──────────────────────────────┼─────────────────────────────────────┘
-                                │
-        ┌───────────────────────┼─────────────────────┐
-        ▼                       ▼                     ▼
-   ┌─────────────────┐   ┌────────────────┐  ┌─────────────────┐
-   │ Modelo 3D Web   │   │ Bot Telegram   │  │ Reporte PDF auto│
-   │ (visualización  │   │ (notificacio-  │  │ (cumplimiento   │
-   │  fugas + zonas) │   │  nes + acción) │  │  normativo)     │
-   └─────────────────┘   └────────────────┘  └─────────────────┘
+  │
+  ┌───────────────────────┼─────────────────────┐
+  ▼  ▼  ▼
+  ┌─────────────────┐  ┌────────────────┐  ┌─────────────────┐
+  │ Modelo 3D Web  │  │ Bot Telegram  │  │ Reporte PDF auto│
+  │ (visualización  │  │ (notificacio-  │  │ (cumplimiento  │
+  │  fugas + zonas) │  │  nes + acción) │  │  normativo)  │
+  └─────────────────┘  └────────────────┘  └─────────────────┘
 ```
 
 ---
@@ -255,22 +255,22 @@ PTAR (Planta Tratamiento Aguas Residuales):
 
 ```
 ESP32 (cada nodo)
-   │
-   ├── Buffer circular RAM (30 muestras = 30 segundos)
-   │   - Promedio + min + max + desviación
-   │
-   ├── MQTT publish (preferido)
-   │   - Broker: HiveMQ Cloud (TLS 8883)
-   │   - Topic: campus/uniajc/sensors/{nodeId}
-   │   - QoS 1 (al menos una entrega)
-   │
-   ├── HTTP fallback (si MQTT falla)
-   │   - POST /water/ingest
-   │   - Reintento exponencial
-   │
-   └── NVS local (si no hay internet)
-       - Almacena hasta 1,000 lecturas
-       - Reenvía cuando vuelve conexión
+  │
+  ├── Buffer circular RAM (30 muestras = 30 segundos)
+  │  - Promedio + min + max + desviación
+  │
+  ├── MQTT publish (preferido)
+  │  - Broker: HiveMQ Cloud (TLS 8883)
+  │  - Topic: campus/uniajc/sensors/{nodeId}
+  │  - QoS 1 (al menos una entrega)
+  │
+  ├── HTTP fallback (si MQTT falla)
+  │  - POST /water/ingest
+  │  - Reintento exponencial
+  │
+  └── NVS local (si no hay internet)
+  - Almacena hasta 1,000 lecturas
+  - Reenvía cuando vuelve conexión
 ```
 
 ### 6.3 Almacenamiento
@@ -332,9 +332,9 @@ ESP32 (cada nodo)
 
 ```
 Resolución ADS1115 con gain=1: 4.096V / 32,768 = 0.125 mV
-   → Equivalente a 0.05 NTU en turbidez
-   → Equivalente a 0.4 kPa en presión
-   → Más que suficiente para precisión normativa
+  → Equivalente a 0.05 NTU en turbidez
+  → Equivalente a 0.4 kPa en presión
+  → Más que suficiente para precisión normativa
 ```
 
 ### 7.5 Calibración pre-instalación (cada sensor)
@@ -367,9 +367,9 @@ Mapa SVG interactivo en `/agua` tab "Mitigación":
 ```
 Tecnologías:
   Frontend: Three.js + React Three Fiber
-  Modelo:   Blender (gratuito) → glTF
-  Datos:    Tiempo real desde FastAPI
-  AR:       WebXR para tabletas mantenimiento
+  Modelo:  Blender (gratuito) → glTF
+  Datos:  Tiempo real desde FastAPI
+  AR:  WebXR para tabletas mantenimiento
 
 Capas visualizables:
   ▢ Edificios (geometría)
@@ -417,7 +417,7 @@ Impacto esperado: -25% consumo total durante alerta
 
 ```
 Hoy: Aljibe 2 envía agua sin tratar a riego, pero también aporta a PTAP.
-     Mezcla operativa sin claridad.
+  Mezcla operativa sin claridad.
 
 Con AguaMind OS:
   · YF-DN50 mide flujo exacto en derivación riego
@@ -452,14 +452,14 @@ Reportes ciudadanos QR:
   Si falsa alarma → +5 puntos por colaborar
 
 Resultado: -10 a -15% consumo por cambio cultural
-         (referencia: campañas similares en otras universidades)
+  (referencia: campañas similares en otras universidades)
 ```
 
 ### 9.4 Estrategia de bombeo eficiente (datos → energía)
 
 ```
 Hoy: Bombas centrífugas funcionan a misma potencia siempre (Sánchez 2021)
-     Ciclos 3-4 minutos = consumo eléctrico innecesario
+  Ciclos 3-4 minutos = consumo eléctrico innecesario
 
 Con datos AguaMind OS:
   · Histórico de demanda hora por hora
@@ -468,18 +468,18 @@ Con datos AguaMind OS:
 
 Estrategia:
   Modo eco-nocturno (22:00 - 06:00):
-    Reducir presión a 25 PSI con VFD
-    -40% consumo eléctrico bombas
+  Reducir presión a 25 PSI con VFD
+  -40% consumo eléctrico bombas
   
   Modo pico (07:00 - 09:00):
-    Pre-presurizar tanques antes del pico
-    Evitar arranque emergencia
+  Pre-presurizar tanques antes del pico
+  Evitar arranque emergencia
   
   Modo estándar:
-    Optimizar ciclos según demanda histórica
+  Optimizar ciclos según demanda histórica
 
 Resultado: -596 kWh/año proyectado
-         (alineado con Ley 1931/2018 eficiencia energética)
+  (alineado con Ley 1931/2018 eficiencia energética)
 ```
 
 ### 9.5 Estrategia respuesta a desborde PTAR
@@ -497,11 +497,52 @@ Si Q_salida > Q_entrada × 1.05 (5% tolerancia):
   → O hay vertidos no autorizados
   → Genera alerta crítica + investigación
 
-Si Q_entrada > capacidad PTAR (2,000 estudiantes):
+Si Q_entrada > capacidad PTAR total (4,000 estudiantes = 2 PTAR x 2 modulos x 1,000):
   → Sobrecarga sistemática
   → Justifica ampliación PTAR ante CVC
   → Reporte trimestral automatizado
 ```
+
+### 9.6 Estrategia COMPLEMENTARIA de costo cero — método "tanques nocturnos UNIAJC"
+
+> **Reconocimiento al jurado del 7 de mayo:** *"Pueden haber soluciones costo-beneficio más económicas."* Tienen razón. UNIAJC ya tiene un método validado de costo cero que NO descartamos: lo digitalizamos y lo cruzamos.
+
+**Cómo funciona el método actual (manual, $0):**
+
+```
+17:30  Operario llena tanques A (36k L) y B (16k L)
+18:00  Lee la marca grabada en la pared del tanque y anota en bitácora
+       (1 cm de altura = 160 L  · equivalencia validada por Sánchez Sotelo 2021)
+       Cierra la escotilla superior
+07:00  Abre escotilla, lee nueva marca, calcula diferencia
+       Δcm × 160 L = pérdida nocturna en L
+       Si la pérdida supera el promedio histórico → alerta manual
+```
+
+**Cómo AguaMind OS lo cruza (validación a dos métodos):**
+
+```
+Lectura sensor JSN-SR04T cada 30s → nivel digital cm
+Lectura visual operario 2 veces/día → nivel manual cm
+
+Triangulación:
+  Si |sensor - manual| > 5 cm → ALERTA: sensor descalibrado o marca dañada
+  Si ambos coinciden y caen → fuga real confirmada con doble método
+  Si solo sensor cae → posible falso positivo, exigir validación visual
+```
+
+**Ventaja combinada — costo $0 + sensor JSN-SR04T $30K:**
+
+| Métrica | Solo manual | Solo sensor | Híbrido AguaMind |
+|---------|-------------|-------------|---------------------|
+| Frecuencia | 2 lecturas/día | 2,880 lecturas/día | 2,880 + validación humana |
+| Detección de fuga diurna | — (solo nocturna) | hora exacta | hora exacta + confirmación visual programada |
+| Detección sensor dañado | — | — | sí, por desviación con marca |
+| Detección marca dañada | — | — | sí, por desviación con sensor |
+| Costo | $0 | $30K + setup | $30K + costumbre actual |
+| Confiabilidad | media | alta | **muy alta** |
+
+**Implicación para el pitch:** *"el método tradicional NO se va. AguaMind OS lo respeta y lo amplifica. Dos métodos independientes que se validan entre sí."*
 
 ---
 
@@ -531,15 +572,15 @@ Un solo modelo de IA dice "hay anomalía". Cinco agentes especializados delibera
 
 ```
 Sensor detecta vibración + caída presión 28%
-        ↓ (1 segundo)
+  ↓ (1 segundo)
 Orchestrator reparte tarea a 4 agentes
-        ↓ (1 segundo)
+  ↓ (1 segundo)
 4 agentes analizan en paralelo
-        ↓ (2 segundos)
+  ↓ (2 segundos)
 Voto consensual → "fuga crítica, cerrar EV-A2"
-        ↓ (1 segundo)
+  ↓ (1 segundo)
 Mitigation ejecuta acción
-        ↓ Total: 5 segundos
+  ↓ Total: 5 segundos
 
 vs Humano: 2-4 horas (turno mantenimiento)
 ```
@@ -562,8 +603,8 @@ vs Humano: 2-4 horas (turno mantenimiento)
 ### 11.2 8 electroválvulas controladas
 
 ```
-EV-A1   Bloque A entrada principal
-EV-A2   Bloque A baños 2do piso
+EV-A1  Bloque A entrada principal
+EV-A2  Bloque A baños 2do piso
 EV-AL1  Alameda entrada
 EV-RC1  Riego/Cancha solenoide
 EV-CAF1 Cafetería entrada
@@ -644,9 +685,9 @@ SEGURIDAD INFORMACIÓN:
 > **Solicitud jurado:** *"Pensar en universidad de 12,000 usuarios a 2030"*
 
 ### Fase 1 — Hackathon (Mayo 2026)
-- ✅ Backend + dashboard + simulador
-- ✅ Documentación completa
-- ✅ PDF entregable
+-  Backend + dashboard + simulador
+-  Documentación completa
+-  PDF entregable
 
 ### Fase 2 — Piloto PTAP (Mes 1)
 **Inversión:** $1.4M COP
@@ -708,48 +749,48 @@ SEGURIDAD INFORMACIÓN:
 
 ```
 Hardware (BOM):
-  ESP32 + ADS1115:                $50K
-  6 sensores principales:         $400K
-  Electroválvulas + relay:        $185K
-  Acondicionamiento + PCB:        $80K
-  Gabinete IP65 + cableado:       $135K
-  Indicadores locales:            $32K
-  Energía + backup:                $99K
-  Subtotal hardware:              $981K
+  ESP32 + ADS1115:  $50K
+  6 sensores principales:  $400K
+  Electroválvulas + relay:  $185K
+  Acondicionamiento + PCB:  $80K
+  Gabinete IP65 + cableado:  $135K
+  Indicadores locales:  $32K
+  Energía + backup:  $99K
+  Subtotal hardware:  $981K
 
 Mano de obra (auto-construido equipo):
-  Subtotal MO:                    $0 COP
+  Subtotal MO:  $0 COP
 
 Software (open source):
   FastAPI + LangGraph + SvelteKit: $0
-  Supabase free tier:              $0
-  HiveMQ Cloud free tier:          $0
-  Subtotal software:               $0
+  Supabase free tier:  $0
+  HiveMQ Cloud free tier:  $0
+  Subtotal software:  $0
 
-Imprevistos (10%):                $98K
+Imprevistos (10%):  $98K
 
-INVERSIÓN TOTAL FASE 1:        $1,431,000 COP (~$340 USD)
+INVERSIÓN TOTAL FASE 1:  $1,431,000 COP (~$340 USD)
 ```
 
 ### 14.2 Beneficios anuales proyectados
 
 ```
 1. Reducción pérdidas físicas (TPP 25% → 10%):
-   9,073 L/día × 365 × $3.5/L = $11,586,925 COP/año
+  9,073 L/día × 365 × $3.5/L = $11,586,925 COP/año
 
 2. Optimización riego automatizado:
-   1,800 L/día × 365 × $3.5/L = $2,299,500 COP/año
+  1,800 L/día × 365 × $3.5/L = $2,299,500 COP/año
 
 3. Mantenimiento preventivo vs correctivo:
-   2 eventos/año → 0.3 eventos/año = $4,250,000 COP/año
+  2 eventos/año → 0.3 eventos/año = $4,250,000 COP/año
 
 4. Eficiencia energética bombeo (-40% nocturno):
-   ~$2,400,000 COP/año en electricidad
+  ~$2,400,000 COP/año en electricidad
 
 5. Evita sanciones (riesgo evitado, no caja):
-   $16,900M COP exposición × probabilidad
+  $16,900M COP exposición × probabilidad
 
-TOTAL AHORRO ANUAL:           $20,536,425 COP/año (proyectado)
+TOTAL AHORRO ANUAL:  $20,536,425 COP/año (proyectado)
 ```
 
 ### 14.3 Indicadores financieros
@@ -770,24 +811,24 @@ TOTAL AHORRO ANUAL:           $20,536,425 COP/año (proyectado)
 
 ```
 ODS 6  Agua Limpia y Saneamiento
-       Meta 6.4 — eficiencia uso agua
-       AguaMind: TPP 25% → 10%
+  Meta 6.4 — eficiencia uso agua
+  AguaMind: TPP 25% → 10%
 
 ODS 12 Producción/Consumo Responsables
-       Meta 12.5 — reducción desperdicios
-       AguaMind: 7 mudas Lean atacadas
+  Meta 12.5 — reducción desperdicios
+  AguaMind: 7 mudas Lean atacadas
 
 ODS 13 Acción por el Clima
-       Meta 13.3 — educación mitigación
-       AguaMind: 7.6 ton CO₂ evitadas/5 años
+  Meta 13.3 — educación mitigación
+  AguaMind: 7.6 ton CO₂ evitadas/5 años
 
 ODS 9  Industria, Innovación, Infraestructura
-       Meta 9.4 — modernizar
-       AguaMind: IoT + IA en infraestructura 2011
+  Meta 9.4 — modernizar
+  AguaMind: IoT + IA en infraestructura 2011
 
 ODS 11 Ciudades Sostenibles
-       Meta 11.6 — reducir impacto ambiental
-       AguaMind: modelo Smart Campus
+  Meta 11.6 — reducir impacto ambiental
+  AguaMind: modelo Smart Campus
 ```
 
 ### ODS impactados indirectamente
@@ -903,6 +944,7 @@ ODS 3 Salud · ODS 4 Educación · ODS 5 Igualdad · ODS 8 Trabajo · ODS 10 Des
 
 ### Otros documentos AguaMind OS (consolidados aquí)
 
+- [`ANALISIS-Y-CAPAS-VISUALES.md`](ANALISIS-Y-CAPAS-VISUALES.md) — **trinidad analítica (descriptivo/predictivo/prescriptivo) + arquitectura de 7 capas con diagramas Mermaid + ASCII**
 - `INNOVACION-RADICAL.md`
 - `PITCH-DEFINITIVO.md`
 - `ESTRATEGIA-RUBRICA.md`

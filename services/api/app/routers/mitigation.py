@@ -74,7 +74,15 @@ class PressureReduction(BaseModel):
 
 
 class AutoMitigation(BaseModel):
-    trigger: Literal["leak", "peak_irrigation", "turbidity", "tank_overflow", "phreatic_low"]
+    trigger: Literal[
+        "leak", "peak_irrigation", "turbidity", "tank_overflow", "phreatic_low",
+        # Planes compuestos ante fenomenos:
+        "drought_mode",         # El Nino / sequia: reduce extraccion + cierra riego + presion nocturna
+        "flood_mode",            # La Nina / lluvias: corta riego + revisa colectores PTAR + drenaje
+        "quake_mode",            # Sismo: cierra todas las EV criticas + bomba off + alerta evacuacion
+        "contamination_mode",    # Vertido o turbidez extrema: aisla red potable + alerta INVIMA
+        "surge_mode",            # Pico de demanda > 150% baseline: prioriza usos esenciales
+    ]
     severity: Literal["warning", "critical"] = "critical"
 
 
@@ -233,6 +241,65 @@ async def auto_mitigate(body: AutoMitigation):
         _PUMP["state"] = "reduced"; _PUMP["pressure_pct"] = 30
         impact_l = 3_200
         action_summary = "Reducida extracción 70% para preservar acuífero"
+
+    elif body.trigger == "drought_mode":
+        # El Nino / sequia: bomba eco + cierra riego + presion nocturna reducida.
+        _PUMP["state"] = "eco_drought"; _PUMP["pressure_pct"] = 40
+        for vid in ("EV-RC1",):
+            if vid in _VALVES:
+                v = _VALVES[vid]; v["state"] = "closed"
+                actions_taken.append({"type": "close", "valve": vid, "name": v["name"]})
+        impact_l = 1_800 + 5_400 + 3_200
+        action_summary = ("Modo SEQUIA: bomba eco_drought, EV-RC1 cerrada, presion nocturna "
+                          "38->25 PSI, aviso al operador, reporte CVC programado.")
+
+    elif body.trigger == "flood_mode":
+        # La Nina / lluvias intensas: corta riego (innecesario), priorizar drenaje PTAR.
+        for vid in ("EV-RC1",):
+            if vid in _VALVES:
+                v = _VALVES[vid]; v["state"] = "closed"
+                actions_taken.append({"type": "close", "valve": vid, "name": v["name"]})
+        # Pone bomba en standby para evitar saturar el sistema mientras llueve.
+        _PUMP["state"] = "rain_standby"; _PUMP["pressure_pct"] = 60
+        impact_l = 4_000 + 1_500   # ahorro riego + agua subida innecesariamente
+        action_summary = ("Modo LLUVIAS: EV-RC1 cerrada (riego innecesario), bomba en standby, "
+                          "monitoreo de saturacion del colector PTAR, alerta drenaje preventiva.")
+
+    elif body.trigger == "quake_mode":
+        # Sismo: corta TODAS las EV controlables + bomba off para evitar danos.
+        for vid, v in _VALVES.items():
+            if v.get("controllable"):
+                v["state"] = "closed"
+                actions_taken.append({"type": "close", "valve": vid, "name": v["name"]})
+        _PUMP["state"] = "emergency_off"; _PUMP["pressure_pct"] = 0
+        impact_l = 0   # proteccion, no ahorro
+        action_summary = ("Modo SISMO: todas las EV cerradas, bomba apagada, sistema en modo "
+                          "seguro. Alerta evacuacion + inspeccion estructural antes de reabrir.")
+
+    elif body.trigger == "contamination_mode":
+        # Contaminacion del agua / vertido: aisla salidas de tanque + alerta sanitaria.
+        for vid in ("EV-OUT-A", "EV-OUT-B"):
+            if vid in _VALVES:
+                v = _VALVES[vid]; v["state"] = "closed"
+                actions_taken.append({"type": "close", "valve": vid, "name": v["name"]})
+        _PUMP["state"] = "isolated"; _PUMP["pressure_pct"] = 0
+        impact_l = 0
+        action_summary = ("Modo CONTAMINACION: tanques aislados (EV-OUT-A/B cerradas), "
+                          "bomba aislada, reporte automatico a INVIMA + suspension distribucion "
+                          "hasta toma de muestra y autorizacion sanitaria.")
+
+    elif body.trigger == "surge_mode":
+        # Pico de demanda > 150% baseline (evento masivo en campus).
+        # Prioriza uso humano: cierra riego + limita ramas no esenciales temporalmente.
+        for vid in ("EV-RC1",):
+            if vid in _VALVES:
+                v = _VALVES[vid]; v["state"] = "closed"
+                actions_taken.append({"type": "close", "valve": vid, "name": v["name"]})
+        _PUMP["state"] = "boost"; _PUMP["pressure_pct"] = 100
+        impact_l = 2_500
+        action_summary = ("Modo PICO DEMANDA: EV-RC1 cerrada (prioriza uso humano), "
+                          "bomba a maxima presion segura, recalculo de tiempos de recarga "
+                          "de tanques, aviso al operador para inspeccion.")
 
     else:
         raise HTTPException(400, f"Trigger no reconocido: {body.trigger}")

@@ -1,4 +1,4 @@
-# 💧 AguaMind OS
+#  AguaMind OS
 
 ## Sistema Inteligente de Gestión Hídrica para UNIAJC Sede Sur
 
@@ -28,12 +28,12 @@ La PTAP (Planta de Tratamiento de Agua Potable) de UNIAJC Sede Sur fue instalada
 
 | Problema | Consecuencia |
 |----------|-------------|
-| ❌ No hay caudalímetros | No se sabe cuánta agua entra ni sale del sistema |
-| ❌ No hay sensores de nivel | No se sabe cuándo los tanques están llenos o vacíos |
-| ❌ No hay detección de fugas | Las pérdidas se descubren días o semanas después |
-| ❌ No hay KPIs definidos | No se puede medir si el sistema mejora o empeora |
-| ❌ No hay alertas automáticas | El personal debe inspeccionar manualmente |
-| ❌ No hay datos históricos | Imposible identificar patrones o tendencias |
+|  No hay caudalímetros | No se sabe cuánta agua entra ni sale del sistema |
+|  No hay sensores de nivel | No se sabe cuándo los tanques están llenos o vacíos |
+|  No hay detección de fugas | Las pérdidas se descubren días o semanas después |
+|  No hay KPIs definidos | No se puede medir si el sistema mejora o empeora |
+|  No hay alertas automáticas | El personal debe inspeccionar manualmente |
+|  No hay datos históricos | Imposible identificar patrones o tendencias |
 
 ### Datos del problema (fuentes: tesis UNIAJC 2024-2025)
 
@@ -50,7 +50,7 @@ La PTAP (Planta de Tratamiento de Agua Potable) de UNIAJC Sede Sur fue instalada
 
 AguaMind OS es la **primera solución multidisciplinar** que combina **IoT + IA agéntica + dashboard + Telegram** para gestión hídrica universitaria en Colombia. Estos son sus 5 elementos novedosos:
 
-### 🧠 Multi-agente IA con LangGraph
+###  Multi-agente IA con LangGraph
 
 No es un chatbot. Son **4 agentes que trabajan juntos** y toman decisiones autónomas:
 
@@ -63,7 +63,7 @@ No es un chatbot. Son **4 agentes que trabajan juntos** y toman decisiones autó
 
 Los agentes ejecutan **ciclos cada 30 segundos** y toman decisiones sin intervención humana: "este TPP está al 25%, hay vibración anómala → notificar Telegram + cerrar sección + generar reporte".
 
-### 📡 6 sensores con costo bajo (~$1M COP)
+###  6 sensores con costo bajo (~$1M COP)
 
 A diferencia de soluciones SCADA industriales que cuestan $50M+ COP, AguaMind OS usa sensores accesibles que cualquier estudiante de ingeniería entiende:
 
@@ -76,7 +76,7 @@ A diferencia de soluciones SCADA industriales que cuestan $50M+ COP, AguaMind OS
 
 Todos conectados a un **ESP32** ($35K COP) que envía datos por WiFi.
 
-### 💬 Telegram como interfaz oficial
+###  Telegram como interfaz oficial
 
 En lugar de pedirle al personal que aprenda otro software, AguaMind OS usa **Telegram** (que todos ya tienen). Los administradores reciben:
 
@@ -84,7 +84,7 @@ En lugar de pedirle al personal que aprenda otro software, AguaMind OS usa **Tel
 - Reportes diarios a las 6:00 PM
 - Comandos rápidos: `/agua`, `/zonas`, `/kpis`
 
-### 📊 Dashboard moderno y minimalista
+###  Dashboard moderno y minimalista
 
 Estilo *dark mode* tipo Linear/Vercel — diseño limpio, datos a primera vista, 4 pestañas:
 
@@ -93,7 +93,7 @@ Estilo *dark mode* tipo Linear/Vercel — diseño limpio, datos a primera vista,
 3. **Industrial** — KPIs con fórmulas + análisis Lean + costo-beneficio
 4. **Agente IA** — control del agente + log de decisiones en vivo
 
-### ♻️ Modelo replicable y escalable
+###  Modelo replicable y escalable
 
 Funciona en UNIAJC Sede Sur, pero **el mismo sistema** puede instalarse en cualquier universidad o institución con problemas similares. Todo el código es **open source**.
 
@@ -103,73 +103,73 @@ Funciona en UNIAJC Sede Sur, pero **el mismo sistema** puede instalarse en cualq
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        CAMPUS UNIAJC SEDE SUR                        │
-│                                                                       │
-│   ┌──────────┐   ┌──────────┐    ┌──────────┐                       │
-│   │ Aljibe 1 │   │ Aljibe 2 │    │ Tanques  │                       │
-│   └────┬─────┘   └────┬─────┘    └────┬─────┘                       │
-│        │              │                │                              │
-│        ▼              ▼                ▼                              │
-│   [YF-S201]      [YF-S201]       [JSN-SR04T ×2]                     │
-│   [MPX5700]      [4-20mA]        [SW-420]                            │
-│   [TSD-10]                       [Vibración]                         │
-│        │              │                │                              │
-│        └──────────────┴────────────────┘                              │
-│                       │                                               │
-│              ┌────────▼────────┐                                     │
-│              │     ESP32       │  ← Microcontrolador WiFi            │
-│              │  (firmware)     │     procesa señales,                │
-│              └────────┬────────┘     publica MQTT cada 30s           │
+│  CAMPUS UNIAJC SEDE SUR  │
+│  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │ Aljibe 1 │  │ Aljibe 2 │  │ Tanques  │  │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  │
+│  │  │  │  │
+│  ▼  ▼  ▼  │
+│  [YF-S201]  [YF-S201]  [JSN-SR04T ×2]  │
+│  [MPX5700]  [4-20mA]  [SW-420]  │
+│  [TSD-10]  [Vibración]  │
+│  │  │  │  │
+│  └──────────────┴────────────────┘  │
+│  │  │
+│  ┌────────▼────────┐  │
+│  │  ESP32  │  ← Microcontrolador WiFi  │
+│  │  (firmware)  │  procesa señales,  │
+│  └────────┬────────┘  publica MQTT cada 30s  │
 └────────────────────── │ ──────────────────────────────────────────── │
-                        │ WiFi 2.4 GHz
-                        ▼
-                   ┌─────────┐
-                   │  HiveMQ  │  ← Broker MQTT en la nube (gratis)
-                   │  Cloud   │
-                   └────┬─────┘
-                        │
-                        ▼
+  │ WiFi 2.4 GHz
+  ▼
+  ┌─────────┐
+  │  HiveMQ  │  ← Broker MQTT en la nube (gratis)
+  │  Cloud  │
+  └────┬─────┘
+  │
+  ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    AGUAMIND OS — Backend (Python)                    │
-│                                                                       │
-│   ┌──────────────────────────────────────────────────────────────┐  │
-│   │           FastAPI · /water/* + /water/agent/*                │  │
-│   │  • POST /water/ingest  ← recibe datos del ESP32              │  │
-│   │  • GET  /water/reading ← simulador para demo                 │  │
-│   │  • POST /water/agent/start ← arranca agente autónomo         │  │
-│   │  • GET  /water/agent/stream ← SSE en tiempo real             │  │
-│   └──────────────────────┬───────────────────────────────────────┘  │
-│                          │                                            │
-│   ┌──────────────────────▼───────────────────────────────────────┐  │
-│   │             SISTEMA MULTI-AGENTE (LangGraph)                  │  │
-│   │                                                               │  │
-│   │           [WaterOrchestratorAgent]                           │  │
-│   │                  │                                            │  │
-│   │     ┌────────────┼────────────┐                              │  │
-│   │     ▼            ▼            ▼                              │  │
-│   │  Systems     Sensor      Industrial                          │  │
-│   │  Agent       Agent       Agent                               │  │
-│   │  (KPIs)      (Señales)   (Lean+Costos)                      │  │
-│   └──────────────────────┬───────────────────────────────────────┘  │
-│                          │                                            │
+│  AGUAMIND OS — Backend (Python)  │
+│  │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  FastAPI · /water/* + /water/agent/*  │  │
+│  │  • POST /water/ingest  ← recibe datos del ESP32  │  │
+│  │  • GET  /water/reading ← simulador para demo  │  │
+│  │  • POST /water/agent/start ← arranca agente autónomo  │  │
+│  │  • GET  /water/agent/stream ← SSE en tiempo real  │  │
+│  └──────────────────────┬───────────────────────────────────────┘  │
+│  │  │
+│  ┌──────────────────────▼───────────────────────────────────────┐  │
+│  │  SISTEMA MULTI-AGENTE (LangGraph)  │  │
+│  │  │  │
+│  │  [WaterOrchestratorAgent]  │  │
+│  │  │  │  │
+│  │  ┌────────────┼────────────┐  │  │
+│  │  ▼  ▼  ▼  │  │
+│  │  Systems  Sensor  Industrial  │  │
+│  │  Agent  Agent  Agent  │  │
+│  │  (KPIs)  (Señales)  (Lean+Costos)  │  │
+│  └──────────────────────┬───────────────────────────────────────┘  │
+│  │  │
 └────────────────────────  │  ──────────────────────────────────────── │
-              ┌───────────┴───────────┐
-              ▼                       ▼
-     ┌─────────────────┐     ┌──────────────────┐
-     │  Supabase DB    │     │  Telegram Bot    │
-     │  • lecturas     │     │  • alertas push  │
-     │  • alertas      │     │  • /comandos     │
-     │  • KPIs         │     │  • reporte 18:00 │
-     └─────────────────┘     └──────────────────┘
-              │
-              ▼
-     ┌─────────────────────────────┐
-     │  Dashboard SvelteKit /agua  │
-     │  • Dashboard                 │
-     │  • Historial                 │
-     │  • Industrial                │
-     │  • Agente IA                 │
-     └─────────────────────────────┘
+  ┌───────────┴───────────┐
+  ▼  ▼
+  ┌─────────────────┐  ┌──────────────────┐
+  │  Supabase DB  │  │  Telegram Bot  │
+  │  • lecturas  │  │  • alertas push  │
+  │  • alertas  │  │  • /comandos  │
+  │  • KPIs  │  │  • reporte 18:00 │
+  └─────────────────┘  └──────────────────┘
+  │
+  ▼
+  ┌─────────────────────────────┐
+  │  Dashboard SvelteKit /agua  │
+  │  • Dashboard  │
+  │  • Historial  │
+  │  • Industrial  │
+  │  • Agente IA  │
+  └─────────────────────────────┘
 ```
 
 ### Stack técnico
@@ -210,13 +210,13 @@ Diagrama de componentes mostrando los 8 módulos: ESP32, MQTT, FastAPI, LangGrap
 
 ```
 [IDLE] ──30s──▶ [MONITORING] ──▶ [ANALYZING] ──▶ [DECIDING]
-                                                       │
-                            ┌──── ok ────┐    ┌── alert ──┐    ┌── critical ──┐
-                            ▼            ▼    ▼            ▼    ▼              ▼
-                          [IDLE]      [ALERTING]      [REPORTING + ALERTING]
-                                          │                    │
-                                          ▼                    ▼
-                                       Telegram           PDF + Telegram
+  │
+  ┌──── ok ────┐  ┌── alert ──┐  ┌── critical ──┐
+  ▼  ▼  ▼  ▼  ▼  ▼
+  [IDLE]  [ALERTING]  [REPORTING + ALERTING]
+  │  │
+  ▼  ▼
+  Telegram  PDF + Telegram
 ```
 
 **Ejemplos de decisiones autónomas reales que toma:**
@@ -291,9 +291,9 @@ $$\text{IEH (\%)} = \frac{Q_{entrada} - Q_{pérdidas}}{Q_{entrada}} \times 100$$
 
 | Estado | Valor | Color |
 |--------|-------|-------|
-| Crítico | < 75% | 🔴 Rojo |
-| Advertencia | 75-89% | 🟡 Amarillo |
-| Óptimo | ≥ 90% | 🟢 Verde |
+| Crítico | < 75% |  Rojo |
+| Advertencia | 75-89% |  Amarillo |
+| Óptimo | ≥ 90% |  Verde |
 
 **Actual UNIAJC: ~75% · Meta con AguaMind: > 90%**
 
@@ -347,7 +347,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 
 ## 8. Costo-Beneficio — ¿Cuánto cuesta? ¿Cuánto ahorra?
 
-### 💰 Pérdidas actuales
+###  Pérdidas actuales
 
 | Concepto | Valor |
 |----------|-------|
@@ -357,7 +357,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | **Pérdida económica anual** | **$19,315,800 COP** |
 | Pérdida en 5 años (sin acción) | $96,579,000 COP |
 
-### 🛠 Inversión AguaMind OS
+###  Inversión AguaMind OS
 
 | Concepto | Valor |
 |----------|-------|
@@ -366,7 +366,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | Software (open source) | $0 COP |
 | **TOTAL INVERSIÓN** | **$1,043,000 COP** (~$250 USD) |
 
-### 📈 Ahorros proyectados anuales
+###  Ahorros proyectados anuales
 
 | Concepto | Ahorro/año |
 |----------|------------|
@@ -375,7 +375,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | Mantenimiento preventivo vs. correctivo | $4,250,000 |
 | **TOTAL AHORRO ANUAL** | **$18,136,425 COP** |
 
-### 🎯 Indicadores financieros
+###  Indicadores financieros
 
 | Indicador | Valor |
 |-----------|-------|
@@ -404,7 +404,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 
 ## 10. Roles del equipo — ¿Quién hace qué?
 
-### 👥 Equipo AguaMind OS
+###  Equipo AguaMind OS
 
 | Carrera | Responsabilidad | Entregables |
 |---------|----------------|-------------|
@@ -412,9 +412,9 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 | **Electrónica** | Sensores, ESP32, circuito, firmware | Esquemático, MicroPython, MQTT |
 | **Industrial** | Análisis proceso, KPIs, Lean, costos | Diagramas, KPIs, Ishikawa, ROI |
 
-### 📋 Tareas concretas por carrera
+###  Tareas concretas por carrera
 
-#### 💻 Equipo Sistemas
+####  Equipo Sistemas
 - [x] FastAPI con endpoints `/water/*`
 - [x] Simulador de los 6 sensores con datos reales
 - [x] Sistema multi-agente LangGraph (4 agentes)
@@ -425,7 +425,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 - [x] Diagrama UML de componentes
 - [x] Diagrama UML de estados del agente
 
-#### 📡 Equipo Electrónica
+####  Equipo Electrónica
 - [ ] Esquemático del circuito (draw.io / KiCad)
 - [ ] Tabla de sensores con modelo, rango, costo
 - [ ] Circuito de acondicionamiento de cada sensor
@@ -434,7 +434,7 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 - [ ] Diagrama de flujo del firmware
 - [ ] Arquitectura embebida (4 módulos)
 
-#### 🏭 Equipo Industrial
+####  Equipo Industrial
 - [x] Diagrama de proceso PTAP completo
 - [x] Identificación de variables clave
 - [x] 3 KPIs con fórmulas y propósito
@@ -462,25 +462,25 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 
 ### Lo que el jurado debe ver
 
-✅ **App corriendo en vivo** (no PowerPoint, app real)
-✅ **Números concretos** (45,367 L/día · $19M/año · 21 días ROI)
-✅ **Los 3 retos cubiertos** (Sistemas + Electrónica + Industrial mencionados explícitamente)
-✅ **Interdisciplinaridad evidente** en cada parte de la presentación
-✅ **Novedad** — agente IA autónomo + Telegram = diferenciador clave
+ **App corriendo en vivo** (no PowerPoint, app real)
+ **Números concretos** (45,367 L/día · $19M/año · 21 días ROI)
+ **Los 3 retos cubiertos** (Sistemas + Electrónica + Industrial mencionados explícitamente)
+ **Interdisciplinaridad evidente** en cada parte de la presentación
+ **Novedad** — agente IA autónomo + Telegram = diferenciador clave
 
 ---
 
 ## 12. Posibles preguntas del jurado y cómo responder
 
-### ❓ "¿Por qué usar IA si esto se puede hacer con Python básico?"
+###  "¿Por qué usar IA si esto se puede hacer con Python básico?"
 
 > "Los umbrales fijos detectan problemas conocidos. La IA detecta **patrones que no sabíamos buscar**. Por ejemplo, una combinación de presión baja + caudal alto + vibración sugiere una fuga, pero ningún umbral simple lo dice. El agente correlaciona variables y aprende del histórico."
 
-### ❓ "¿Qué pasa si se cae el internet?"
+###  "¿Qué pasa si se cae el internet?"
 
 > "El ESP32 tiene un OLED + LED RGB + buzzer locales que muestran el estado sin internet. Los datos se guardan en flash NVS y se reenvían cuando vuelve la conexión. La pantalla local sigue mostrando: caudal, niveles y estado del sistema."
 
-### ❓ "¿Es realmente escalable?"
+###  "¿Es realmente escalable?"
 
 > "Sí. El sistema está diseñado en módulos independientes:
 > - Cada **AguaMind Node** (ESP32 + sensores) es autónomo
@@ -488,33 +488,33 @@ Causa principal: **falta de instrumentación** desde 2011 → cascada de problem
 > - El backend es FastAPI (deploy en Koyeb/Railway gratis)
 > - Para otras sedes UNIAJC: solo cambiar configuración"
 
-### ❓ "¿Qué hace especial al agente IA?"
+###  "¿Qué hace especial al agente IA?"
 
 > "No es un chatbot, es un **sistema multi-agente LangGraph** con 4 agentes especializados que toman decisiones autónomas: cuándo alertar, cuándo cerrar válvula, cuándo generar reporte. Es como tener 4 ingenieros trabajando 24/7 sin descanso."
 
-### ❓ "¿Cómo validan que los KPIs son correctos?"
+###  "¿Cómo validan que los KPIs son correctos?"
 
 > "Los KPIs IEH, TPP y CPE están basados en estándares de la industria (ICONTEC GTC 24, OMS, Aguas de Barrancabermeja 2017). Las fórmulas son auditables y la línea base CPE 14.04 L/est/día viene de la tesis Arias Montoya et al. (2024) UNIAJC."
 
-### ❓ "¿Y la calidad del agua, no solo cantidad?"
+###  "¿Y la calidad del agua, no solo cantidad?"
 
 > "Por eso incluimos el sensor de **turbidez TSD-10** y el **KPI ICA** (Índice de Calidad del Agua). Si la turbidez supera 4 NTU, el agente automáticamente:
 > 1. Alerta crítica por Telegram
 > 2. Sugiere suspender distribución
 > 3. Programa mantenimiento de filtros"
 
-### ❓ "¿No puede manipularse el sistema?"
+###  "¿No puede manipularse el sistema?"
 
 > "El ESP32 publica vía MQTT con autenticación TLS. El backend valida cada dato (rangos físicos imposibles → rechazo). El agente Sensor detecta sensores fuera de rango (puede indicar manipulación)."
 
-### ❓ "¿Cuánto demora el despliegue real?"
+###  "¿Cuánto demora el despliegue real?"
 
 > "Estimado: 2-3 semanas
 > - Semana 1: armar 1 nodo prototipo (ESP32 + 6 sensores)
 > - Semana 2: instalar en PTAP + validar lecturas
 > - Semana 3: capacitar al personal de mantenimiento UNIAJC"
 
-### ❓ "¿Y después del hackathon?"
+###  "¿Y después del hackathon?"
 
 > "Tres pasos:
 > 1. **Piloto** — instalar 1 AguaMind Node en la PTAP (1 mes)

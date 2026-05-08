@@ -34,7 +34,8 @@ Tres datos que el jurado debe recordar:
 ```
 
 > *"Y mientras 8,234 personas usan agua sin saberlo, las dos PTAR del
-> campus tienen capacidad para solo 2,000 estudiantes. Eso significa que
+> campus (Alameda y Entrada, cada una con 2 modulos de 1,000 estudiantes)
+> tienen capacidad combinada para 4,000 estudiantes. Eso significa que
 > cada día estamos descargando aguas residuales que pueden no cumplir la
 > Resolución 0631 del Ministerio de Ambiente.*
 >

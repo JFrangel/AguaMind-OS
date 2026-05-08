@@ -115,8 +115,8 @@ PTAR Alameda          PTAR Entrada
 
 #### R1 — Capacidad subdimensionada
 - **Población actual:** 8,234 usuarios totales (estudiantes + docentes + staff).
-- **Capacidad PTAR:** 2,000 estudiantes (1,000 por módulo).
-- **Brecha:** > 6,000 usuarios excedentes.
+- **Capacidad PTAR total:** 4,000 estudiantes — 2 PTAR físicas (Alameda + Entrada), cada una con 2 módulos en paralelo de 1,000 est/modulo (confirmado por el PDF oficial del reto Hackathon UNIAJC 2026).
+- **Brecha:** > 4,000 usuarios excedentes (sobrecapacidad 2.06x).
 - **Riesgo:** descargas sin tratamiento adecuado → sanción ambiental.
 
 #### R2 — Sin monitoreo de calidad del efluente

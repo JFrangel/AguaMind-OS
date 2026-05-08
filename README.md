@@ -6,7 +6,7 @@ Modular hackathon boilerplate with AI agents, multi-framework frontends, and aut
 
 ---
 
-## 📘 Documentación en Español
+##  Documentación en Español
 
 Si recién llegás, leé estos en orden:
 
@@ -60,31 +60,31 @@ Si recién llegás, leé estos en orden:
 
 ```
 apps/
-  web-svelte/      SvelteKit frontend       → Vercel
-  web-next/        Next.js App Router       → Vercel
-  web-vue/         Nuxt 3 frontend          → Vercel / Netlify
-  api-go/          Go API (Gin)             → Koyeb
-  pocketbase/      PocketBase config        → PocketHost
-  telegram/        Telegram bot             → Koyeb
+  web-svelte/  SvelteKit frontend  → Vercel
+  web-next/  Next.js App Router  → Vercel
+  web-vue/  Nuxt 3 frontend  → Vercel / Netlify
+  api-go/  Go API (Gin)  → Koyeb
+  pocketbase/  PocketBase config  → PocketHost
+  telegram/  Telegram bot  → Koyeb
 services/
-  api/             FastAPI primary backend  → Koyeb
-  api-express/     Express alternative
-  api-nest/        NestJS alternative
+  api/  FastAPI primary backend  → Koyeb
+  api-express/  Express alternative
+  api-nest/  NestJS alternative
 packages/
-  llm/             LLM AdapterFactory + cascade + circuit breaker (free-tier models)
-  agents/          LangGraph DAG + CrewAI crews + Orchestrator
-  rag/             sentence-aware chunking + SBERT embeddings + FAISS / pgvector + filters
-  data/            DataFrames + numpy + scipy
-  ml/              Anomaly detection + ML pipeline
-  geo/             Geocoding + PostGIS + GeoJSON utils
-  reports/         WeasyPrint + Jinja2 templates + charts
-  notifications/   Telegram + Email dispatcher (multi-channel parallel send)
-  database/        Multi-DB adapter (PG/MySQL/SQLite) + safe SELECT + NL→SQL agent
-  shared-types/    TypeScript types for all frontends
-  ui/              Tailwind preset (colors + fonts + animations)
+  llm/  LLM AdapterFactory + cascade + circuit breaker (free-tier models)
+  agents/  LangGraph DAG + CrewAI crews + Orchestrator
+  rag/  sentence-aware chunking + SBERT embeddings + FAISS / pgvector + filters
+  data/  DataFrames + numpy + scipy
+  ml/  Anomaly detection + ML pipeline
+  geo/  Geocoding + PostGIS + GeoJSON utils
+  reports/  WeasyPrint + Jinja2 templates + charts
+  notifications/  Telegram + Email dispatcher (multi-channel parallel send)
+  database/  Multi-DB adapter (PG/MySQL/SQLite) + safe SELECT + NL→SQL agent
+  shared-types/  TypeScript types for all frontends
+  ui/  Tailwind preset (colors + fonts + animations)
 supabase/
-  migrations/      001_initial · 002_pgvector · 003_postgis
-docs/              Architecture + system prompt
+  migrations/  001_initial · 002_pgvector · 003_postgis
+docs/  Architecture + system prompt
 ```
 
 ## Quick start
@@ -115,9 +115,9 @@ cd services/api && uvicorn app.main:app --reload
 # → http://localhost:8000  (interactive docs at /docs)
 
 # 6. Pick a frontend (separate terminal)
-pnpm dev:svelte    # → http://localhost:5173
-pnpm dev:next      # → http://localhost:3000
-pnpm dev:vue       # → http://localhost:3001
+pnpm dev:svelte  # → http://localhost:5173
+pnpm dev:next  # → http://localhost:3000
+pnpm dev:vue  # → http://localhost:3001
 ```
 
 ## API surface
@@ -148,13 +148,13 @@ pnpm dev:vue       # → http://localhost:3001
 All responses follow `{data, error, meta}`. SSE events:
 
 ```ts
-{ type: "status",       node: "router",  content: "Classifying intent..." }
-{ type: "status",       node: "router",  content: "intent: research" }
-{ type: "status",       node: "researcher", content: "5 findings collected" }
-{ type: "crew_status",  agent: "analyst",   task: "starting" }
-{ type: "token",        content: "Vector " }
+{ type: "status",  node: "router",  content: "Classifying intent..." }
+{ type: "status",  node: "router",  content: "intent: research" }
+{ type: "status",  node: "researcher", content: "5 findings collected" }
+{ type: "crew_status",  agent: "analyst",  task: "starting" }
+{ type: "token",  content: "Vector " }
 { type: "done" }
-{ type: "error",        error: "..." }
+{ type: "error",  error: "..." }
 ```
 
 ## LLM cascade strategies
@@ -184,7 +184,7 @@ Result: casual chat ("hola", "qué hora es") stays low-latency; complex question
 
 ```
 START → router ──intent=chat──→ responder ──→ END
-            └──intent=research/analysis/writing──→ researcher → analyst → writer → END
+  └──intent=research/analysis/writing──→ researcher → analyst → writer → END
 ```
 
 The runner ([`graphs/runner.py`](packages/agents/agentos_agents/graphs/runner.py:1)) emits SSE events at every node boundary and streams tokens during the final node so the UI sees reasoning in real time.

@@ -35,6 +35,8 @@ from pydantic import BaseModel
 
 # Importar SOLO los routers de AguaMind (sin LLM/RAG/etc)
 from app.routers import water, mitigation
+from app.sensors.normalizer import normalize, normalize_payload
+from app.sensors.schemas import IngestPayload, IngestResult
 
 
 app = FastAPI(
@@ -120,6 +122,18 @@ class StubAgent:
 _agent = StubAgent()
 
 
+@app.on_event("startup")
+async def _autostart_agent():
+    """Arranca el agente automaticamente cuando el backend levanta.
+    Ejecuta el primer ciclo inmediato + ciclos cada 30s en background."""
+    if not _agent.running:
+        _agent.running = True
+        # Ejecutar 1 ciclo inmediato para que el dashboard tenga datos al cargar
+        await _agent.run_cycle()
+        _agent._task = asyncio.create_task(_agent.start())
+        print("[startup] Agente AguaMind iniciado automaticamente (cada 30s)")
+
+
 @app.get("/", tags=["meta"])
 async def root():
     return {
@@ -145,6 +159,42 @@ async def root():
 # ── Routers principales del simulador ────────────────────────────────────
 app.include_router(water.router,      prefix="/water", tags=["water"])
 app.include_router(mitigation.router, prefix="/water", tags=["mitigation"])
+
+
+# ── Normalizador universal de sensores ───────────────────────────────────
+# Acepta CUALQUIER formato (JSON, CSV, NDJSON, ESP32 compacto, Modbus, OPC-UA,
+# SCADA tag-based, MQTT) y devuelve lecturas canonicas listas para analisis.
+
+@app.post("/water/ingest/universal", response_model=IngestResult, tags=["water-ingest"])
+async def ingest_universal(p: IngestPayload):
+    """Endpoint universal de ingesta. Detecta el formato si no se especifica."""
+    return normalize_payload(p)
+
+
+@app.get("/water/ingest/formats", tags=["water-ingest"])
+async def list_formats():
+    """Formatos soportados por el normalizador universal."""
+    return {
+        "data": {
+            "formats": [
+                {"name": "auto",          "desc": "Detecta automaticamente el formato"},
+                {"name": "json",          "desc": "Objeto JSON plano o estructurado"},
+                {"name": "json_array",    "desc": "Lista de objetos JSON"},
+                {"name": "ndjson",        "desc": "Newline-delimited JSON (un dict por linea)"},
+                {"name": "csv",           "desc": "CSV con header timestamp,sensor_id,model,value"},
+                {"name": "esp32_compact", "desc": "Formato compacto del firmware ESP32 de AguaMind"},
+                {"name": "modbus",        "desc": "Lista [(addr, valor), ...] de holding registers"},
+                {"name": "scada",         "desc": "Tag-based SCADA (FT-101, PT-201, ...)"},
+                {"name": "opcua",         "desc": "OPC-UA con NodeId -> {Value, SourceTimestamp}"},
+                {"name": "mqtt",          "desc": "Topic + payload (incluye topic en parametro mqtt_topic)"},
+            ],
+            "sensors_registered": [
+                "YF-S201", "YF-DN50", "MPX5700AP", "JSN-SR04T", "SW-420",
+                "FREATIC-4-20MA", "TSD-10", "SEN0161", "ORP", "DFR0300",
+            ],
+        },
+        "error": None,
+    }
 
 
 # ── Endpoints del agente (versión stub para demo) ────────────────────────
@@ -195,9 +245,20 @@ from datetime import datetime as _dt
 _AGENT_HISTORY: list[dict] = []   # historial de eventos para análisis
 
 
+_PLACEHOLDER_KEYS = {"gsk_...", "sk-or-...", "AIza...", "your-key", "changeme", ""}
+
+
+def _real_key(env_var: str) -> str | None:
+    """Devuelve el valor de la env var solo si parece una clave real (no placeholder)."""
+    v = (os.getenv(env_var) or "").strip()
+    if not v or v in _PLACEHOLDER_KEYS or v.endswith("..."):
+        return None
+    return v
+
+
 def _llm_gemini(messages: list[dict]) -> str:
     """Llama a Gemini API REST (gratis)."""
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = _real_key("GEMINI_API_KEY")
     if not api_key:
         return None
 
@@ -223,7 +284,7 @@ def _llm_gemini(messages: list[dict]) -> str:
 
 def _llm_groq(messages: list[dict]) -> str:
     """Llama a Groq LLM (fallback)."""
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = _real_key("GROQ_API_KEY")
     if not api_key:
         return None
     payload = _json.dumps({
@@ -260,14 +321,201 @@ def _llm_complete(messages: list[dict], model: str = None) -> str:
     return _fallback_response(messages)
 
 
-def _fallback_response(messages: list[dict]) -> str:
-    """Genera respuesta basada en pregunta + estado en vivo (sin LLM externo).
+# --- Clasificador de intencion conversacional --------------------------------
+# Cada intencion tiene un peso de palabras clave. La pregunta se evalua
+# contra TODAS las intenciones en paralelo y se generan fragmentos para las
+# que pasan el umbral. Esto permite preguntas multi-intencion como
+# "como esta el sistema y hay alguna fuga".
 
-    IMPORTANTE: solo evalúa la PREGUNTA del usuario, no el contexto inyectado,
-    para evitar matches accidentales con palabras del state.
-    """
+_INTENT_KEYWORDS = {
+    "saludo":      [("hola", 3), ("buenas", 2), ("buenos dias", 3), ("saludos", 2),
+                    ("hey", 2), ("hi", 2), ("que tal", 2)],
+    "fuga":        [("fuga", 4), ("perdida", 3), ("perdidas", 3), ("leak", 3),
+                    ("vibracion", 2), ("rotura", 3), ("anomal", 2), ("alerta", 2),
+                    ("falla", 2), ("problema", 1), ("critico", 1)],
+    "calidad":     [("calidad", 4), ("turbidez", 4), ("ntu", 3), ("potable", 3),
+                    ("limpia", 2), ("ica", 2), ("contamin", 2), ("cloro", 2),
+                    ("ph", 2), ("nitrato", 3), ("fosfato", 3), ("microbio", 3)],
+    "tanques":     [("tanque", 4), ("tank", 3), ("almacenamiento", 3), ("nivel", 2),
+                    ("lleno", 2), ("vacio", 2), ("reserva", 2)],
+    "presion":     [("presion", 4), ("kpa", 3), ("psi", 3), ("bomba", 3),
+                    ("hidroneumatic", 3), ("flujo", 1)],
+    "freatico":    [("freatico", 4), ("acuifero", 4), ("pozo", 3), ("aljibe", 3),
+                    ("subterran", 2)],
+    "sensores":    [("sensor", 3), ("medicion", 2), ("instrument", 2),
+                    ("dispositivo", 2), ("ft-", 2), ("pt-", 2), ("at-", 2)],
+    "mitigacion":  [("mitig", 4), ("accion", 3), ("recomend", 3), ("hacer", 1),
+                    ("debo", 2), ("hago", 2), ("sugiere", 2), ("consejo", 2),
+                    ("solucion", 3), ("estrategia", 2)],
+    "normativa":   [("norma", 3), ("decreto", 4), ("resolucion", 4), ("ley", 2),
+                    ("cumple", 3), ("incumple", 4), ("invima", 3), ("cvc", 3),
+                    ("0631", 4), ("2115", 4), ("1575", 4), ("1076", 4)],
+    "sostenibilidad": [("ahorro", 3), ("ods", 4), ("sostenib", 3), ("ambient", 3),
+                    ("co2", 3), ("huella", 3), ("ecolog", 3), ("verde", 2)],
+    "agente":      [("agente", 4), ("multi-agent", 5), ("multiagent", 5),
+                    ("inteligencia", 2), ("quien eres", 4), ("que eres", 4),
+                    ("orchestrator", 3), ("ia", 2)],
+    "general":     [("resumen", 4), ("estado", 2), ("general", 2), ("status", 3),
+                    ("como va", 3), ("como esta", 3), ("dashboard", 2),
+                    ("kpi", 3), ("tpp", 3), ("ieh", 3), ("cpe", 3)],
+    "reuso":       [("reuso", 4), ("reutiliza", 4), ("residual", 3), ("ptar", 3),
+                    ("riego", 2), ("gris", 2), ("vertimiento", 3)],
+    "fenomeno":    [("nino", 4), ("sequia", 4), ("lluvia", 2), ("ideam", 3),
+                    ("clima", 2), ("emergencia", 2), ("drought", 4)],
+    "fuentes":     [("fuente", 3), ("sanitario", 3), ("orinal", 3), ("lavamanos", 3),
+                    ("ducha", 2), ("bano", 2), ("inodoro", 2)],
+}
+
+
+def _score_intents(question: str) -> list[tuple[str, int]]:
+    q = question.lower()
+    scores: dict[str, int] = {}
+    for intent, kws in _INTENT_KEYWORDS.items():
+        s = 0
+        for kw, w in kws:
+            if kw in q:
+                s += w
+        if s > 0:
+            scores[intent] = s
+    return sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+
+def _frag_saludo(r, kpis, alerts):
+    crit = sum(1 for k in kpis.values() if k["status"] == "critical")
+    base = "Hola, soy el agente conversacional de AguaMind OS."
+    if crit:
+        return f"{base} Veo {len(alerts)} alertas activas y {crit} KPIs en rojo, asi que hay temas por resolver."
+    if alerts:
+        return f"{base} Hay {len(alerts)} alertas pero sin nada critico ahora."
+    return f"{base} El sistema esta tranquilo. En que te ayudo?"
+
+
+def _frag_fuga(r, kpis, alerts):
+    cost = int(r["losses_l_min"] * 1440 * 3.5)
+    severity = "Critica" if kpis["TPP"]["status"] == "critical" else "moderada"
+    vib = "Si, vibracion confirmada por SW-420 en Bloque A." if r["vibration"] else "Sin vibracion anomala."
+    extra = " Recomiendo cerrar EV-A2 y mandar tecnico al tramo." if kpis["TPP"]["status"] == "critical" else ""
+    return (f"TPP {kpis['TPP']['value']}% (meta <10%), severidad {severity}. {vib} "
+            f"Costo estimado del desperdicio: ${cost:,} COP/dia.{extra}")
+
+
+def _frag_calidad(r, kpis, alerts):
+    in_norm = r["turbidity_ntu"] <= 4
+    estado = "dentro de Resolucion 2115/2007" if in_norm else "FUERA de norma - suspender distribucion"
+    return (f"Turbidez {r['turbidity_ntu']} NTU ({estado}, limite 4). "
+            f"Indice de calidad ICA: {kpis['ICA']['value']} pts.")
+
+
+def _frag_tanques(r, kpis, alerts):
+    pump = "encendida" if r["pump_active"] else "en standby"
+    return (f"Tanque A {r['tank_a_pct']}% ({r['tank_a_l']:,} L de 36,000). "
+            f"Tanque B {r['tank_b_pct']}% ({r['tank_b_l']:,} L de 16,000). "
+            f"La bomba esta {pump}.")
+
+
+def _frag_presion(r, kpis, alerts):
+    rango = "rango optimo" if 200 <= r["pressure_kpa"] <= 400 else "fuera del rango optimo (200-400 kPa)"
+    return (f"Presion red {r['pressure_kpa']} kPa, {rango}. "
+            f"{'Vibracion detectada - investigar fuga.' if r['vibration'] else 'Sistema mecanico estable.'}")
+
+
+def _frag_freatico(r, kpis, alerts):
+    estado = "BAJO el umbral de 4m, riesgo de sobreexplotacion" if r["phreatic_m"] < 4 else "saludable"
+    return (f"Nivel freatico {r['phreatic_m']} m, {estado}. "
+            f"Aljibes 1+2 entregando {r['flow1_lmin']}+{r['flow2_lmin']} = {r['total_flow_lmin']} L/min. "
+            f"Monitoreo cumple Decreto 1076/2015.")
+
+
+def _frag_sensores(r, kpis, alerts):
+    return ("Tengo 6 sensores activos: YF-S201 caudal, MPX5700AP presion, JSN-SR04T nivel, "
+            "SW-420 vibracion, transductor 4-20mA freatico y TSD-10 turbidez. "
+            "Muestreo a 1 Hz, transmision MQTT cada 30s. El normalizador acepta JSON, CSV, "
+            "Modbus, OPC-UA y SCADA tag-based.")
+
+
+def _frag_mitigacion(r, kpis, alerts):
+    if kpis["TPP"]["status"] == "critical":
+        return ("Como hay TPP critica, mi recomendacion es: 1) cerrar EV-A2 inmediato, "
+                "2) bomba a standby, 3) inspeccion fisica del tramo Bloque A, "
+                "4) generar OT con ID rastreable.")
+    if r["turbidity_ntu"] > 4:
+        return ("Por turbidez fuera de norma: 1) suspender distribucion en Tank A, "
+                "2) retrolavado de filtros, 3) tomar muestra al INVIMA.")
+    return "Estado tranquilo, sigo monitoreando ciclos de 30s y aviso si algo se sale de rango."
+
+
+def _frag_normativa(r, kpis, alerts):
+    crit = [a for a in alerts if a["level"] == "critical"]
+    cumple = "Sin incumplimientos criticos ahora." if not crit else f"Hay {len(crit)} parametros fuera de norma."
+    return ("Normativas que vigilo: Decreto 1575/2007 y Resolucion 2115/2007 (calidad), "
+            "Decreto 1076/2015 (acuifero), Resolucion 0631/2015 (vertimientos), "
+            f"Resolucion 1207/2014 (reuso). {cumple}")
+
+
+def _frag_sostenibilidad(r, kpis, alerts):
+    return ("Aporto a 5 ODS: agua limpia (TPP 25%->10%), industria (IoT+IA en planta de 2011), "
+            "ciudades sostenibles (modelo replicable), produccion responsable (7 mudas Lean), "
+            "accion climatica (~2.3 ton CO2/ano evitadas).")
+
+
+def _frag_agente(r, kpis, alerts):
+    return ("Soy el agente conversacional de AguaMind OS. Coordino 5 agentes especializados: "
+            "Orchestrator, Systems (KPIs+IsolationForest), Sensor (validacion), "
+            "Industrial (Lean+ML predictivo) y Mitigation (accion). "
+            "Cada uno hace analisis descriptivo, predictivo o prescriptivo segun toque.")
+
+
+def _frag_general(r, kpis, alerts):
+    return (f"Estado en vivo: {len(alerts)} alertas, IEH {kpis['IEH']['value']}% [{kpis['IEH']['status']}], "
+            f"TPP {kpis['TPP']['value']}% [{kpis['TPP']['status']}], CPE {kpis['CPE']['value']} L/est. "
+            f"Caudal {r['total_flow_lmin']} L/min, presion {r['pressure_kpa']} kPa, "
+            f"tanques A {r['tank_a_pct']}% / B {r['tank_b_pct']}%.")
+
+
+def _frag_reuso(r, kpis, alerts):
+    return ("Estrategia de reuso (Resolucion 1207/2014): aguas tratadas en las 2 PTAR "
+            "(Alameda y Entrada, 2 modulos cada una, 4,000 est cap total) -> "
+            "1) riego de Cancha+Jardines (objetivo 2,200 L/dia desde 4,000), "
+            "2) cisternas sanitarias del Bloque A. Solo el excedente va a vertimiento al rio Pance.")
+
+
+def _frag_fenomeno(r, kpis, alerts):
+    return ("Plan ante fenomeno del Nino IMPLEMENTADO en la pestana Inteligencia: "
+            "el trigger drought_mode combina 6 acciones: 1) presion nocturna 38->25 PSI, "
+            "2) cierra EV-RC1 (riego), 3) bomba a modo eco_drought (-70% extraccion), "
+            "4) broadcast Telegram a 8,234 usuarios, 5) pantallas LED ALERTA SEQUIA, "
+            "6) reporte automatico CVC. Impacto proyectado: -25% consumo total, "
+            "10,400 L/dia ahorrados.")
+
+
+def _frag_fuentes(r, kpis, alerts):
+    return ("Tengo mapeadas 161 fuentes: 51 sanitarios, 53 lavamanos, 14 orinales, 14 duchas, "
+            "24 llaves, 5 lavaplatos. 67% del consumo esta en Parquesoft, 33% en Alameda. "
+            "Sanitarios + orinales se podrian abastecer con aguas reutilizadas (~5,000 L/dia).")
+
+
+_FRAGMENTS = {
+    "saludo":         _frag_saludo,
+    "fuga":           _frag_fuga,
+    "calidad":        _frag_calidad,
+    "tanques":        _frag_tanques,
+    "presion":        _frag_presion,
+    "freatico":       _frag_freatico,
+    "sensores":       _frag_sensores,
+    "mitigacion":     _frag_mitigacion,
+    "normativa":      _frag_normativa,
+    "sostenibilidad": _frag_sostenibilidad,
+    "agente":         _frag_agente,
+    "general":        _frag_general,
+    "reuso":          _frag_reuso,
+    "fenomeno":       _frag_fenomeno,
+    "fuentes":        _frag_fuentes,
+}
+
+
+def _fallback_response(messages: list[dict]) -> str:
+    """Respuesta multi-intencion sobre estado en vivo."""
     full_user = next((m["content"] for m in messages if m["role"] == "user"), "")
-    # Extraer SOLO la pregunta real (después de "Pregunta: ")
     if "Pregunta:" in full_user:
         question = full_user.split("Pregunta:", 1)[1].strip().lower()
     else:
@@ -277,96 +525,27 @@ def _fallback_response(messages: list[dict]) -> str:
     kpis = water._calc_kpis(r)
     alerts = water._generate_alerts(r, kpis)
 
-    # 1. Saludos primero (alta prioridad)
-    if any(w in question for w in ["hola", "buenas", "buenos días", "saludos", "hi ", "hey"]) or question.strip() in ["hi", "hey"]:
-        critical_count = sum(1 for k in kpis.values() if k["status"] == "critical")
-        return (f"Hola, soy el agente de AguaMind OS. "
-                f"El sistema tiene {len(alerts)} alertas activas y {critical_count} KPIs en estado crítico. "
-                f"Caudal actual: {r['total_flow_lmin']} L/min. "
-                f"Pregúntame sobre fugas, calidad, tanques, presión o normativas.")
+    intents = _score_intents(question)
+    if not intents:
+        return (f"No identifique el tema. Te puedo contar sobre: fugas, calidad del agua, "
+                f"tanques, presion, acuifero, sensores, normativa, mitigacion, reuso de "
+                f"aguas residuales o el plan ante fenomeno del Nino. Estado actual: TPP "
+                f"{kpis['TPP']['value']}%, caudal {r['total_flow_lmin']} L/min, "
+                f"{len(alerts)} alertas.")
 
-    # 2. Calidad del agua (PRIORIDAD ALTA — antes que "cómo está")
-    if any(w in question for w in ["calidad", "turbidez", "potable", "potabilidad", "ica", "limpia"]):
-        in_norm = r['turbidity_ntu'] <= 4
-        return (f"Turbidez: {r['turbidity_ntu']} NTU "
-                f"({'dentro' if in_norm else 'FUERA'} de Resolución 2115/2007, límite 4 NTU). "
-                f"ICA: {kpis['ICA']['value']} pts. "
-                f"{'Cumplimiento sanitario OK.' if in_norm else 'Suspender distribución, revisar filtros de carbón.'}")
+    fragments: list[str] = []
+    seen: set[str] = set()
+    for intent, _score in intents[:3]:
+        if intent in seen:
+            continue
+        seen.add(intent)
+        gen = _FRAGMENTS.get(intent)
+        if gen:
+            fragments.append(gen(r, kpis, alerts))
 
-    # 3. Fugas / pérdidas / fallas (alta prioridad)
-    if any(w in question for w in ["fuga", "pérdida", "perdida", "leak", "fallo", "falla", "problema", "crítico", "critico", "anomal", "alerta", "qué pasa", "que pasa", "qué hay", "que hay"]):
-        return (f"Detectamos pérdidas del {kpis['TPP']['value']}% (meta < 10%). "
-                f"Vibración: {'detectada' if r['vibration'] else 'estable'}. "
-                f"Costo proyectado: ${int(r['losses_l_min']*1440*3.5):,} COP/día. "
-                f"Acción recomendada: cerrar EV-A2 e inspeccionar red Bloque A.")
-
-    # 4. Tanques específicamente
-    if any(w in question for w in ["tanque", "tank", "almacenamiento"]):
-        return (f"Tanque A: {r['tank_a_pct']}% ({r['tank_a_l']:,} L de 36,000). "
-                f"Tanque B: {r['tank_b_pct']}% ({r['tank_b_l']:,} L de 16,000). "
-                f"Bomba: {'ACTIVA' if r['pump_active'] else 'OFF'}. "
-                f"Umbral activación bomba: 66.7% (24,000 L).")
-
-    # 4b. Acuífero / freático (PRIORIDAD ALTA — antes que "cómo está")
-    if any(w in question for w in ["acuífero", "acuifero", "freático", "freatico", "pozo", "aljibe"]):
-        return (f"Nivel freático: {r['phreatic_m']} m. "
-                f"Caudal aljibes 1+2: {r['flow1_lmin']} + {r['flow2_lmin']} = {r['total_flow_lmin']} L/min. "
-                f"{'⚠ Bajo umbral seguro de 4m.' if r['phreatic_m'] < 4 else 'Acuífero saludable.'} "
-                f"Cumplimiento Decreto 1076/2015 monitoreado.")
-
-    # 4c. Sensores (PRIORIDAD ALTA)
-    if any(w in question for w in ["sensor", "sensores", "medición", "medicion", "instrumento"]):
-        return (f"6 sensores activos: caudal (YF-S201), presión (MPX5700AP), nivel (JSN-SR04T), "
-                f"vibración (SW-420), freático (4-20mA), turbidez (TSD-10). "
-                f"Estado: 6/6 OK. "
-                f"Frecuencia muestreo 1s, transmisión MQTT cada 30s.")
-
-    # 4d. Sostenibilidad / ODS (PRIORIDAD ALTA)
-    if any(w in question for w in ["ahorro", "ods", "sostenib", "ambiente", "co2", "ecolog"]):
-        return ("AguaMind OS aporta a 4 ODS: agua limpia (reducción 60% pérdidas), "
-                "industria e innovación (IoT+IA), ciudades sostenibles (modelo replicable), "
-                "producción responsable (Lean · 7 mudas). "
-                "16.5M L recuperados y 7.6 ton CO₂ evitados en 5 años.")
-
-    # 4e. Mitigación / acción (PRIORIDAD ALTA)
-    if any(w in question for w in ["acción", "accion", "mitig", "qué hacer", "que hacer", "qué debo", "que debo", "qué hago", "que hago", "recomend", "sugiere", "sugerencia", "consejo"]):
-        return (f"Acciones recomendadas según estado actual: "
-                f"{'1) Cerrar EV-A2 inmediato. 2) Bomba a standby. 3) Inspección física tramo Bloque A.' if kpis['TPP']['status'] == 'critical' else '1) Mantener monitoreo. 2) Continuar ciclos del agente.'}")
-
-    # 4f. Sobre el agente (PRIORIDAD ALTA)
-    if any(w in question for w in ["agente", "ia ", " ia", "ai ", " ai", "inteligencia", "quién eres", "quien eres"]):
-        return ("Soy el agente de AguaMind OS, sistema multi-agente con 5 sub-agentes especializados: "
-                "Orchestrator, Systems, Sensor, Industrial y Mitigation. "
-                "Caracterizo datos en vivo y propongo estrategias de mitigación. "
-                "Datos de 4 tesis UNIAJC integrados.")
-
-    # 5. Resumen general (después de las preguntas específicas)
-    if any(w in question for w in ["resumen", "estado general", "general", "status", "cómo está", "como esta"]):
-        return (f"Sistema con {len(alerts)} alertas activas. "
-                f"IEH={kpis['IEH']['value']}% [{kpis['IEH']['status']}], "
-                f"TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}], "
-                f"CPE={kpis['CPE']['value']} L/est. "
-                f"Tanque A {r['tank_a_pct']}% · B {r['tank_b_pct']}%. "
-                f"Caudal {r['total_flow_lmin']} L/min · presión {r['pressure_kpa']} kPa.")
-
-    # 6. Presión / bomba
-    if any(w in question for w in ["bomba", "presión", "presion", "kpa"]):
-        return (f"Presión red: {r['pressure_kpa']} kPa (rango óptimo 200-400). "
-                f"Bomba en modo {'AUTO/activa' if r['pump_active'] else 'STANDBY'}. "
-                f"{'⚠ Vibración anómala detectada.' if r['vibration'] else 'Sistema mecánico estable.'}")
-
-    # 7. Normativas (al final por menor prioridad)
-    if any(w in question for w in ["norma", "ley", "decreto", "resolución", "resolucion", "cumple", "incumple"]):
-        critical = [a for a in alerts if a["level"] == "critical"]
-        return ("Normativas integradas: Decreto 1575/2007, Resolución 2115/2007 (calidad), "
-                "Decreto 1076/2015 (acuífero), Resolución 0631/2015 (vertimientos). "
-                f"Score actual: 6/8 cumplimiento. "
-                f"{'⚠ Revisar parámetros fuera de norma.' if critical else 'Sin incumplimientos críticos ahora.'}")
-
-    # Default
-    return (f"Pregunta no reconocida. Estado actual: IEH {kpis['IEH']['value']}%, "
-            f"TPP {kpis['TPP']['value']}%, caudal {r['total_flow_lmin']} L/min. "
-            f"Prueba con: 'fuga', 'tanque', 'calidad', 'presión', 'acuífero', 'normativa', 'sensores'.")
+    note = "" if (_real_key("GEMINI_API_KEY") or _real_key("GROQ_API_KEY")) \
+              else "  [respuesta local sin LLM externo configurado]"
+    return " ".join(fragments) + note
 
 
 def _system_prompt() -> str:
