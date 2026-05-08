@@ -761,21 +761,6 @@
   </div>
   </div>
 
-  <!-- Validación cruzada: método operario + sensor -->
-  <div class="mt-6 rounded-xl border border-emerald-500/[0.15] bg-emerald-500/[0.03] px-4 py-3 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-3 min-w-0">
-      <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded shrink-0">híbrido</span>
-      <div class="text-[11px] text-slate-300 truncate">
-        <span class="text-emerald-400">Bitácora 17:30 / 07:00</span>
-        <span class="text-slate-500 mx-1">+</span>
-        <span class="text-emerald-400">JSN-SR04T cada 30s</span>
-        <span class="text-slate-500 mx-1">→</span>
-        <span class="text-slate-400">doble método</span>
-      </div>
-    </div>
-    <span class="text-[10px] font-mono text-slate-500 shrink-0">1 cm = 160 L</span>
-  </div>
-
   <!-- Sección Consumo por Zona -->
   <div class="mb-3 mt-6">
   <div class="flex items-baseline justify-between mb-3">

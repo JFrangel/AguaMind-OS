@@ -177,9 +177,14 @@ def _simulate_sensors(
     total_flow = flow1_lmin + flow2_lmin
 
     # ── Sensor 3: Nivel tanques (JSN-SR04T) ──
-    net = total_flow - (DAILY_CONSUMPTION_L / 1440) * factor
-    tank_a_pct = min(100.0, max(5.0, 65.0 + net * 0.4 + random.uniform(-2, 2)))
-    tank_b_pct = min(100.0, max(5.0, 72.0 + net * 0.3 + random.uniform(-2, 2)))
+    # Modelo realista: tanques bajan en horas pico (consumo > suministro)
+    # y se recargan en horas valle (suministro > consumo).
+    # Patrón típico: alto en madrugada (90%) → mínimo 14-15h (45%) → recupera hacia 22h
+    # Usamos coseno desfasado: máximo a las 5 AM, mínimo a las 14:00
+    base_a_curve = 70.0 + 22.0 * math.cos((hour - 5) * math.pi / 12)  # oscila 48-92
+    base_b_curve = 75.0 + 18.0 * math.cos((hour - 6) * math.pi / 12)  # oscila 57-93
+    tank_a_pct = round(min(95.0, max(30.0, base_a_curve + random.uniform(-3, 3))), 1)
+    tank_b_pct = round(min(95.0, max(35.0, base_b_curve + random.uniform(-2.5, 2.5))), 1)
     pump_active = tank_a_pct < THRESHOLDS["tank_a_pump_on"]
 
     # ── Sensor 2: Presión red (MPX5700AP) ──
