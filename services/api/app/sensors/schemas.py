@@ -1,5 +1,5 @@
 """
-Camaleón OS - Esquemas canonicos para datos normalizados de sensores.
+HidroTech - Esquemas canonicos para datos normalizados de sensores.
 
 Toda lectura cruda (en cualquier formato de entrada) se convierte a este formato
 canonico antes de entrar al sistema de analisis. Esto permite que los agentes,

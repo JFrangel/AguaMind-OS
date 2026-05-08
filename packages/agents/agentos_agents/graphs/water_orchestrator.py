@@ -1,5 +1,5 @@
 """
-Camaleón OS — Sistema Multi-Agente de Gestión Hídrica
+HidroTech — Sistema Multi-Agente de Gestión Hídrica
 UNIAJC Sede Sur · Hackathon 2026
 
 4 agentes especializados coordinados por el Orchestrator:
@@ -19,7 +19,7 @@ from langgraph.graph import END, StateGraph
 
 from agentos_agents.state import AgentState
 
-logger = logging.getLogger("camaleon.orchestrator")
+logger = logging.getLogger("hidrotech.orchestrator")
 
 # ── WaterState — estado compartido entre todos los agentes ──────────────────
 from typing import TypedDict, Annotated
@@ -290,7 +290,7 @@ async def alerting_node(state: WaterState, backend_url: str) -> WaterState:
     warnings = [a for a in alerts if a["level"] == "warning"]
 
     lines = [
-        f"{level_emoji} *Camaleón OS — UNIAJC Sede Sur*",
+        f"{level_emoji} *HidroTech — UNIAJC Sede Sur*",
         f"Estado: *{decision.upper()}* | {datetime.now().strftime('%H:%M')}",
         "",
         f"💧 Caudal: {r.get('total_flow_lmin', 0):.1f} L/min",
@@ -346,7 +346,7 @@ def _route_after_deciding(state: WaterState) -> str:
 # ── Construcción del grafo LangGraph ───────────────────────────────────────
 def build_water_orchestrator(backend_url: str):
     """
-    Construye el grafo multi-agente Camaleón OS.
+    Construye el grafo multi-agente HidroTech.
 
     Flujo:
       monitoring ──▶ [systems + sensor + industrial en paralelo conceptual]

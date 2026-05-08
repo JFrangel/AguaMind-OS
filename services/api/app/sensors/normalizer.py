@@ -1,5 +1,5 @@
 """
-Camaleón OS - Normalizador universal de sensores.
+HidroTech - Normalizador universal de sensores.
 
 Pipeline:
   payload (cualquier formato) -> detector -> adapter -> registry -> CanonicalReading

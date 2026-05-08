@@ -1,5 +1,5 @@
 """
-Camaleón OS — Notificador push del agente IA hacia Telegram.
+HidroTech — Notificador push del agente IA hacia Telegram.
 
 Usado por el WaterMonitorAgent para enviar alertas críticas
 automáticamente al chat configurado en TELEGRAM_CHAT_ID.
@@ -14,7 +14,7 @@ from datetime import datetime
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-logger = logging.getLogger("camaleon.notifier")
+logger = logging.getLogger("hidrotech.notifier")
 
 TELEGRAM_API = "https://api.telegram.org"
 
@@ -68,7 +68,7 @@ def format_alert(reading: dict, kpis: dict, alerts: list[dict], decision: str) -
     warnings = [a for a in alerts if a.get("level") == "warning"]
 
     lines = [
-        f"{icon} *Camaleón OS — UNIAJC Sede Sur*",
+        f"{icon} *HidroTech — UNIAJC Sede Sur*",
         f"Estado: *{decision.upper()}* · {ts}",
         "",
         f"💧 Caudal: `{reading.get('total_flow_lmin', 0):.1f}` L/min",
@@ -99,7 +99,7 @@ def format_daily_report(report: dict) -> str:
     cb = report.get("cost_benefit", {})
 
     lines = [
-        "📊 *Camaleón OS — Reporte Diario*",
+        "📊 *HidroTech — Reporte Diario*",
         f"_{report.get('report_date', '')}_  ·  {report.get('campus', '')}",
         "",
         f"✓ Consumo total: `{s.get('total_consumed_l', 0):,}` L",
@@ -135,7 +135,7 @@ def notify_daily_report(report: dict) -> bool:
 # ── Test directo ─────────────────────────────────────────────────────────
 if __name__ == "__main__":
     msg = (
-        "🔔 *Test Camaleón OS*\n\n"
+        "🔔 *Test HidroTech*\n\n"
         "Si recibes este mensaje, el bot está configurado correctamente.\n"
         f"Hora: {datetime.now().strftime('%H:%M:%S')}\n"
         f"Bot listo para recibir alertas del agente IA."

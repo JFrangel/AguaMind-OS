@@ -67,7 +67,7 @@ def main() -> None:
     app.add_handler(CommandHandler("report", report))
     app.add_handler(CommandHandler("status", status))
 
-    # ── Camaleón OS — water management commands ────────────────────────────
+    # ── HidroTech — water management commands ────────────────────────────
     app.add_handler(CommandHandler("agua", agua_status))
     app.add_handler(CommandHandler("estado", agua_status))
     app.add_handler(CommandHandler("zonas", zonas))
@@ -78,12 +78,12 @@ def main() -> None:
     app.add_handler(CommandHandler("riego", demo_riego))
     app.add_handler(CommandHandler("normal", demo_normal))
 
-    # ── Camaleón OS — agente IA autónomo ───────────────────────────────────
+    # ── HidroTech — agente IA autónomo ───────────────────────────────────
     app.add_handler(CommandHandler("agente_start", agente_start))
     app.add_handler(CommandHandler("agente_stop", agente_stop))
     app.add_handler(CommandHandler("agente_status", agente_status))
 
-    # ── Camaleón OS — mitigación + gamificación ────────────────────────────
+    # ── HidroTech — mitigación + gamificación ────────────────────────────
     app.add_handler(CommandHandler("mitigar", mitigar))
     app.add_handler(CommandHandler("mitigaciones", mitigaciones))
     app.add_handler(CommandHandler("ranking", ranking))

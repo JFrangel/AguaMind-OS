@@ -1,9 +1,9 @@
 <script lang="ts">
-  // Camaleón OS — Landing de arquitectura
+  // HidroTech — Landing de arquitectura
 </script>
 
 <svelte:head>
-  <title>Camaleón OS · Sistema multi-agente de gestión hídrica</title>
+  <title>HidroTech · Sistema multi-agente de gestión hídrica</title>
 </svelte:head>
 
 <div class="min-h-screen bg-[#0a0e14] text-slate-100" style="font-family: 'Inter', -apple-system, system-ui, sans-serif;">
@@ -20,7 +20,7 @@
         </div>
         <div class="leading-tight">
           <h1 class="text-[15px] font-semibold tracking-tight text-white flex items-center gap-1.5">
-            Camaleón <span class="text-sky-400 font-light">OS</span>
+            HidroTech <span class="text-sky-400 font-light">OS</span>
           </h1>
           <p class="text-[11px] text-slate-500 mt-0.5 tracking-wide">UNIAJC Sede Sur · Hackathon 2026</p>
         </div>
@@ -170,7 +170,7 @@
           {/each}
         </div>
         <div class="mt-5 pt-4 border-t border-white/[0.04] text-[10px] text-slate-500 text-center font-mono">
-          Camaleón OS = 7 capas independientes · cada una reemplazable sin afectar las demás
+          HidroTech = 7 capas independientes · cada una reemplazable sin afectar las demás
         </div>
       </div>
     </section>
@@ -206,7 +206,7 @@
 
     <!-- CTA FINAL -->
     <section class="rounded-3xl border border-sky-500/20 bg-gradient-to-br from-sky-500/[0.08] via-cyan-500/[0.04] to-transparent p-10 text-center mb-12">
-      <h3 class="text-[28px] font-semibold tracking-tight text-white mb-3">Camaleón se adapta · vigila · actúa</h3>
+      <h3 class="text-[28px] font-semibold tracking-tight text-white mb-3">HidroTech se adapta · vigila · actúa</h3>
       <p class="text-[14px] text-slate-400 mb-6 max-w-xl mx-auto">
         El dashboard te muestra todo en vivo: KPIs, los 5 sensores, deliberación de agentes, mapa del campus, gamificación con la comunidad.
       </p>
@@ -221,7 +221,7 @@
   <!-- Footer -->
   <footer class="border-t border-white/[0.04]">
     <div class="mx-auto max-w-7xl px-6 py-6 flex flex-wrap items-center justify-between gap-3 text-[10px] text-slate-600">
-      <div>Camaleón OS · Hackathon UNIAJC 2026 · Open source MIT</div>
+      <div>HidroTech · Hackathon UNIAJC 2026 · Open source MIT</div>
       <div class="flex items-center gap-3">
         <span>Tecnología con Propósito · Inteligencia con Conciencia</span>
       </div>

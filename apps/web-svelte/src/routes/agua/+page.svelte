@@ -72,63 +72,6 @@
     {h: 20, consumo: 12, perdidas: 8}, {h: 21, consumo: 10, perdidas: 8},
     {h: 22, consumo: 12, perdidas: 9}, {h: 23, consumo: 12, perdidas: 9},
   ];
-  let infoOpen = $state<string | null>(null);  // qué tooltip de "info" está abierto
-
-  // Descripciones de cada apartado para los tooltips informativos
-  const tabInfo: Record<string, { title: string; lines: string[] }> = {
-    dashboard:  {
-      title: "Operación",
-      lines: [
-        "Vista de control en tiempo real. KPIs IEH, TPP, CPE, ICA actualizados cada 30s.",
-        "Niveles de los 2 tanques (A 36k L · B 16k L) con bomba activa/standby.",
-        "6 sensores instrumentados con valores en vivo + alertas activas con acción sugerida.",
-      ],
-    },
-    history:  {
-      title: "Tendencias",
-      lines: [
-        "Series temporales últimas 24h por sensor — caudal, presión, niveles, freático, turbidez.",
-        "Identifica patrones, picos y valles. Detecta horas pico de consumo del campus.",
-        "Análisis descriptivo del Nivel 1 del agente — base para predicción y prescripción.",
-      ],
-    },
-    industrial:  {
-      title: "Gestión Industrial",
-      lines: [
-        "KPIs con fórmula y propósito. 3 indicadores Lean (7 mudas) e Ishikawa de causa raíz.",
-        "Análisis costo-beneficio: $1.43M inversión · $20.5M ahorro/año · ROI 25 días.",
-        "Compliance normativo: Decreto 1575/2007, Resolución 2115/2007, 0631/2015, 1076/2015.",
-      ],
-    },
-    agent:  {
-      title: "Inteligencia",
-      lines: [
-        "Sistema multi-agente: 5 agentes (Orchestrator, Systems, Sensor, Industrial, Mitigation) coordinados con LangGraph.",
-        "Plan ante 5 fenómenos: sequía/El Niño, lluvias/La Niña, sismo, contaminación, pico demanda.",
-        "Razonamiento en vivo + monetización (pérdidas $/min, ahorro acumulado, CO₂ evitado).",
-        "Chat conversacional con contexto en tiempo real del sistema hídrico.",
-      ],
-    },
-    mitigation:  {
-      title: "Mapa del Campus",
-      lines: [
-        "Layout SVG del campus UNIAJC Sede Sur (38,755 m²) con 4 edificios + servicios + 2 PTAR.",
-        "Toggle vista 2D ↔ 3D (CSS perspective + drop-shadow para profundidad).",
-        "5 triggers de mitigación automática (leak, peak_irrigation, turbidity, tank_overflow, phreatic_low).",
-        "8 electroválvulas controlables vía MQTT. Estado bomba en vivo.",
-      ],
-    },
-    community:  {
-      title: "Comunidad",
-      lines: [
-        "Smart Water Ledger: ranking mensual de edificios por créditos hídricos ahorrados.",
-        "Catálogo de canjes con Bienestar Universitario (mejoras en zona común, cafetería, proyectos).",
-        "Reportes ciudadanos QR — cualquier estudiante reporta fugas y suma puntos.",
-        "Concretiza ODS 11 (ciudades sostenibles) + ODS 17 (alianzas).",
-      ],
-    },
-  };
-
   // Chat con el agente IA
   let chatMessages = $state<{role:"user"|"agent"; text:string; ts:string}[]>([]);
   let chatInput = $state("");
@@ -212,10 +155,11 @@
 
   const SUGGESTED_QUESTIONS = [
   "¿Cuál es el problema más crítico ahora?",
-  "¿Cómo está la calidad del agua?",
-  "¿Hay alguna fuga detectada?",
-  "Resumen del estado del sistema",
-  "¿Qué normativa estamos incumpliendo?",
+  "¿Hay alguna fuga detectada en la red?",
+  "¿Cómo están los tanques A y B?",
+  "¿Necesita riego la cancha (humedad H)?",
+  "¿Cuánta agua se está perdiendo por minuto?",
+  "Dame un resumen ejecutivo del estado actual",
   ];
   let liveMode = $state(true);
   let theme = $state<"dark" | "light">("dark");
@@ -502,7 +446,7 @@
 </script>
 
 <svelte:head>
-  <title>Camaleón OS · UNIAJC</title>
+  <title>HidroTech · UNIAJC</title>
 </svelte:head>
 
 <div class="min-h-screen am-root" style="font-family: 'Inter', -apple-system, system-ui, sans-serif;">
@@ -513,7 +457,7 @@
 
   <!-- Logo + título -->
   <div class="flex items-center gap-3">
-  <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+  <div class="am-keep relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
   <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white" stroke="currentColor" stroke-width="2.2">
   <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
   </svg>
@@ -521,7 +465,7 @@
   </div>
   <div class="leading-tight">
   <h1 class="text-[15px] font-semibold tracking-tight text-white flex items-center gap-1.5">
-  Camaleón <span class="text-sky-400 font-light">OS</span>
+  HidroTech <span class="text-sky-400 font-light">OS</span>
   </h1>
   <p class="text-[11px] text-slate-500 mt-0.5 tracking-wide">UNIAJC Sede Sur · Gestión Hídrica Inteligente</p>
   </div>
@@ -542,15 +486,6 @@
   <option value="soil_dry">Suelo seco (H ↓)</option>
   </select>
 
-  <button
-  onclick={() => liveMode = !liveMode}
-  class="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-md border transition-colors
-  {liveMode ? 'border-emerald-500/30 bg-emerald-500/[0.06] text-emerald-400' : 'border-white/10 bg-white/[0.04] text-slate-400'}"
-  >
-  <span class="w-1.5 h-1.5 rounded-full {liveMode ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}"></span>
-  {liveMode ? "En vivo" : "Pausado"}
-  </button>
-
   {#if lastRefresh}
   <span class="text-[11px] text-slate-500 hidden md:block">{lastRefresh.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
   {/if}
@@ -562,13 +497,11 @@
   title="Cambiar tema"
   >
   {#if theme === "dark"}
-  <!-- icono sol -->
   <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="4"/>
   <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
   </svg>
   {:else}
-  <!-- icono luna -->
   <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
   </svg>
@@ -593,44 +526,10 @@
   >
   <span class="text-[9px] font-mono opacity-60">{num}</span>
   <span>{label}</span>
-  <span
-  role="button"
-  tabindex="0"
-  onclick={(e) => { e.stopPropagation(); infoOpen = infoOpen === key ? null : key; }}
-  onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); infoOpen = infoOpen === key ? null : key; } }}
-  class="ml-1 w-4 h-4 inline-flex items-center justify-center rounded-full border text-[9px] font-mono cursor-pointer transition-colors
-  {infoOpen === key ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-white/[0.04] border-white/10 text-slate-500 hover:text-sky-400 hover:border-sky-500/30'}"
-  title="¿Qué hace esta sección?"
-  >i</span>
   </button>
   {/each}
   </div>
   </header>
-
-  <!-- Tooltip / popover de información del apartado activo -->
-  {#if infoOpen && tabInfo[infoOpen]}
-  <div class="mx-auto max-w-7xl px-6 mt-2">
-  <div class="rounded-lg border border-sky-500/[0.20] bg-gradient-to-br from-sky-500/[0.06] to-sky-500/[0.02] p-4 relative animate-fade-in">
-  <button
-  onclick={() => infoOpen = null}
-  class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/[0.04] border border-white/10 text-slate-400 hover:text-white text-[12px] flex items-center justify-center"
-  aria-label="Cerrar"
-  >×</button>
-  <div class="flex items-baseline gap-2 mb-2">
-  <span class="text-[10px] font-mono text-sky-400 tracking-wider uppercase">¿Qué es este apartado?</span>
-  <span class="text-[13px] font-semibold text-white">{tabInfo[infoOpen].title}</span>
-  </div>
-  <ul class="space-y-1 text-[11.5px] text-slate-300 leading-relaxed">
-  {#each tabInfo[infoOpen].lines as line}
-  <li class="flex gap-2">
-  <span class="text-sky-400 shrink-0">·</span>
-  <span>{line}</span>
-  </li>
-  {/each}
-  </ul>
-  </div>
-  </div>
-  {/if}
 
   <main class="mx-auto max-w-7xl px-6 py-6">
 
@@ -740,7 +639,7 @@
       </div>
       <!-- Porcentaje centrado -->
       <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span class="text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6)">{fmt(reading.tank_a_pct)}%</span>
+        <span class="am-keep am-tank-pct text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6)">{fmt(reading.tank_a_pct)}%</span>
       </div>
       <!-- Línea umbral bomba -->
       <div class="absolute left-0 right-0 border-t border-amber-500/40 border-dashed" style="bottom:66.7%">
@@ -784,7 +683,7 @@
         {/each}
       </div>
       <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span class="text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6)">{fmt(reading.tank_b_pct)}%</span>
+        <span class="am-keep am-tank-pct text-[36px] font-semibold tracking-tight text-white drop-shadow-md" style="font-family:'JetBrains Mono',monospace;text-shadow:0 2px 8px rgba(0,0,0,0.6)">{fmt(reading.tank_b_pct)}%</span>
       </div>
     </div>
   </div>
@@ -1448,44 +1347,44 @@
   </div>
   </div>
 
-  <!-- Monetización en vivo -->
-  <div class="rounded-xl border border-emerald-500/[0.18] bg-gradient-to-br from-emerald-500/[0.04] to-emerald-500/[0.01] p-5">
-  <div class="text-[11px] font-medium tracking-wider uppercase text-emerald-400 mb-1">Cómo se traduce en plata</div>
-  <div class="text-[10px] text-slate-500 mb-4">Impacto monetizado de cada decisión del agente</div>
+  <!-- Impacto hídrico en vivo -->
+  <div class="rounded-xl border border-sky-500/[0.18] bg-gradient-to-br from-sky-500/[0.04] to-sky-500/[0.01] p-5">
+  <div class="text-[11px] font-medium tracking-wider uppercase text-sky-400 mb-1">Impacto hídrico del agente</div>
+  <div class="text-[10px] text-slate-500 mb-4">Cada decisión convertida en litros recuperados y agua disponible</div>
 
-  <!-- Big number: COP en juego ahora -->
+  <!-- Big number: litros perdiéndose ahora -->
   <div class="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 mb-3">
   <div class="text-[10px] text-slate-500 uppercase tracking-wider">Pérdidas por minuto (live)</div>
-  <div class="text-[22px] font-mono font-bold text-red-400 mt-1">${reading ? Math.round(reading.losses_l_min*3.5).toLocaleString() : '—'}</div>
-  <div class="text-[9px] text-slate-500 font-mono">COP/min · tarifa industrial $3.5/L</div>
+  <div class="text-[22px] font-mono font-bold text-red-400 mt-1">{reading ? fmt(reading.losses_l_min ?? 0, 1) : '—'} L/min</div>
+  <div class="text-[9px] text-slate-500 font-mono">{reading ? Math.round(((reading.losses_l_min ?? 0)/((reading.total_flow_lmin ?? 0)||1))*100) : 0}% del caudal · meta {'<'} 10%</div>
   </div>
 
   <!-- Stack de números -->
   <div class="space-y-2 text-[11px]">
   <div class="flex items-center justify-between">
-  <span class="text-slate-400">Costo proyectado/día</span>
-  <span class="font-mono text-red-400 font-bold">${reading ? Math.round(reading.losses_l_min*1440*3.5).toLocaleString() : '—'}</span>
+  <span class="text-slate-400">Pérdida proyectada/día</span>
+  <span class="font-mono text-red-400 font-bold">{reading ? Math.round((reading.losses_l_min ?? 0)*1440).toLocaleString() : '—'} L</span>
   </div>
   <div class="flex items-center justify-between">
-  <span class="text-slate-400">Costo proyectado/año</span>
-  <span class="font-mono text-red-400 font-bold">${reading ? Math.round(reading.losses_l_min*1440*365*3.5/1_000_000).toLocaleString() : '—'} M</span>
+  <span class="text-slate-400">Pérdida proyectada/año</span>
+  <span class="font-mono text-red-400 font-bold">{reading ? Math.round((reading.losses_l_min ?? 0)*1440*365/1000).toLocaleString() : '—'} m³</span>
   </div>
   <div class="flex items-center justify-between pt-2 border-t border-white/[0.06]">
-  <span class="text-slate-400">Ahorro acumulado del agente</span>
-  <span class="font-mono text-emerald-400 font-bold">${impact ? impact.cop_saved.toLocaleString() : '0'}</span>
+  <span class="text-slate-400">Litros recuperados (acumulado)</span>
+  <span class="font-mono text-emerald-400 font-bold">{impact ? impact.liters_saved.toLocaleString() : '0'} L</span>
   </div>
   <div class="flex items-center justify-between">
-  <span class="text-slate-400">Litros recuperados</span>
-  <span class="font-mono text-sky-400 font-bold">{impact ? impact.liters_saved.toLocaleString() : '0'} L</span>
+  <span class="text-slate-400">Estudiantes·día equivalentes</span>
+  <span class="font-mono text-sky-400 font-bold">{impact ? Math.round((impact.liters_saved||0)/14.04).toLocaleString() : '0'}</span>
   </div>
   <div class="flex items-center justify-between">
-  <span class="text-slate-400">CO₂ evitado</span>
-  <span class="font-mono text-emerald-400 font-bold">{impact ? fmt(impact.co2_kg_avoided, 2) : '0'} kg</span>
+  <span class="text-slate-400">Acciones autónomas del agente</span>
+  <span class="font-mono text-amber-400 font-bold">{impact ? impact.actions_taken : '0'}</span>
   </div>
   </div>
 
   <div class="mt-4 pt-3 border-t border-white/[0.06] text-[10px] text-slate-500 leading-relaxed">
-  El agente convierte cada lectura de sensor en una decisión <span class="text-emerald-400">cuantificada en pesos</span>. El jurado puede ver el ROI ocurriendo en tiempo real.
+  El agente convierte cada lectura de sensor en una <span class="text-sky-400">decisión cuantificada en litros</span>. Cada 14.04 L recuperados equivalen al consumo diario de un estudiante UNIAJC.
   </div>
   </div>
 
@@ -1554,7 +1453,7 @@
   {#each chatMessages as msg}
   <div class="flex gap-2 {msg.role === 'user' ? 'justify-end' : 'justify-start'}">
   {#if msg.role === 'agent'}
-  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">AI</div>
+  <div class="am-keep w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">AI</div>
   {/if}
   <div class="max-w-[80%] rounded-2xl px-3 py-2 text-[12px]
   {msg.role === 'user'
@@ -1570,7 +1469,7 @@
   {/each}
   {#if chatLoading}
   <div class="flex gap-2 justify-start">
-  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">AI</div>
+  <div class="am-keep w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">AI</div>
   <div class="max-w-[80%] rounded-2xl px-3 py-2 bg-white/[0.04] border border-white/[0.06]">
   <div class="flex gap-1">
   <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style="animation-delay:0s"></span>
@@ -1621,9 +1520,9 @@
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
   {#each [
   { label: "Litros ahorrados",  value: impact?.liters_saved_formatted ?? "0 L",  accent: "#10b981", code: "L" },
-  { label: "Dinero evitado",  value: impact?.cop_saved_formatted ?? "$0 COP",  accent: "#0ea5e9", code: "$" },
-  { label: "CO₂ evitado",  value: impact?.co2_kg_formatted ?? "0 kg",  accent: "#34d399", code: "C" },
-  { label: "Acciones tomadas",  value: String(impact?.actions_taken ?? 0),  accent: "#a78bfa", code: "A" },
+  { label: "Estudiantes·día equiv.",  value: impact ? Math.round((impact.liters_saved||0)/14.04).toLocaleString() : "0",  accent: "#0ea5e9", code: "👥" },
+  { label: "Pérdidas evitadas/min",  value: reading ? `${fmt(reading.losses_l_min ?? 0, 1)} L/min` : "0 L/min",  accent: "#f59e0b", code: "P" },
+  { label: "Acciones autónomas",  value: String(impact?.actions_taken ?? 0),  accent: "#a78bfa", code: "A" },
   ] as m}
   <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
   <div class="flex items-center gap-2 mb-2">
@@ -1792,7 +1691,7 @@
   <rect x="320" y="305" width="80" height="80" rx="4" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="2"/>
   <rect x="320" y="305" width="80" height="80" rx="4" fill="rgba(34,197,94,0.30)" style="clip-path: inset({100 - (reading?.tank_a_pct ?? 65)}% 0 0 0)"/>
   <text x="360" y="328" text-anchor="middle" fill="#22c55e" font-size="11" font-family="Inter" font-weight="bold">Tank A</text>
-  <text x="360" y="352" text-anchor="middle" fill="white" font-size="16" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_a_pct, 0)}%</text>
+  <text x="360" y="352" text-anchor="middle" class="am-keep-fill" fill="white" font-size="16" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_a_pct, 0)}%</text>
   <text x="360" y="370" text-anchor="middle" fill="rgba(34,197,94,0.7)" font-size="9">36k L</text>
   </g>
 
@@ -1801,7 +1700,7 @@
   <rect x="430" y="315" width="70" height="70" rx="4" fill="rgba(56,189,248,0.10)" stroke="#38bdf8" stroke-width="2"/>
   <rect x="430" y="315" width="70" height="70" rx="4" fill="rgba(56,189,248,0.30)" style="clip-path: inset({100 - (reading?.tank_b_pct ?? 70)}% 0 0 0)"/>
   <text x="465" y="335" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="Inter" font-weight="bold">Tank B</text>
-  <text x="465" y="357" text-anchor="middle" fill="white" font-size="14" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_b_pct, 0)}%</text>
+  <text x="465" y="357" text-anchor="middle" class="am-keep-fill" fill="white" font-size="14" font-family="JetBrains Mono" font-weight="bold">{fmt(reading?.tank_b_pct, 0)}%</text>
   <text x="465" y="373" text-anchor="middle" fill="rgba(56,189,248,0.7)" font-size="8">16k L</text>
   </g>
 
@@ -2010,9 +1909,9 @@
   <div class="text-[10px] text-emerald-400 mt-0.5">colectivamente</div>
   </div>
   <div>
-  <div class="text-[26px] font-mono font-semibold text-white">{gamification.stats.co2_kg_avoided}</div>
-  <div class="text-[10px] text-slate-500 mt-0.5">kg CO₂ evitado</div>
-  <div class="text-[10px] text-emerald-400 mt-0.5">≈ {gamification.stats.trees_equivalent} árboles/año</div>
+  <div class="text-[26px] font-mono font-semibold text-white">{Math.round(gamification.stats.liters_saved_community / 14.04).toLocaleString()}</div>
+  <div class="text-[10px] text-slate-500 mt-0.5">Estudiantes·día equiv.</div>
+  <div class="text-[10px] text-emerald-400 mt-0.5">consumo recuperado</div>
   </div>
   </div>
 
@@ -2026,7 +1925,7 @@
   <!-- Perfil del usuario -->
   <div class="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-white/[0.005] p-5">
   <div class="flex items-center gap-3 mb-4">
-  <div class="relative w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[14px]">
+  <div class="am-keep relative w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[14px]">
   {gamification.user.level}
   <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 ring-2 ring-[#0a0e14] flex items-center justify-center text-[8px] text-white"></span>
   </div>
@@ -2287,7 +2186,7 @@
   <path d="M12 2.5C12 2.5 6 9 6 14a6 6 0 0012 0c0-5-6-11.5-6-11.5z" stroke-linejoin="round"/>
   </svg>
   </div>
-  <span class="text-[12px] font-semibold text-white">Camaleón OS</span>
+  <span class="text-[12px] font-semibold text-white">HidroTech</span>
   <span class="text-[10px] text-slate-500 ml-1">v1.0</span>
   </div>
   <p class="text-[10px] text-slate-500 max-w-md leading-relaxed">
@@ -2364,12 +2263,56 @@
   :global(html.light) .am-root .text-slate-400  { color: #64748b; }
   :global(html.light) .am-root .text-slate-500  { color: #475569; }
   :global(html.light) .am-root .text-slate-600  { color: #64748b; }
+  :global(html.light) .am-root .text-slate-700  { color: #334155; }
+
+  /* Texto que debe quedarse blanco aunque sea modo claro (sobre fondos de color) */
+  :global(html.light) .am-root .am-keep,
+  :global(html.light) .am-root .am-keep * { color: #ffffff !important; }
+  :global(html.light) .am-root .am-keep-fill { fill: #ffffff !important; }
 
   /* Drop-shadow para tanques en modo claro */
   :global(html.light) .am-root .drop-shadow-md { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
 
+  /* Sombras de texto sobre agua de tanque: oscurecer en modo claro para mantener legibilidad blanca */
+  :global(html.light) .am-root .am-tank-pct {
+  text-shadow: 0 2px 8px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.4) !important;
+  }
+
   /* Header sticky */
   :global(html.light) .am-root header.sticky { background: rgba(248, 250, 252, 0.95); }
+  :global(html.light) .am-root header { background: rgba(248, 250, 252, 0.92) !important; }
+
+  /* Borde del badge de notificación (era ring-2 ring-[#0a0e14]) */
+  :global(html.light) .am-root .ring-\[\#0a0e14\] { --tw-ring-color: #f8fafc; }
+
+  /* Bg negro ([#060a10]) reemplazo en modo claro */
+  :global(html.light) .am-root [style*="background:#0a0e14"],
+  :global(html.light) .am-root [style*="background: #0a0e14"] { background: #f8fafc !important; }
+
+  /* Tonos sky/emerald muy claros sobre fondos translúcidos: oscurecer en modo claro */
+  :global(html.light) .am-root .text-sky-100  { color: #075985; }
+  :global(html.light) .am-root .text-sky-200  { color: #0369a1; }
+  :global(html.light) .am-root .text-sky-300  { color: #0284c7; }
+  :global(html.light) .am-root .text-sky-400  { color: #0284c7; }
+  :global(html.light) .am-root .text-emerald-400 { color: #047857; }
+  :global(html.light) .am-root .text-amber-400 { color: #b45309; }
+  :global(html.light) .am-root .text-red-400 { color: #b91c1c; }
+
+  /* Placeholders */
+  :global(html.light) .am-root input::placeholder,
+  :global(html.light) .am-root textarea::placeholder { color: #94a3b8; }
+
+  /* Inputs / selects: fondo y texto */
+  :global(html.light) .am-root input,
+  :global(html.light) .am-root select,
+  :global(html.light) .am-root textarea { color: #0f172a; }
+
+  /* Tooltips internos en gráfico (bg-slate-900) */
+  :global(html.light) .am-root .bg-slate-900 { background: #1e293b; }
+  :global(html.light) .am-root .bg-slate-800 { background: #334155; }
+
+  /* Badge "Tú" del chat (bg-slate-700) en modo claro */
+  :global(html.light) .am-root .bg-slate-700 { background: #cbd5e1; color: #0f172a; }
 
   /* Burbujas Tanque A */
   @keyframes bubble1 { 0%{transform:translateY(0);opacity:0} 20%{opacity:0.7} 100%{transform:translateY(-100px);opacity:0} }

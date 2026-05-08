@@ -1,5 +1,5 @@
 """
-Camaleón OS — Servidor Demo Mínimo
+HidroTech — Servidor Demo Mínimo
 Carga solo los routers /water/* y /water/agent/* sin las dependencias pesadas
 (langgraph, crewai, supabase). Ideal para mostrar el dashboard rápidamente.
 
@@ -35,14 +35,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Importar SOLO los routers de Camaleón (sin LLM/RAG/etc)
+# Importar SOLO los routers de HidroTech (sin LLM/RAG/etc)
 from app.routers import water, mitigation, telegram_notify
 from app.sensors.normalizer import normalize, normalize_payload
 from app.sensors.schemas import IngestPayload, IngestResult
 
 
 app = FastAPI(
-    title="Camaleón OS · Demo Backend",
+    title="HidroTech · Demo Backend",
     version="1.0.0",
     description="Backend mínimo para demo del hackathon UNIAJC 2026.",
 )
@@ -133,13 +133,13 @@ async def _autostart_agent():
         # Ejecutar 1 ciclo inmediato para que el dashboard tenga datos al cargar
         await _agent.run_cycle()
         _agent._task = asyncio.create_task(_agent.start())
-        print("[startup] Agente Camaleón iniciado automaticamente (cada 30s)")
+        print("[startup] Agente HidroTech iniciado automaticamente (cada 30s)")
 
 
 @app.get("/", tags=["meta"])
 async def root():
     return {
-        "service":  "Camaleón OS · Demo Backend",
+        "service":  "HidroTech · Demo Backend",
         "version":  "1.0.0",
         "campus":   "UNIAJC Sede Sur",
         "endpoints": {
@@ -185,7 +185,7 @@ async def list_formats():
                 {"name": "json_array",    "desc": "Lista de objetos JSON"},
                 {"name": "ndjson",        "desc": "Newline-delimited JSON (un dict por linea)"},
                 {"name": "csv",           "desc": "CSV con header timestamp,sensor_id,model,value"},
-                {"name": "esp32_compact", "desc": "Formato compacto del firmware ESP32 de Camaleón"},
+                {"name": "esp32_compact", "desc": "Formato compacto del firmware ESP32 de HidroTech"},
                 {"name": "modbus",        "desc": "Lista [(addr, valor), ...] de holding registers"},
                 {"name": "scada",         "desc": "Tag-based SCADA (FT-101, PT-201, ...)"},
                 {"name": "opcua",         "desc": "OPC-UA con NodeId -> {Value, SourceTimestamp}"},
@@ -334,19 +334,17 @@ _INTENT_KEYWORDS = {
     "saludo":      [("hola", 3), ("buenas", 2), ("buenos dias", 3), ("saludos", 2),
                     ("hey", 2), ("hi", 2), ("que tal", 2)],
     "fuga":        [("fuga", 4), ("perdida", 3), ("perdidas", 3), ("leak", 3),
-                    ("vibracion", 2), ("rotura", 3), ("anomal", 2), ("alerta", 2),
-                    ("falla", 2), ("problema", 1), ("critico", 1)],
-    "calidad":     [("calidad", 4), ("turbidez", 4), ("ntu", 3), ("potable", 3),
-                    ("limpia", 2), ("ica", 2), ("contamin", 2), ("cloro", 2),
-                    ("ph", 2), ("nitrato", 3), ("fosfato", 3), ("microbio", 3)],
+                    ("rotura", 3), ("anomal", 2), ("alerta", 2),
+                    ("falla", 2), ("problema", 1), ("critico", 1), ("tpp", 3)],
     "tanques":     [("tanque", 4), ("tank", 3), ("almacenamiento", 3), ("nivel", 2),
                     ("lleno", 2), ("vacio", 2), ("reserva", 2)],
     "presion":     [("presion", 4), ("kpa", 3), ("psi", 3), ("bomba", 3),
                     ("hidroneumatic", 3), ("flujo", 1)],
-    "freatico":    [("freatico", 4), ("acuifero", 4), ("pozo", 3), ("aljibe", 3),
-                    ("subterran", 2)],
+    "humedad":     [("humedad", 4), ("riego", 4), ("suelo", 3), ("cancha", 3),
+                    ("jardin", 3), ("zona verde", 3), ("aspersor", 3), ("h ", 2)],
     "sensores":    [("sensor", 3), ("medicion", 2), ("instrument", 2),
-                    ("dispositivo", 2), ("ft-", 2), ("pt-", 2), ("at-", 2)],
+                    ("dispositivo", 2), ("yf-s201", 3), ("yf-dn50", 3),
+                    ("mpx5700", 3), ("jsn-sr04", 3), ("hw-080", 3)],
     "mitigacion":  [("mitig", 4), ("accion", 3), ("recomend", 3), ("hacer", 1),
                     ("debo", 2), ("hago", 2), ("sugiere", 2), ("consejo", 2),
                     ("solucion", 3), ("estrategia", 2)],
@@ -385,94 +383,141 @@ def _score_intents(question: str) -> list[tuple[str, int]]:
 
 def _frag_saludo(r, kpis, alerts):
     crit = sum(1 for k in kpis.values() if k["status"] == "critical")
-    base = "Hola, soy el agente conversacional de Camaleón OS."
+    base = "Hola, soy el agente conversacional de HidroTech, el sistema multi-agente de gestión hídrica de UNIAJC Sede Sur."
     if crit:
-        return f"{base} Veo {len(alerts)} alertas activas y {crit} KPIs en rojo, asi que hay temas por resolver."
+        return (f"{base} Ahora mismo veo {len(alerts)} alerta(s) activa(s) y {crit} indicador(es) en rojo, "
+                f"así que tenemos varios temas urgentes por resolver. Cuéntame qué quieres revisar.")
     if alerts:
-        return f"{base} Hay {len(alerts)} alertas pero sin nada critico ahora."
-    return f"{base} El sistema esta tranquilo. En que te ayudo?"
+        return (f"{base} Detecto {len(alerts)} alerta(s) pero ninguna es crítica en este momento. "
+                f"¿Te interesa que revise alguna en detalle?")
+    return f"{base} El sistema está operando con normalidad: tanques estables, sin fugas detectadas y caudal dentro de rango. ¿En qué te puedo ayudar?"
 
 
 def _frag_fuga(r, kpis, alerts):
-    cost = int(r["losses_l_min"] * 1440 * 3.5)
-    severity = "Critica" if kpis["TPP"]["status"] == "critical" else "moderada"
-    vib = "Si, vibracion confirmada por SW-420 en Bloque A." if r["vibration"] else "Sin vibracion anomala."
-    extra = " Recomiendo cerrar EV-A2 y mandar tecnico al tramo." if kpis["TPP"]["status"] == "critical" else ""
-    return (f"TPP {kpis['TPP']['value']}% (meta <10%), severidad {severity}. {vib} "
-            f"Costo estimado del desperdicio: ${cost:,} COP/dia.{extra}")
-
-
-def _frag_calidad(r, kpis, alerts):
-    in_norm = r["turbidity_ntu"] <= 4
-    estado = "dentro de Resolucion 2115/2007" if in_norm else "FUERA de norma - suspender distribucion"
-    return (f"Turbidez {r['turbidity_ntu']} NTU ({estado}, limite 4). "
-            f"Indice de calidad ICA: {kpis['ICA']['value']} pts.")
+    tpp = kpis['TPP']['value']
+    losses = r['losses_l_min']
+    estudiantes_dia = int(losses * 1440 / 14.04) if losses > 0 else 0
+    if kpis["TPP"]["status"] == "critical":
+        return (f"Sí, hay un problema serio: la Tasa de Pérdidas del Proceso (TPP) está en {tpp}% "
+                f"cuando la meta es menor al 10%. Eso significa que se están perdiendo aproximadamente "
+                f"{losses:.1f} litros por minuto, equivalente al consumo diario de {estudiantes_dia:,} estudiantes. "
+                f"Mi recomendación inmediata es cerrar la electroválvula EV-A2 del Bloque A para aislar "
+                f"el tramo sospechoso, dejar la bomba en standby y enviar una cuadrilla a inspección física.")
+    if kpis["TPP"]["status"] == "warning":
+        return (f"Hay pérdidas moderadas: TPP en {tpp}%, ligeramente por encima del rango ideal (<10%). "
+                f"Se están escapando {losses:.1f} L/min. Aún no es crítico, pero conviene revisar las "
+                f"uniones del Bloque A en el próximo turno de mantenimiento antes de que escale.")
+    return (f"Todo bien por ese lado: la TPP está en {tpp}%, dentro de la meta (<10%). "
+            f"No detecto fugas significativas, las pérdidas están en {losses:.1f} L/min, "
+            f"que es lo esperable por evaporación y consumo no contabilizado.")
 
 
 def _frag_tanques(r, kpis, alerts):
-    pump = "encendida" if r["pump_active"] else "en standby"
-    return (f"Tanque A {r['tank_a_pct']}% ({r['tank_a_l']:,} L de 36,000). "
-            f"Tanque B {r['tank_b_pct']}% ({r['tank_b_l']:,} L de 16,000). "
-            f"La bomba esta {pump}.")
+    pump = "encendida bombeando agua hacia Tanque A" if r["pump_active"] else "en standby (no se necesita reposición ahora)"
+    a_estado = "lleno" if r['tank_a_pct'] > 80 else ("nivel saludable" if r['tank_a_pct'] > 50 else ("nivel bajo, la bomba debería activarse pronto" if r['tank_a_pct'] > 33 else "nivel CRÍTICO"))
+    b_estado = "lleno" if r['tank_b_pct'] > 80 else ("nivel saludable" if r['tank_b_pct'] > 50 else "nivel bajo")
+    return (f"Te cuento cómo están los dos tanques: el Tanque A (principal, capacidad 36,000 L) "
+            f"está al {r['tank_a_pct']}% — {r['tank_a_l']:,} litros — {a_estado}. "
+            f"El Tanque B (distribución, 16,000 L) está al {r['tank_b_pct']}% con {r['tank_b_l']:,} litros, {b_estado}. "
+            f"La bomba está {pump}. El umbral de activación automática es 66.7% en el Tanque A.")
 
 
 def _frag_presion(r, kpis, alerts):
-    rango = "rango optimo" if 200 <= r["pressure_kpa"] <= 400 else "fuera del rango optimo (200-400 kPa)"
-    return (f"Presion red {r['pressure_kpa']} kPa, {rango}. "
-            f"{'Vibracion detectada - investigar fuga.' if r['vibration'] else 'Sistema mecanico estable.'}")
+    p = r['pressure_kpa']
+    if 200 <= p <= 400:
+        diag = "está dentro del rango óptimo (200-400 kPa), ideal para evitar tanto el desperdicio por sobrepresión como las quejas de bajo flujo en pisos altos"
+    elif p < 200:
+        diag = "está por debajo del rango óptimo, lo que puede indicar fuga aguas abajo, bomba subdimensionada o pico de demanda simultáneo"
+    else:
+        diag = "está por encima del rango óptimo, lo que estresa juntas y multiplica fugas; conviene reducir el setpoint nocturno a 25-28 PSI"
+    return (f"La presión actual de la red es de {p} kPa y {diag}. "
+            f"La bomba está {'activa' if r['pump_active'] else 'en standby'} y el caudal de entrada es de {r['total_flow_lmin']} L/min.")
 
 
-def _frag_freatico(r, kpis, alerts):
-    estado = "BAJO el umbral de 4m, riesgo de sobreexplotacion" if r["phreatic_m"] < 4 else "saludable"
-    return (f"Nivel freatico {r['phreatic_m']} m, {estado}. "
-            f"Aljibes 1+2 entregando {r['flow1_lmin']}+{r['flow2_lmin']} = {r['total_flow_lmin']} L/min. "
-            f"Monitoreo cumple Decreto 1076/2015.")
+def _frag_humedad(r, kpis, alerts):
+    h = r.get('soil_humidity_pct', 0)
+    riego = r.get('zones', {}).get('Riego/Cancha', 0)
+    if h < 30:
+        diag = ("La humedad está por debajo del 30%, lo que indica suelo seco. "
+                "Recomiendo activar el riego de la cancha durante 25-30 minutos en horario nocturno (22:00-04:00) "
+                "para evitar evaporación y aprovechar la tarifa de baja demanda.")
+    elif h < 50:
+        diag = ("La humedad está en zona intermedia. No es urgente regar, pero si no llueve en las próximas 12 horas "
+                "convendría programar un riego corto.")
+    else:
+        diag = ("La humedad está saludable, así que NO se necesita riego ahora — "
+                "regar en estas condiciones sería desperdicio puro (muda Lean #1: sobreproducción).")
+    return (f"El sensor H (humedad de suelo, modelo HW-080) en la zona de la cancha marca {h}%. {diag} "
+            f"El caudal actual hacia riego es de {riego} L/min.")
 
 
 def _frag_sensores(r, kpis, alerts):
-    return ("Tengo 6 sensores activos: YF-S201 caudal, MPX5700AP presion, JSN-SR04T nivel, "
-            "SW-420 vibracion, transductor 4-20mA freatico y TSD-10 turbidez. "
-            "Muestreo a 1 Hz, transmision MQTT cada 30s. El normalizador acepta JSON, CSV, "
-            "Modbus, OPC-UA y SCADA tag-based.")
+    return ("El sistema usa 5 sensores en operación, instalados en puntos estratégicos del campus: "
+            "Q es el caudalímetro general (YF-S201) que mide cuánta agua entra desde los aljibes; "
+            "R es el caudalímetro específico de riego (YF-DN50) en la línea de la cancha; "
+            "P es el transductor de presión (MPX5700AP) en la red de distribución; "
+            "N son los ultrasonidos (JSN-SR04T) que miden el nivel en Tanque A y Tanque B; "
+            "y H es el sensor capacitivo de humedad de suelo (HW-080) enterrado en la zona verde. "
+            "Todos transmiten cada 30 segundos vía MQTT al backend.")
 
 
 def _frag_mitigacion(r, kpis, alerts):
     if kpis["TPP"]["status"] == "critical":
-        return ("Como hay TPP critica, mi recomendacion es: 1) cerrar EV-A2 inmediato, "
-                "2) bomba a standby, 3) inspeccion fisica del tramo Bloque A, "
-                "4) generar OT con ID rastreable.")
-    if r["turbidity_ntu"] > 4:
-        return ("Por turbidez fuera de norma: 1) suspender distribucion en Tank A, "
-                "2) retrolavado de filtros, 3) tomar muestra al INVIMA.")
-    return "Estado tranquilo, sigo monitoreando ciclos de 30s y aviso si algo se sale de rango."
+        return ("Dado que la TPP está crítica, te propongo una mitigación en cuatro pasos secuenciales: "
+                "primero, cerrar la electroválvula EV-A2 para aislar el tramo del Bloque A donde sospecho la fuga; "
+                "segundo, poner la bomba en standby para no seguir empujando agua perdida; "
+                "tercero, generar una orden de trabajo (OT) con ID rastreable para la cuadrilla de mantenimiento; "
+                "y cuarto, monitorear cómo cae la TPP en los próximos 15 minutos para confirmar que el aislamiento funcionó.")
+    h = r.get('soil_humidity_pct', 100)
+    if h < 30:
+        return ("La humedad de suelo está crítica, así que la acción es activar el ciclo de riego nocturno: "
+                "abrir la electroválvula EV-RC1 durante 25 minutos a partir de las 22:00, "
+                "monitorear que la humedad suba a 50%+ antes de cerrar y registrar el evento en la bitácora.")
+    return ("El sistema está estable, no hay nada urgente que mitigar. "
+            "Sigo monitoreando los 5 sensores cada 30 segundos y, si algo se sale de rango, te aviso de inmediato "
+            "con la acción concreta recomendada y los costos asociados.")
 
 
 def _frag_normativa(r, kpis, alerts):
     crit = [a for a in alerts if a["level"] == "critical"]
-    cumple = "Sin incumplimientos criticos ahora." if not crit else f"Hay {len(crit)} parametros fuera de norma."
-    return ("Normativas que vigilo: Decreto 1575/2007 y Resolucion 2115/2007 (calidad), "
-            "Decreto 1076/2015 (acuifero), Resolucion 0631/2015 (vertimientos), "
-            f"Resolucion 1207/2014 (reuso). {cumple}")
+    cumple = ("Por ahora no detecto incumplimientos críticos." if not crit
+              else f"Tenemos {len(crit)} parámetro(s) fuera de norma que requieren atención.")
+    return ("Las normativas colombianas que estoy vigilando en tiempo real son: "
+            "Decreto 1575/2007 y Resolución 2115/2007 sobre calidad del agua potable; "
+            "Decreto 1076/2015 sobre uso sostenible de acuíferos; "
+            "Resolución 0631/2015 sobre vertimientos a cuerpos de agua; "
+            f"y Resolución 1207/2014 sobre reúso de aguas residuales tratadas. {cumple}")
 
 
 def _frag_sostenibilidad(r, kpis, alerts):
-    return ("Aporto a 5 ODS: agua limpia (TPP 25%->10%), industria (IoT+IA en planta de 2011), "
-            "ciudades sostenibles (modelo replicable), produccion responsable (7 mudas Lean), "
-            "accion climatica (~2.3 ton CO2/ano evitadas).")
+    return ("HidroTech aporta a varios Objetivos de Desarrollo Sostenible (ODS) de la ONU: "
+            "ODS 6 agua limpia (reducir TPP del 25% al 10% recupera ~16,500 L/día), "
+            "ODS 9 industria e innovación (modernización IoT+IA en planta de 2011 sin reemplazarla), "
+            "ODS 11 ciudades sostenibles (el sistema es replicable a otras universidades), "
+            "y ODS 12 producción responsable (eliminamos las 7 mudas Lean clásicas en gestión de agua).")
 
 
 def _frag_agente(r, kpis, alerts):
-    return ("Soy el agente conversacional de Camaleón OS. Coordino 5 agentes especializados: "
-            "Orchestrator, Systems (KPIs+IsolationForest), Sensor (validacion), "
-            "Industrial (Lean+ML predictivo) y Mitigation (accion). "
-            "Cada uno hace analisis descriptivo, predictivo o prescriptivo segun toque.")
+    return ("Soy el agente conversacional de HidroTech, pero detrás de mí trabajan 5 agentes especializados "
+            "coordinados con LangGraph: el Orchestrator decide cuándo deliberar; el Systems Agent calcula KPIs y "
+            "detecta anomalías con IsolationForest; el Sensor Agent valida que las lecturas tengan sentido físico; "
+            "el Industrial Agent identifica mudas Lean y hace ML predictivo; y el Mitigation Agent ejecuta las "
+            "acciones (abrir/cerrar válvulas, ajustar bomba). Cada uno aporta análisis descriptivo, predictivo o "
+            "prescriptivo según lo que pide el contexto.")
 
 
 def _frag_general(r, kpis, alerts):
-    return (f"Estado en vivo: {len(alerts)} alertas, IEH {kpis['IEH']['value']}% [{kpis['IEH']['status']}], "
-            f"TPP {kpis['TPP']['value']}% [{kpis['TPP']['status']}], CPE {kpis['CPE']['value']} L/est. "
-            f"Caudal {r['total_flow_lmin']} L/min, presion {r['pressure_kpa']} kPa, "
-            f"tanques A {r['tank_a_pct']}% / B {r['tank_b_pct']}%.")
+    estado = ("estado normal" if not alerts
+              else (f"hay {len(alerts)} alerta(s), incluida atención crítica" if any(a['level']=='critical' for a in alerts)
+                    else f"hay {len(alerts)} aviso(s) pero nada crítico"))
+    return (f"Resumen ejecutivo del sistema en este momento: {estado}. "
+            f"La eficiencia hídrica (IEH) está en {kpis['IEH']['value']}% [meta >90%], "
+            f"las pérdidas (TPP) en {kpis['TPP']['value']}% [meta <10%] "
+            f"y el consumo per estudiante (CPE) en {kpis['CPE']['value']} L/día. "
+            f"Los sensores reportan: caudal general Q={r['total_flow_lmin']} L/min, "
+            f"presión P={r['pressure_kpa']} kPa, "
+            f"tanques N=A:{r['tank_a_pct']}% / B:{r['tank_b_pct']}%, "
+            f"humedad H={r.get('soil_humidity_pct', 0)}%.")
 
 
 def _frag_reuso(r, kpis, alerts):
@@ -500,10 +545,9 @@ def _frag_fuentes(r, kpis, alerts):
 _FRAGMENTS = {
     "saludo":         _frag_saludo,
     "fuga":           _frag_fuga,
-    "calidad":        _frag_calidad,
     "tanques":        _frag_tanques,
     "presion":        _frag_presion,
-    "freatico":       _frag_freatico,
+    "humedad":        _frag_humedad,
     "sensores":       _frag_sensores,
     "mitigacion":     _frag_mitigacion,
     "normativa":      _frag_normativa,
@@ -530,11 +574,13 @@ def _fallback_response(messages: list[dict]) -> str:
 
     intents = _score_intents(question)
     if not intents:
-        return (f"No identifique el tema. Te puedo contar sobre: fugas, calidad del agua, "
-                f"tanques, presion, acuifero, sensores, normativa, mitigacion, reuso de "
-                f"aguas residuales o el plan ante fenomeno del Nino. Estado actual: TPP "
-                f"{kpis['TPP']['value']}%, caudal {r['total_flow_lmin']} L/min, "
-                f"{len(alerts)} alertas.")
+        return (f"No alcancé a identificar bien el tema de tu pregunta. Te puedo ayudar con varios temas: "
+                f"fugas y pérdidas de la red, niveles de los tanques A y B, presión de distribución, "
+                f"humedad de suelo y riego de la cancha, los 5 sensores instalados, mitigación y acciones "
+                f"recomendadas, normativa colombiana aplicable, reúso de aguas residuales tratadas o el plan "
+                f"ante fenómenos climáticos como El Niño. "
+                f"Como contexto rápido del estado actual: TPP {kpis['TPP']['value']}%, "
+                f"caudal {r['total_flow_lmin']} L/min, {len(alerts)} alerta(s) activa(s). ¿Qué te interesa revisar?")
 
     fragments: list[str] = []
     seen: set[str] = set()
@@ -552,7 +598,7 @@ def _fallback_response(messages: list[dict]) -> str:
 
 
 def _system_prompt() -> str:
-    return """Eres el agente IA de Camaleón OS, sistema de gestión hídrica de UNIAJC Sede Sur en Cali, Colombia.
+    return """Eres el agente IA de HidroTech, sistema de gestión hídrica de UNIAJC Sede Sur en Cali, Colombia.
 
 Datos del campus:
 - 8,234 usuarios totales · 3,230 estudiantes activos
@@ -563,8 +609,16 @@ Datos del campus:
 - 161 fuentes de consumo (51 sanitarios, 53 lavamanos, etc.)
 - 67% consumo en Parquesoft · 33% en Alameda
 
+Sensores en operación (5):
+- Q: caudal general (YF-S201)
+- R: caudal de riego (YF-DN50)
+- P: presión de red (MPX5700AP)
+- N: nivel de tanques (JSN-SR04T)
+- H: humedad de suelo (HW-080)
+NO menciones turbidez, ICA, vibración ni nivel freático: esos sensores ya no forman parte del sistema.
+
 Tu rol:
-- Analizar lecturas de los 6 sensores y los KPIs (IEH, TPP, CPE, ICA)
+- Analizar lecturas de los 5 sensores Q/R/P/N/H y los KPIs (IEH, TPP, CPE)
 - Identificar patrones, anomalías, mudas Lean
 - Recomendar acciones de mitigación concretas
 - Citar normativas colombianas relevantes (Resolución 2115/2007, 0631/2015, Decreto 1575/2007)
@@ -591,16 +645,14 @@ async def agent_ask(body: AskRequest):
         alerts = water._generate_alerts(r, kpis)
         state_ctx = f"""
 ESTADO ACTUAL DEL SISTEMA (lectura en vivo):
-  Caudal entrada: {r['total_flow_lmin']} L/min
-  Tanque A: {r['tank_a_pct']}% ({r['tank_a_l']} L de 36,000)
-  Tanque B: {r['tank_b_pct']}%
-  Presión red: {r['pressure_kpa']} kPa
-  Nivel freático: {r['phreatic_m']} m
-  Turbidez: {r['turbidity_ntu']} NTU (límite 4)
-  Vibración tubería: {'DETECTADA' if r['vibration'] else 'estable'}
+  Caudal general (Q): {r['total_flow_lmin']} L/min
+  Tanque A (N): {r['tank_a_pct']}% ({r['tank_a_l']} L de 36,000)
+  Tanque B (N): {r['tank_b_pct']}%
+  Presión red (P): {r['pressure_kpa']} kPa
+  Humedad de suelo (H): {r['soil_humidity_pct']}% (zona riego cancha)
   Bomba: {'activa' if r['pump_active'] else 'OFF'}
 
-KPIs: IEH={kpis['IEH']['value']}% [{kpis['IEH']['status']}] · TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}] · CPE={kpis['CPE']['value']} L/est [{kpis['CPE']['status']}] · ICA={kpis['ICA']['value']} [{kpis['ICA']['status']}]
+KPIs: IEH={kpis['IEH']['value']}% [{kpis['IEH']['status']}] · TPP={kpis['TPP']['value']}% [{kpis['TPP']['status']}] · CPE={kpis['CPE']['value']} L/est [{kpis['CPE']['status']}]
 Alertas activas: {len(alerts)}
 """
     messages = [
@@ -623,13 +675,15 @@ async def agent_insights():
     kpis = water._calc_kpis(r)
     alerts = water._generate_alerts(r, kpis)
 
-    prompt = f"""Analiza el estado actual del sistema hídrico UNIAJC y genera 3 insights breves:
+    prompt = f"""Analiza el estado actual del sistema hídrico UNIAJC y genera 3 insights breves.
+
+Sensores disponibles (5): Q caudal general, R caudal riego, P presión, N nivel tanques, H humedad de suelo.
+NO menciones turbidez, freático, ni vibración: ya no se miden.
 
 ESTADO:
-  Caudal: {r['total_flow_lmin']} L/min
-  Tanque A: {r['tank_a_pct']}% · Tanque B: {r['tank_b_pct']}%
-  Presión: {r['pressure_kpa']} kPa · Freático: {r['phreatic_m']} m
-  Turbidez: {r['turbidity_ntu']} NTU · Vibración: {r['vibration']}
+  Caudal Q: {r['total_flow_lmin']} L/min · Riego R: {r.get('zones', {}).get('Riego/Cancha', 0)} L/min
+  Tanque A (N): {r['tank_a_pct']}% · Tanque B (N): {r['tank_b_pct']}%
+  Presión P: {r['pressure_kpa']} kPa · Humedad H: {r['soil_humidity_pct']}%
   IEH: {kpis['IEH']['value']}% · TPP: {kpis['TPP']['value']}% · CPE: {kpis['CPE']['value']}
   Alertas: {len(alerts)}
 
@@ -639,7 +693,7 @@ Devuelve EXACTAMENTE en formato JSON con 3 insights:
   ...
 ]}}
 
-Cada insight debe ser específico, accionable y citar datos."""
+Cada insight debe ser específico, accionable y citar datos de los 5 sensores Q/R/P/N/H o de los KPIs IEH/TPP/CPE."""
 
     messages = [
         {"role": "system", "content": _system_prompt() + "\n\nResponde SOLO con JSON válido, sin texto adicional."},
@@ -655,14 +709,18 @@ Cada insight debe ser específico, accionable y citar datos."""
     except Exception:
         insights = [
             {"icon": "💧", "title": "Caudal monitoreado",
-             "description": f"Sistema operando a {r['total_flow_lmin']} L/min",
+             "description": f"Sistema operando a {r['total_flow_lmin']} L/min (sensor Q)",
              "severity": "ok"},
-            {"icon": "📊", "title": "TPP elevada",
-             "description": f"Pérdidas del {kpis['TPP']['value']}% (meta < 10%) — revisar red",
+            {"icon": "📊", "title": "Eficiencia hídrica",
+             "description": (f"TPP {kpis['TPP']['value']}% — pérdidas elevadas, revisar red"
+                             if kpis['TPP']['status'] != 'ok'
+                             else f"IEH {kpis['IEH']['value']}% · TPP {kpis['TPP']['value']}% dentro de meta"),
              "severity": kpis['TPP']['status']},
-            {"icon": "🔬", "title": "Calidad del agua",
-             "description": f"Turbidez {r['turbidity_ntu']} NTU dentro de norma",
-             "severity": "ok"},
+            {"icon": "🌱", "title": "Humedad de suelo",
+             "description": (f"Humedad {r['soil_humidity_pct']}% — suelo seco, considerar riego"
+                             if r['soil_humidity_pct'] < 35
+                             else f"Humedad {r['soil_humidity_pct']}% en rango saludable (sensor H)"),
+             "severity": "warning" if r['soil_humidity_pct'] < 35 else "ok"},
         ]
     return {"data": {"insights": insights, "generated_at": _dt.now().isoformat(), "raw": raw[:200]}, "error": None}
 
@@ -781,7 +839,7 @@ async def agent_deliberate():
             "execution_time_s": 3.2,
         },
         "telegram_msg": (
-            "🛡️ Camaleón OS — Acción autónoma\n"
+            "🛡️ HidroTech — Acción autónoma\n"
             "Trigger: vibración + caída presión 28%\n"
             "Decisión: cerrar EV-A2\n"
             "Tiempo deliberación: 3.2s\n"
@@ -818,7 +876,7 @@ async def agent_stream():
 if __name__ == "__main__":
     import uvicorn
     print("╔══════════════════════════════════════════════════════════╗")
-    print("║   Camaleón OS · Demo Backend                            ║")
+    print("║   HidroTech · Demo Backend                            ║")
     print("║   UNIAJC Sede Sur · Hackathon 2026                       ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print("  → http://localhost:8000")

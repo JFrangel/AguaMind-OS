@@ -1,5 +1,5 @@
 """
-Camaleón OS — Interfaz local del ESP32.
+HidroTech — Interfaz local del ESP32.
 OLED SSD1306 + LED RGB + Buzzer para mostrar estado sin internet.
 """
 
@@ -38,7 +38,7 @@ class LocalDisplay:
             return
         try:
             self.oled.fill(0)
-            self.oled.text("Camaleón OS", 0, 0)
+            self.oled.text("HidroTech", 0, 0)
             self.oled.text(f"Q: {r.get('flow1_lmin',0):.1f}+{r.get('flow2_lmin',0):.1f}", 0, 12)
             self.oled.text(f"TA:{r.get('level_a_pct',0):.0f}% TB:{r.get('level_b_pct',0):.0f}%", 0, 24)
             self.oled.text(f"P:{r.get('pressure_kpa',0):.0f}kPa", 0, 36)
