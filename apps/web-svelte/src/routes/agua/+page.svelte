@@ -1533,7 +1533,10 @@
   <div class="text-[11px] font-medium tracking-wider uppercase text-amber-400">Plan ante fenómenos</div>
   <div class="text-[12px] text-slate-300 mt-1">5 escenarios con activación automática según señales del sistema</div>
   </div>
-  <span class="text-[10px] font-mono px-2 py-1 rounded bg-emerald-500/15 text-emerald-400">sistema OK</span>
+  <button
+  onclick={() => notifyPhenomenon('drought_mode')}
+  class="text-[10px] font-mono px-2 py-1 rounded bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors cursor-pointer"
+  title="estado del sistema">sistema OK</button>
   </div>
 
   <!-- Grid de fenómenos (5 cards) -->
@@ -1599,12 +1602,6 @@
   class="w-full text-[10px] py-1.5 rounded-md border transition-colors font-medium"
   style="border-color:{p.color}55;background:{p.color}15;color:{p.color}">
   Activar
-  </button>
-  <button
-  onclick={() => notifyPhenomenon(p.trigger)}
-  class="w-full text-[9px] py-1 mt-1 rounded-md border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] text-slate-400 hover:text-slate-200 transition-colors flex items-center justify-center gap-1"
-  title="Avisar al operador on-call vía Telegram para que confirme la activación">
-  ✈ Avisar operador
   </button>
   </div>
   {/each}
